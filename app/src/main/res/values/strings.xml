@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">CourseBlock</string>
+    <string name="action_settings">Settings</string>
+    <string name="todo">TODO</string>
+    <string name="label_login">Login</string>
+
+    <string-array name="days_in_week">
+        <item>周一</item>
+        <item>周二</item>
+        <item>周三</item>
+        <item>周四</item>
+        <item>周五</item>
+        <item>周六</item>
+        <item>周日</item>
+    </string-array>
+</resources>

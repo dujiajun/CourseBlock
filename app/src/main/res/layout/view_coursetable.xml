@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:rowCount="2"
+    android:columnCount="2">
+    <LinearLayout
+        android:layout_width="@dimen/course_table_left_width"
+        android:layout_height="@dimen/course_table_top_height"/>
+
+    <LinearLayout
+        android:id="@+id/layout_title_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorTitleDay"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_left_class"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="@color/colorLeftClass"
+        android:orientation="vertical">
+
+    </LinearLayout>
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:rowCount="14"
+        android:columnCount="7"
+        android:background="@color/colorTableBody">
+
+    </GridLayout>
+</GridLayout>
