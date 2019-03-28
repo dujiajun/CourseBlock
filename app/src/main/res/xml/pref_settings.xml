@@ -7,7 +7,9 @@
             android:title="@string/pref_cur_year" />
         <ListPreference
             android:key="cur_term"
-            android:title="@string/pref_cur_term" />
+            android:title="@string/pref_cur_term"
+            android:entries="@array/pref_term_entries"
+            android:entryValues="@array/pref_term_entry_values"/>
         <ListPreference
             android:key="cur_week"
             android:title="@string/pref_cur_week" />

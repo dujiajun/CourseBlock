@@ -17,10 +17,16 @@
     <string name="pref_cur_year">Current Year</string>
     <string name="pref_cur_term">Current Term</string>
     <string name="pref_cur_week">Current Week</string>
-    <string-array name="pref_terms">
+    <string-array name="pref_term_entries">
         <item>First</item>
         <item>Second</item>
         <item>Summer</item>
+    </string-array>
+
+    <string-array name="pref_term_entry_values">
+        <item>3</item>
+        <item>12</item>
+        <item>16</item>
     </string-array>
 
     <string name="already_logged_in">Already logged in!</string>

@@ -150,10 +150,10 @@ public class CourseManager {
 
     public void updateCourseDatabase(String year, SEMESTER semester, ShowInUICallback callback) {
 
-        new AsyncTask<Void, Void, Void>() {
+        new AsyncTask<Void, Void, Response>() {
 
             @Override
-            protected Void doInBackground(Void... voids) {
+            protected Response doInBackground(Void... voids) {
                 RequestBody requestBody = new FormBody.Builder()
                         .add("xnm", year)
                         .add("xqm", semester.getValue())
@@ -164,20 +164,8 @@ public class CourseManager {
                         .post(requestBody)
                         .build();
                 Log.i("CourseBlock", request.headers().toString());
-                Response response = null;
                 try {
-                    response = client.newCall(request).execute();
-
-                    if (!"application/json;charset=UTF-8".equals(response.header("Content-Type"))) {
-                        Toast.makeText(mContext, R.string.please_log_in, Toast.LENGTH_SHORT).show();
-                        return null;
-                    }
-                    if (response.body() != null) {
-                        String resp = null;
-                        resp = response.body().string();
-                        parseCourseJson(resp);
-                        writeToDatabase();
-                    }
+                    return client.newCall(request).execute();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -185,9 +173,23 @@ public class CourseManager {
             }
 
             @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                callback.onShow(scheduleList);
+            protected void onPostExecute(Response response) {
+                super.onPostExecute(response);
+                try {
+                    if (!"application/json;charset=UTF-8".equals(response.header("Content-Type"))) {
+                        Toast.makeText(mContext, R.string.please_log_in, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (response.body() != null) {
+                        String resp = null;
+                        resp = response.body().string();
+                        parseCourseJson(resp);
+                        writeToDatabase();
+                        callback.onShow(scheduleList);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }.execute();
 

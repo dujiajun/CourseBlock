@@ -14,7 +14,7 @@
     <string name="pref_cur_year">当前学年</string>
     <string name="pref_cur_term">当前学期</string>
     <string name="pref_cur_week">当前周次</string>
-    <string-array name="pref_terms">
+    <string-array name="pref_term_entries">
         <item>第一学期</item>
         <item>第二学期</item>
         <item>夏季学期</item>
