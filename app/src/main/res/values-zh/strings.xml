@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">交课表</string>
+    <string name="action_login">登录</string>
+    <string name="action_settings">设置</string>
+    <string name="action_sync">同步课表</string>
+    <string name="todo">TODO</string>
+    <string name="label_login">登录</string>
+    <string name="label_settings">设置</string>
+
+    <string name="pref_info">基本信息</string>
+    <string name="pref_style">显示效果</string>
+    <string name="pref_not_cur_week">显示非本周课程</string>
+
+    <string name="pref_cur_year">当前学年</string>
+    <string name="pref_cur_term">当前学期</string>
+    <string name="pref_cur_week">当前周次</string>
+    <string-array name="pref_terms">
+        <item>第一学期</item>
+        <item>第二学期</item>
+        <item>夏季学期</item>
+    </string-array>
+
+    <string name="already_logged_in">已经登录！</string>
+    <string name="please_log_in">请先登录！</string>
+</resources>

@@ -9,20 +9,20 @@ import androidx.annotation.Nullable;
 
 public class CourseDBHelper extends SQLiteOpenHelper {
 
-    public static final String CREATE_COURSE_TABLE = "CREATE TABLE course(" +
+    private static final String CREATE_COURSE_TABLE = "CREATE TABLE course(" +
             "id integer primary key autoincrement," +
-            "cno integer not null," +
-            "cname text not null," +
-            "start_week integer," +
-            "end_week integer," +
+            "name text not null," +
+            "room text," +
             "teacher text," +
-            "location text," +
-            "day_in_week integer," +
-            "class_in_day integer)";
-
+            "start integer," +
+            "step integer," +
+            "day integer," +
+            "weeklist text)";
+    private static final String DB_NAME = "course.db";
     private Context mContext;
-    public CourseDBHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
+
+    public CourseDBHelper(@Nullable Context context) {
+        super(context, DB_NAME, null, 1);
         mContext = context;
     }
 

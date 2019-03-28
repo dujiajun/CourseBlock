@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.zhuangfei.timetable.TimetableView;
 import com.zhuangfei.timetable.view.WeekView;
 
@@ -14,8 +13,6 @@ import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
 
-    //private TextView textCourse;
-    //private List<Schedule> scheduleList;
     private CourseManager courseManager;
     private TimetableView timetableView;
     private WeekView weekView;
@@ -27,12 +24,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //textCourse = findViewById(R.id.text_course);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view ->
-                startActivity(new Intent(MainActivity.this, LoginActivity.class))
-        );
 
         timetableView = findViewById(R.id.id_timetableView);
         weekView = findViewById(R.id.id_weekview);
@@ -50,8 +41,10 @@ public class MainActivity extends AppCompatActivity {
                 .isShow(false).showView();
 
         courseManager = CourseManager.getInstance(getApplicationContext());
-        //courseManager.setTimetableView(timetableView);
-        //timetableView.data(courseManager.getScheduleList()).curWeek(1).showView();
+
+        courseManager.readFromDatabase();
+        timetableView.data(courseManager.getScheduleList()).curWeek(1).showView();
+        weekView.data(courseManager.getScheduleList()).updateView();
 
     }
 
@@ -75,17 +68,19 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_login) {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        } else if (id == R.id.action_settings) {
+            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+        } else if (id == R.id.action_sync) {
             courseManager.updateCourseDatabase("2018", CourseManager.SEMESTER.SECOND,
                     schedules -> {
-                timetableView.data(schedules).curWeek(1).showView();
-                weekView.data(schedules).updateView();
-            });
-
-            return true;
+                        timetableView.data(schedules).curWeek(1).showView();
+                        weekView.data(schedules).updateView();
+                    });
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
 

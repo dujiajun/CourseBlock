@@ -1,6 +1,9 @@
 package com.dujiajun.courseblock;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.webkit.CookieManager;
@@ -32,10 +35,12 @@ public class CourseManager {
     private Context mContext;
     private static CourseManager singleton;
     private List<Schedule> scheduleList;
+    private CourseDBHelper dbHelper;
 
     private CourseManager(Context context) {
         mContext = context;
         scheduleList = new ArrayList<>();
+        dbHelper = new CourseDBHelper(context);
     }
 
     public static CourseManager getInstance(Context context) {
@@ -50,15 +55,61 @@ public class CourseManager {
     }
 
     public void writeToDatabase() {
-
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.execSQL("delete from course");
+        for (Schedule s :
+                scheduleList) {
+            ContentValues values = new ContentValues();
+            values.put("name", s.getName());
+            values.put("room", s.getRoom());
+            values.put("teacher", s.getTeacher());
+            values.put("start", s.getStart());
+            values.put("step", s.getStep());
+            values.put("day", s.getDay());
+            values.put("weeklist", getStringFromWeekList(s.getWeekList()));
+            db.insert("course", null, values);
+        }
     }
 
     public void readFromDatabase() {
-
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("select * from course",null);
+        scheduleList.clear();
+        if(cursor.moveToFirst()){
+            do {
+                Schedule schedule = new Schedule();
+                schedule.setName(cursor.getString(cursor.getColumnIndex("name")));
+                schedule.setRoom(cursor.getString(cursor.getColumnIndex("room")));
+                schedule.setTeacher(cursor.getString(cursor.getColumnIndex("teacher")));
+                schedule.setStart(cursor.getInt(cursor.getColumnIndex("start")));
+                schedule.setStep(cursor.getInt(cursor.getColumnIndex("step")));
+                schedule.setDay(cursor.getInt(cursor.getColumnIndex("day")));
+                schedule.setWeekList(getWeekListFromString(cursor.getString(cursor.getColumnIndex("weeklist"))));
+                scheduleList.add(schedule);
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
     }
 
-    public void downloadFromNetwork() {
 
+    private String getStringFromWeekList(List<Integer> weekList) {
+        StringBuilder builder = new StringBuilder();
+        for (Integer i :
+                weekList) {
+            builder.append(i);
+            builder.append(',');
+        }
+        return builder.toString();
+    }
+
+    private List<Integer> getWeekListFromString(String s) {
+        String[] arr = s.split(",");
+        List<Integer> weekList = new ArrayList<>();
+        for (String week :
+                arr) {
+            weekList.add(Integer.valueOf(week));
+        }
+        return weekList;
     }
 
     private OkHttpClient client = new OkHttpClient.Builder()
@@ -67,21 +118,26 @@ public class CourseManager {
 
     public enum SEMESTER {
         FIRST("3"), SECOND("12"), SUMMER("16");
-        private String name;
-
-        SEMESTER(String name) {
-            this.name = name;
+        private String value;
+        //private String showName;
+        SEMESTER(String value) {
+            this.value = value;
+        //    this.showName = showName;
         }
 
-        public String getName() {
-            return name;
+        public String getValue() {
+            return value;
         }
+
+        /*public String getShowName() {
+            return showName;
+        }*/
     }
 
     private void getCourseTable(String year, SEMESTER semester, Callback callback) {
         RequestBody requestBody = new FormBody.Builder()
                 .add("xnm", year)
-                .add("xqm", semester.getName())
+                .add("xqm", semester.getValue())
                 .build();
         String courseJsonUrl = "http://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html";
         Request request = new Request.Builder()
@@ -100,7 +156,7 @@ public class CourseManager {
             protected Void doInBackground(Void... voids) {
                 RequestBody requestBody = new FormBody.Builder()
                         .add("xnm", year)
-                        .add("xqm", semester.getName())
+                        .add("xqm", semester.getValue())
                         .build();
                 String courseJsonUrl = "http://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html";
                 Request request = new Request.Builder()
@@ -113,13 +169,14 @@ public class CourseManager {
                     response = client.newCall(request).execute();
 
                     if (!"application/json;charset=UTF-8".equals(response.header("Content-Type"))) {
-                        Toast.makeText(mContext, "请先登录！", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, R.string.please_log_in, Toast.LENGTH_SHORT).show();
                         return null;
                     }
                     if (response.body() != null) {
                         String resp = null;
                         resp = response.body().string();
                         parseCourseJson(resp);
+                        writeToDatabase();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -144,25 +201,27 @@ public class CourseManager {
         try {
             scheduleList.clear();
             JSONObject jsonObject = new JSONObject(json);
-            JSONObject jsonObjectJmcMap = jsonObject.getJSONObject("xqjmcMap");
+            //JSONObject jsonObjectJmcMap = jsonObject.getJSONObject("xqjmcMap");
             JSONArray jsonArrayKb = jsonObject.getJSONArray("kbList");
+
             for (int i = 0; i < jsonArrayKb.length(); i++) {
                 JSONObject jsonCourse = jsonArrayKb.getJSONObject(i);
-                JSubject subject = new JSubject();
-                subject.setName(jsonCourse.getString("kcmc"));
-                subject.setRoom(jsonCourse.getString("cdmc"));
-                subject.setDay(jsonCourse.getInt("xqj"));
+                Schedule schedule = new Schedule();
+                schedule.setName(jsonCourse.getString("kcmc"));
+                schedule.setRoom(jsonCourse.getString("cdmc"));
+                schedule.setDay(jsonCourse.getInt("xqj"));
                 List<Integer> startAndStep = getStartAndStep(jsonCourse.getString("jcor"));
-                subject.setStart(startAndStep.get(0));
-                subject.setStep(startAndStep.get(1));
-                subject.setTeacher(jsonCourse.getString("xm"));
-                subject.setWeekList(getWeekList(jsonCourse.getString("zcd")));
-                scheduleList.add(subject.getSchedule());
+                schedule.setStart(startAndStep.get(0));
+                schedule.setStep(startAndStep.get(1));
+                schedule.setTeacher(jsonCourse.getString("xm"));
+                schedule.setWeekList(getWeekList(jsonCourse.getString("zcd")));
+                scheduleList.add(schedule);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
+
 
 
     private List<Integer> getWeekList(String weekString) {
