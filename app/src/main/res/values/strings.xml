@@ -13,6 +13,7 @@
     <string name="pref_info">Information</string>
     <string name="pref_style">Show Style</string>
     <string name="pref_not_cur_week">Show courses not in current week</string>
+    <string name="pref_show_weekend">Show weekend</string>
 
     <string name="pref_cur_year">Current Year</string>
     <string name="pref_cur_term">Current Term</string>
@@ -31,4 +32,10 @@
 
     <string name="already_logged_in">Already logged in!</string>
     <string name="please_log_in">Please log in first!</string>
+    <string name="pref_course_time">Show course time</string>
+    <string name="change_take_effect">Changes will take effect after restart this app</string>
+    <string name="action_expand">Expand</string>
+    <string name="current_week">Select current week</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
 </resources>

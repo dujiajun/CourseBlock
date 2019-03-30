@@ -3,7 +3,6 @@ package com.dujiajun.courseblock;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -29,7 +28,7 @@ public class CourseDBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_COURSE_TABLE);
-        Toast.makeText(mContext, "CREATED DATABASE", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(mContext, "CREATED DATABASE", Toast.LENGTH_SHORT).show();
     }
 
     @Override

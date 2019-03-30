@@ -22,4 +22,11 @@
 
     <string name="already_logged_in">已经登录！</string>
     <string name="please_log_in">请先登录！</string>
+    <string name="pref_show_weekend">显示周末</string>
+    <string name="pref_course_time">显示课程时间</string>
+    <string name="change_take_effect">重启应用后生效</string>
+    <string name="action_expand">展开</string>
+    <string name="current_week">输入当前周次</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
 </resources>

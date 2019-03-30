@@ -45,7 +45,7 @@ public class CourseManager {
 
     public static CourseManager getInstance(Context context) {
         if (singleton == null) {
-            singleton = new CourseManager(context);
+            singleton = new CourseManager(context.getApplicationContext());
         }
         return singleton;
     }
@@ -119,19 +119,23 @@ public class CourseManager {
     public enum SEMESTER {
         FIRST("3"), SECOND("12"), SUMMER("16");
         private String value;
-        //private String showName;
         SEMESTER(String value) {
             this.value = value;
-        //    this.showName = showName;
         }
-
         public String getValue() {
             return value;
         }
+    }
 
-        /*public String getShowName() {
-            return showName;
-        }*/
+    public static SEMESTER getSemesterFromValue(String value){
+        if(value == null)
+            return SEMESTER.FIRST;
+        switch (value){
+            case "3":  return SEMESTER.FIRST;
+            case "12": return SEMESTER.SECOND;
+            case "16": return SEMESTER.SUMMER;
+            default:   return SEMESTER.FIRST;
+        }
     }
 
     private void getCourseTable(String year, SEMESTER semester, Callback callback) {

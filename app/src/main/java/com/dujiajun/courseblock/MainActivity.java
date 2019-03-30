@@ -1,21 +1,32 @@
 package com.dujiajun.courseblock;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.zhuangfei.timetable.TimetableView;
+import com.zhuangfei.timetable.listener.OnSlideBuildAdapter;
 import com.zhuangfei.timetable.view.WeekView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.preference.PreferenceManager;
 
 public class MainActivity extends AppCompatActivity {
 
     private CourseManager courseManager;
     private TimetableView timetableView;
     private WeekView weekView;
+
+    SharedPreferences preferences;
+
+    String cur_year;// = preferences.getString("cur_year","2018");
+    String cur_term;// = preferences.getString("cur_term","3");
+    int cur_week;// = preferences.getInt("cur_week",1);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,10 +35,16 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        cur_year = preferences.getString("cur_year","2018");
+        cur_term = preferences.getString("cur_term","3");
+        cur_week = preferences.getInt("cur_week",1);
 
         timetableView = findViewById(R.id.id_timetableView);
         weekView = findViewById(R.id.id_weekview);
-        weekView.curWeek(1)
+
+        //Toast.makeText(this, "test", Toast.LENGTH_SHORT).show();
+        weekView.curWeek(cur_week)
                 .callback(week -> {
                     int cur = timetableView.curWeek();
                     //更新切换后的日期，从当前周cur->切换的周week
@@ -35,22 +52,67 @@ public class MainActivity extends AppCompatActivity {
                             .onUpdateDate(cur, week);
                     timetableView.changeWeekOnly(week);
                 })
-                .callback(() -> {
-
-                })
+                .callback(this::showCurrentWeekDialog)
                 .isShow(false).showView();
 
-        courseManager = CourseManager.getInstance(getApplicationContext());
+        boolean show_weekend = preferences.getBoolean("show_weekend",true);
+        boolean show_not_cur_week = preferences.getBoolean("show_not_cur_week",true);
+        boolean show_time = preferences.getBoolean("show_course_time",true);
 
+        timetableView.curWeek(cur_week)
+                .isShowNotCurWeek(show_not_cur_week)
+                .isShowWeekends(show_weekend);
+        if (show_time)
+            showTime();
+        courseManager = CourseManager.getInstance(getApplicationContext());
         courseManager.readFromDatabase();
-        timetableView.data(courseManager.getScheduleList()).curWeek(1).showView();
+        timetableView.data(courseManager.getScheduleList()).showView();
         weekView.data(courseManager.getScheduleList()).updateView();
+
+    }
+
+    /**
+     * 显示时间
+     * 设置侧边栏构建监听，TimeSlideAdapter是控件实现的可显示时间的侧边栏
+     */
+    protected void showTime() {
+        String[] times = new String[]{
+                "8:00", "8:55", "10:00", "10:55",
+                "12:00", "12:55", "14:00", "14:55",
+                "16:00", "16:55", "18:00","18:55",
+                "20:00", "20:30"
+        };
+        OnSlideBuildAdapter listener= (OnSlideBuildAdapter) timetableView.onSlideBuildListener();
+        listener.setTimes(times)
+                .setTimeTextColor(Color.BLACK);
+        timetableView.updateSlideView();
+    }
+
+    private void showCurrentWeekDialog() {
+
+        final String[] items = new String[20];
+        for (int i = 1;i <= 20;i++)
+            items[i-1] = String.valueOf(i);
+        AlertDialog.Builder listDialog =
+                new AlertDialog.Builder(MainActivity.this);
+        listDialog.setTitle(R.string.current_week);
+        listDialog.setItems(items, (dialog, which) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt("cur_week",which+1);
+            weekView.curWeek(which+1).updateView();
+            timetableView.changeWeekOnly(which+1);
+            editor.apply();
+        });
+        listDialog.show();
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        cur_year = preferences.getString("cur_year","2018");
+        cur_term = preferences.getString("cur_term","12");
+        cur_week = preferences.getInt("cur_week",1);
     }
 
     @Override
@@ -73,11 +135,20 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_settings) {
             startActivity(new Intent(MainActivity.this, SettingsActivity.class));
         } else if (id == R.id.action_sync) {
-            courseManager.updateCourseDatabase("2018", CourseManager.SEMESTER.SECOND,
-                    schedules -> {
-                        timetableView.data(schedules).curWeek(1).showView();
+            CourseManager.SEMESTER semester = CourseManager.getSemesterFromValue(cur_term);
+            courseManager.updateCourseDatabase(cur_year
+                    , semester
+                    , schedules -> {
+                        timetableView.data(schedules).showView();
                         weekView.data(schedules).updateView();
                     });
+        } else if (id == R.id.action_expand){
+            if (weekView.isShowing())
+                item.setIcon(R.mipmap.ic_expand_more_black_24dp);
+            else
+                item.setIcon(R.mipmap.ic_expand_less_black_24dp);
+
+            weekView.isShow(!weekView.isShowing());
         }
 
         return true;
