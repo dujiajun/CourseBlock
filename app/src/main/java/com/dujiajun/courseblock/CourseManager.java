@@ -246,7 +246,7 @@ public class CourseManager {
                 schedule.setName(jsonCourse.getString("kcmc"));
                 schedule.setRoom(jsonCourse.getString("cdmc"));
                 schedule.setDay(jsonCourse.getInt("xqj"));
-                List<Integer> startAndStep = getStartAndStep(jsonCourse.getString("jcor"));
+                List<Integer> startAndStep = getStartAndStep(jsonCourse.getString("jcs"));
                 schedule.setStart(startAndStep.get(0));
                 schedule.setStep(startAndStep.get(1));
                 schedule.setTeacher(jsonCourse.getString("xm"));
