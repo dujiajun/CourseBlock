@@ -174,7 +174,7 @@ public class CourseManager {
                 .build();
         Log.i("CourseBlock", request.headers().toString());
 
-        handler.setCallback(callback);
+        responseHandler.setCallback(callback);
 
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -184,21 +184,28 @@ public class CourseManager {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                String header = response.header("Content-Type");
+                String body = response.body().string();
                 Message message = new Message();
-                message.obj = response;
-                message.what = 0;
 
-                handler.sendMessage(message);
+                if (!"application/json;charset=UTF-8".equals(header)) {
+                    message.what = MSG_TYPE_HEADER;
+                } else {
+                    message.what = MSG_TYPE_BODY;
+                    message.obj = body;
+                }
+                responseHandler.sendMessage(message);
             }
         });
-
-
     }
 
-    private class MyHandler extends Handler {
+    private final int MSG_TYPE_HEADER = 1;
+    private final int MSG_TYPE_BODY = 0;
+
+    private class ResponseHandler extends Handler {
         ShowInUICallback callback;
 
-        public MyHandler(Looper looper) {
+        public ResponseHandler(Looper looper) {
             super(looper);
         }
 
@@ -207,26 +214,17 @@ public class CourseManager {
         }
     }
 
-    private MyHandler handler = new MyHandler(Looper.getMainLooper()) {
+    private ResponseHandler responseHandler = new ResponseHandler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
-            Response response = (Response) msg.obj;
-
-            try {
-                if (!"application/json;charset=UTF-8".equals(response.header("Content-Type"))) {
-                    Toast.makeText(mContext, R.string.please_log_in, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (response.body() != null) {
-                    String resp;
-                    resp = response.body().string();
-                    parseCourseJson(resp);
-                    writeToDatabase();
-                    if (callback != null)
-                        callback.onShow(scheduleList);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (msg.what == MSG_TYPE_HEADER) {
+                Toast.makeText(mContext, R.string.please_log_in, Toast.LENGTH_SHORT).show();
+            } else if (msg.what == MSG_TYPE_BODY) {
+                String resp = (String) msg.obj;
+                parseCourseJson(resp);
+                writeToDatabase();
+                if (callback != null)
+                    callback.onShow(scheduleList);
             }
         }
     };
