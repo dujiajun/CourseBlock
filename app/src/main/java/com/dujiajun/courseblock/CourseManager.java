@@ -4,7 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.webkit.CookieManager;
 import android.widget.Toast;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
@@ -73,9 +76,9 @@ public class CourseManager {
 
     public void readFromDatabase() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("select * from course",null);
+        Cursor cursor = db.rawQuery("select * from course", null);
         scheduleList.clear();
-        if(cursor.moveToFirst()){
+        if (cursor.moveToFirst()) {
             do {
                 Schedule schedule = new Schedule();
                 schedule.setName(cursor.getString(cursor.getColumnIndex("name")));
@@ -86,7 +89,7 @@ public class CourseManager {
                 schedule.setDay(cursor.getInt(cursor.getColumnIndex("day")));
                 schedule.setWeekList(getWeekListFromString(cursor.getString(cursor.getColumnIndex("weeklist"))));
                 scheduleList.add(schedule);
-            }while (cursor.moveToNext());
+            } while (cursor.moveToNext());
         }
         cursor.close();
     }
@@ -119,22 +122,28 @@ public class CourseManager {
     public enum SEMESTER {
         FIRST("3"), SECOND("12"), SUMMER("16");
         private String value;
+
         SEMESTER(String value) {
             this.value = value;
         }
+
         public String getValue() {
             return value;
         }
     }
 
-    public static SEMESTER getSemesterFromValue(String value){
-        if(value == null)
+    public static SEMESTER getSemesterFromValue(String value) {
+        if (value == null)
             return SEMESTER.FIRST;
-        switch (value){
-            case "3":  return SEMESTER.FIRST;
-            case "12": return SEMESTER.SECOND;
-            case "16": return SEMESTER.SUMMER;
-            default:   return SEMESTER.FIRST;
+        switch (value) {
+            case "3":
+                return SEMESTER.FIRST;
+            case "12":
+                return SEMESTER.SECOND;
+            case "16":
+                return SEMESTER.SUMMER;
+            default:
+                return SEMESTER.FIRST;
         }
     }
 
@@ -154,50 +163,73 @@ public class CourseManager {
 
     public void updateCourseDatabase(String year, SEMESTER semester, ShowInUICallback callback) {
 
-        new AsyncTask<Void, Void, Response>() {
+        RequestBody requestBody = new FormBody.Builder()
+                .add("xnm", year)
+                .add("xqm", semester.getValue())
+                .build();
+        String courseJsonUrl = "http://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html";
+        Request request = new Request.Builder()
+                .url(courseJsonUrl)
+                .post(requestBody)
+                .build();
+        Log.i("CourseBlock", request.headers().toString());
 
+        handler.setCallback(callback);
+
+        client.newCall(request).enqueue(new Callback() {
             @Override
-            protected Response doInBackground(Void... voids) {
-                RequestBody requestBody = new FormBody.Builder()
-                        .add("xnm", year)
-                        .add("xqm", semester.getValue())
-                        .build();
-                String courseJsonUrl = "http://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html";
-                Request request = new Request.Builder()
-                        .url(courseJsonUrl)
-                        .post(requestBody)
-                        .build();
-                Log.i("CourseBlock", request.headers().toString());
-                try {
-                    return client.newCall(request).execute();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
             }
 
             @Override
-            protected void onPostExecute(Response response) {
-                super.onPostExecute(response);
-                try {
-                    if (!"application/json;charset=UTF-8".equals(response.header("Content-Type"))) {
-                        Toast.makeText(mContext, R.string.please_log_in, Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if (response.body() != null) {
-                        String resp = null;
-                        resp = response.body().string();
-                        parseCourseJson(resp);
-                        writeToDatabase();
-                        callback.onShow(scheduleList);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            public void onResponse(Call call, Response response) throws IOException {
+                Message message = new Message();
+                message.obj = response;
+                message.what = 0;
+
+                handler.sendMessage(message);
             }
-        }.execute();
+        });
+
 
     }
+
+    private class MyHandler extends Handler {
+        ShowInUICallback callback;
+
+        public MyHandler(Looper looper) {
+            super(looper);
+        }
+
+        public void setCallback(ShowInUICallback callback) {
+            this.callback = callback;
+        }
+    }
+
+    private MyHandler handler = new MyHandler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            Response response = (Response) msg.obj;
+
+            try {
+                if (!"application/json;charset=UTF-8".equals(response.header("Content-Type"))) {
+                    Toast.makeText(mContext, R.string.please_log_in, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (response.body() != null) {
+                    String resp;
+                    resp = response.body().string();
+                    parseCourseJson(resp);
+                    writeToDatabase();
+                    if (callback != null)
+                        callback.onShow(scheduleList);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     public interface ShowInUICallback {
         void onShow(List<Schedule> schedules);
@@ -227,7 +259,6 @@ public class CourseManager {
             e.printStackTrace();
         }
     }
-
 
 
     private List<Integer> getWeekList(String weekString) {
