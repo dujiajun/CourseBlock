@@ -11,6 +11,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SwitchPreference;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -30,19 +31,25 @@ public class SettingsActivity extends AppCompatActivity {
     public static class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
 
         private ListPreference curYearListPreference;
-        //private ListPreference curWeekListPreference;
         private ListPreference curTermListPreference;
+        private SwitchPreference showNotCurWeekPreference;
+        private SwitchPreference showWeekendPreference;
+        private SwitchPreference showTimePreference;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.pref_settings, rootKey);
 
-            //curWeekListPreference = (ListPreference) findPreference("cur_week");
+
             curYearListPreference = (ListPreference) findPreference("cur_year");
             curTermListPreference = (ListPreference) findPreference("cur_term");
 
+            showNotCurWeekPreference = (SwitchPreference) findPreference("show_not_cur_week");
+            showWeekendPreference = (SwitchPreference) findPreference("show_weekend");
+            showTimePreference = (SwitchPreference) findPreference("show_course_time");
+
             int curRealYear = Calendar.getInstance().get(Calendar.YEAR);
-            //Log.e("CourseBlock", String.valueOf(curRealYear));
+
             String[] years = new String[4];
             String[] year_values = new String[4];
             for (int i = 0; i < 4; i++) {
@@ -51,27 +58,19 @@ public class SettingsActivity extends AppCompatActivity {
             }
             curYearListPreference.setEntries(years);
             curYearListPreference.setEntryValues(year_values);
-            //curYearListPreference.setValueIndex(0);
+
             curYearListPreference.setDefaultValue(year_values[0]);
             curYearListPreference.setSummary(curYearListPreference.getEntry());
 
-            /*String[] weeks = new String[20];
-            for (int i = 0; i < 20; i++) {
-                weeks[i] = (String.valueOf(i + 1));
-            }
-            curWeekListPreference.setEntries(weeks);
-            curWeekListPreference.setEntryValues(weeks);
-            //curWeekListPreference.setValueIndex(0);
-            curWeekListPreference.setDefaultValue(weeks[0]);
-            curWeekListPreference.setSummary(curWeekListPreference.getEntry());*/
-
-            //curTermListPreference.setValueIndex(0);
             curTermListPreference.setDefaultValue(getResources().getStringArray(R.array.pref_term_entries)[0]);
             curTermListPreference.setSummary(curTermListPreference.getEntry());
 
             curYearListPreference.setOnPreferenceChangeListener(this);
             curTermListPreference.setOnPreferenceChangeListener(this);
-            //curWeekListPreference.setOnPreferenceChangeListener(this);
+
+            showTimePreference.setOnPreferenceChangeListener(this);
+            showWeekendPreference.setOnPreferenceChangeListener(this);
+            showNotCurWeekPreference.setOnPreferenceChangeListener(this);
         }
 
         @Override
@@ -95,15 +94,8 @@ public class SettingsActivity extends AppCompatActivity {
                     curTermListPreference.setSummary(curTermListPreference.getEntries()
                             [curTermListPreference.findIndexOfValue((String) newValue)]);
                     break;
-                case "cur_week":
-                    //curWeekListPreference.setSummary((String) newValue);
-                    break;
                 case "show_weekend":
-                    Toast.makeText(getActivity(), R.string.change_take_effect, Toast.LENGTH_SHORT).show();
-                    break;
                 case "show_not_cur_week":
-                    Toast.makeText(getActivity(), R.string.change_take_effect, Toast.LENGTH_SHORT).show();
-                    break;
                 case "show_course_time":
                     Toast.makeText(getActivity(), R.string.change_take_effect, Toast.LENGTH_SHORT).show();
                     break;
