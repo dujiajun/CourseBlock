@@ -38,4 +38,6 @@
     <string name="current_week">Select current week</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="sync_to_update">Click sync button on main frame to take change</string>
+    <string name="summer_term">Select second term to show courses in summer term</string>
 </resources>

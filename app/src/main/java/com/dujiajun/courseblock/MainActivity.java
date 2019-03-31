@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     private void showCurrentWeekDialog() {
 
         final String[] items = new String[20];
-        for (int i = 1;i <= 20;i++)
+        for (int i = 1;i <= 22;i++)
             items[i-1] = String.valueOf(i);
         AlertDialog.Builder listDialog =
                 new AlertDialog.Builder(MainActivity.this);

@@ -91,6 +91,10 @@ public class SettingsActivity extends AppCompatActivity {
                             [curYearListPreference.findIndexOfValue((String) newValue)]);
                     break;
                 case "cur_term":
+                    if (curTermListPreference.getEntryValues()[2].equals(newValue)){
+                        Toast.makeText(getActivity(), R.string.summer_term, Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
                     curTermListPreference.setSummary(curTermListPreference.getEntries()
                             [curTermListPreference.findIndexOfValue((String) newValue)]);
                     break;
