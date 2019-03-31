@@ -77,10 +77,10 @@ public class MainActivity extends AppCompatActivity {
      */
     protected void showTime() {
         String[] times = new String[]{
-                "8:00", "8:55", "10:00", "10:55",
-                "12:00", "12:55", "14:00", "14:55",
-                "16:00", "16:55", "18:00","18:55",
-                "20:00", "20:30"
+                "8:00-8:45", "8:55-9:40", "10:00-10:45", "10:55-11:40",
+                "12:00-12:45", "12:55-13:40", "14:00-14:55", "14:55-13:40",
+                "16:00-16:45", "16:55-17:40", "18:00-18:45","18:55-19:40",
+                "20:00-20:20"
         };
         OnSlideBuildAdapter listener= (OnSlideBuildAdapter) timetableView.onSlideBuildListener();
         listener.setTimes(times)
