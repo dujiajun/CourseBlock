@@ -22,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
     private TimetableView timetableView;
     private WeekView weekView;
 
+    private final int MAX_WEEKS = 22;
+    private final int MAX_STEPS = 13;
     SharedPreferences preferences;
 
     String cur_year;// = preferences.getString("cur_year","2018");
@@ -53,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
                     timetableView.changeWeekOnly(week);
                 })
                 .callback(this::showCurrentWeekDialog)
+                .itemCount(MAX_WEEKS)
                 .isShow(false).showView();
 
         boolean show_weekend = preferences.getBoolean("show_weekend",true);
@@ -61,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
 
         timetableView.curWeek(cur_week)
                 .isShowNotCurWeek(show_not_cur_week)
-                .isShowWeekends(show_weekend);
+                .isShowWeekends(show_weekend)
+                .maxSlideItem(MAX_STEPS);
         if (show_time)
             showTime();
         courseManager = CourseManager.getInstance(getApplicationContext());
@@ -77,10 +81,10 @@ public class MainActivity extends AppCompatActivity {
      */
     protected void showTime() {
         String[] times = new String[]{
-                "8:00-8:45", "8:55-9:40", "10:00-10:45", "10:55-11:40",
-                "12:00-12:45", "12:55-13:40", "14:00-14:55", "14:55-13:40",
-                "16:00-16:45", "16:55-17:40", "18:00-18:45","18:55-19:40",
-                "20:00-20:20"
+                "8:00\n8:45", "8:55\n9:40", "10:00\n10:45", "10:55\n11:40",
+                "12:00\n12:45", "12:55\n13:40", "14:00\n14:55", "14:55\n13:40",
+                "16:00\n16:45", "16:55\n17:40", "18:00\n18:45","18:55\n19:40",
+                "20:00\n20:20"
         };
         OnSlideBuildAdapter listener= (OnSlideBuildAdapter) timetableView.onSlideBuildListener();
         listener.setTimes(times)
@@ -90,8 +94,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void showCurrentWeekDialog() {
 
-        final String[] items = new String[20];
-        for (int i = 1;i <= 22;i++)
+        final String[] items = new String[MAX_WEEKS];
+        for (int i = 1;i <= MAX_WEEKS;i++)
             items[i-1] = String.valueOf(i);
         AlertDialog.Builder listDialog =
                 new AlertDialog.Builder(MainActivity.this);
