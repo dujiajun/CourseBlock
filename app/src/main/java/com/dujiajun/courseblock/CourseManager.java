@@ -2,6 +2,7 @@ package com.dujiajun.courseblock;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
@@ -9,7 +10,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.webkit.CookieManager;
-import android.widget.Toast;
 
 import com.zhuangfei.timetable.model.Schedule;
 
@@ -33,31 +33,66 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class CourseManager {
+class CourseManager {
 
-    private Context mContext;
     private static CourseManager singleton;
+    private final int MSG_TYPE_HEADER = 1;
+    private final int MSG_TYPE_BODY = 0;
+    private Resources resources;
     private List<Schedule> scheduleList;
     private CourseDBHelper dbHelper;
+    private OkHttpClient client = new OkHttpClient.Builder()
+            .cookieJar(new WebViewCookieHandler())
+            .build();
+    private ResponseHandler responseHandler = new ResponseHandler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == MSG_TYPE_HEADER) {
+                if (callback != null)
+                    callback.onToast(resources.getString(R.string.please_log_in));
+            } else if (msg.what == MSG_TYPE_BODY) {
+                String resp = (String) msg.obj;
+                parseCourseJson(resp);
+                writeToDatabase();
+                if (callback != null)
+                    callback.onShow(scheduleList);
+            }
+        }
+    };
 
     private CourseManager(Context context) {
-        mContext = context;
         scheduleList = new ArrayList<>();
         dbHelper = new CourseDBHelper(context);
+        resources = context.getResources();
     }
 
-    public static CourseManager getInstance(Context context) {
+    static CourseManager getInstance(Context context) {
         if (singleton == null) {
             singleton = new CourseManager(context.getApplicationContext());
         }
         return singleton;
     }
 
-    public List<Schedule> getScheduleList() {
+    static SEMESTER getSemesterFromValue(String value) {
+        if (value == null)
+            return SEMESTER.FIRST;
+        switch (value) {
+            case "3":
+                return SEMESTER.FIRST;
+            case "12":
+                return SEMESTER.SECOND;
+            case "16":
+                return SEMESTER.SUMMER;
+            default:
+                return SEMESTER.FIRST;
+        }
+    }
+
+    List<Schedule> getScheduleList() {
         return scheduleList;
     }
 
-    public void writeToDatabase() {
+    private void writeToDatabase() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         db.execSQL("delete from course");
         for (Schedule s :
@@ -74,7 +109,7 @@ public class CourseManager {
         }
     }
 
-    public void readFromDatabase() {
+    void readFromDatabase() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from course", null);
         scheduleList.clear();
@@ -93,7 +128,6 @@ public class CourseManager {
         }
         cursor.close();
     }
-
 
     private String getStringFromWeekList(List<Integer> weekList) {
         StringBuilder builder = new StringBuilder();
@@ -115,53 +149,7 @@ public class CourseManager {
         return weekList;
     }
 
-    private OkHttpClient client = new OkHttpClient.Builder()
-            .cookieJar(new WebViewCookieHandler())
-            .build();
-
-    public enum SEMESTER {
-        FIRST("3"), SECOND("12"), SUMMER("16");
-        private String value;
-
-        SEMESTER(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
-
-    public static SEMESTER getSemesterFromValue(String value) {
-        if (value == null)
-            return SEMESTER.FIRST;
-        switch (value) {
-            case "3":
-                return SEMESTER.FIRST;
-            case "12":
-                return SEMESTER.SECOND;
-            case "16":
-                return SEMESTER.SUMMER;
-            default:
-                return SEMESTER.FIRST;
-        }
-    }
-
-    private void getCourseTable(String year, SEMESTER semester, Callback callback) {
-        RequestBody requestBody = new FormBody.Builder()
-                .add("xnm", year)
-                .add("xqm", semester.getValue())
-                .build();
-        String courseJsonUrl = "http://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html";
-        Request request = new Request.Builder()
-                .url(courseJsonUrl)
-                .post(requestBody)
-                .build();
-        Log.i("CourseBlock", request.headers().toString());
-        client.newCall(request).enqueue(callback);
-    }
-
-    public void updateCourseDatabase(String year, SEMESTER semester, ShowInUICallback callback) {
+    void updateCourseDatabase(String year, SEMESTER semester, ShowInUICallback callback) {
 
         RequestBody requestBody = new FormBody.Builder()
                 .add("xnm", year)
@@ -199,45 +187,10 @@ public class CourseManager {
         });
     }
 
-    private final int MSG_TYPE_HEADER = 1;
-    private final int MSG_TYPE_BODY = 0;
-
-    private class ResponseHandler extends Handler {
-        ShowInUICallback callback;
-
-        public ResponseHandler(Looper looper) {
-            super(looper);
-        }
-
-        public void setCallback(ShowInUICallback callback) {
-            this.callback = callback;
-        }
-    }
-
-    private ResponseHandler responseHandler = new ResponseHandler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            if (msg.what == MSG_TYPE_HEADER) {
-                Toast.makeText(mContext, R.string.please_log_in, Toast.LENGTH_SHORT).show();
-            } else if (msg.what == MSG_TYPE_BODY) {
-                String resp = (String) msg.obj;
-                parseCourseJson(resp);
-                writeToDatabase();
-                if (callback != null)
-                    callback.onShow(scheduleList);
-            }
-        }
-    };
-
-    public interface ShowInUICallback {
-        void onShow(List<Schedule> schedules);
-    }
-
     private void parseCourseJson(String json) {
         try {
             scheduleList.clear();
             JSONObject jsonObject = new JSONObject(json);
-            //JSONObject jsonObjectJmcMap = jsonObject.getJSONObject("xqjmcMap");
             JSONArray jsonArrayKb = jsonObject.getJSONArray("kbList");
 
             for (int i = 0; i < jsonArrayKb.length(); i++) {
@@ -257,7 +210,6 @@ public class CourseManager {
             e.printStackTrace();
         }
     }
-
 
     private List<Integer> getWeekList(String weekString) {
         int isEven = 0;
@@ -283,6 +235,26 @@ public class CourseManager {
         startAndStep.add(Integer.valueOf(jc[0]));
         startAndStep.add(Integer.valueOf(jc[1]) - Integer.valueOf(jc[0]) + 1);
         return startAndStep;
+    }
+
+    public enum SEMESTER {
+        FIRST("3"), SECOND("12"), SUMMER("16");
+        private String value;
+
+        SEMESTER(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
+
+    public interface ShowInUICallback {
+        void onShow(List<Schedule> schedules);
+
+        void onToast(String message);
     }
 
     public static class WebViewCookieHandler implements CookieJar {
@@ -313,6 +285,18 @@ public class CourseManager {
             }
 
             return Collections.emptyList();
+        }
+    }
+
+    private class ResponseHandler extends Handler {
+        ShowInUICallback callback;
+
+        ResponseHandler(Looper looper) {
+            super(looper);
+        }
+
+        void setCallback(ShowInUICallback callback) {
+            this.callback = callback;
         }
     }
 }

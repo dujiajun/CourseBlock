@@ -1,33 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
-        android:title="@string/pref_info">
+    <PreferenceCategory android:title="@string/pref_info">
         <ListPreference
             android:key="cur_year"
             android:title="@string/pref_cur_year" />
         <ListPreference
-            android:key="cur_term"
-            android:title="@string/pref_cur_term"
             android:entries="@array/pref_term_entries"
-            android:entryValues="@array/pref_term_entry_values"/>
-        <!--<ListPreference
-            android:key="cur_week"
-            android:title="@string/pref_cur_week" />-->
+            android:entryValues="@array/pref_term_entry_values"
+            android:key="cur_term"
+            android:title="@string/pref_cur_term" />
     </PreferenceCategory>
-    <PreferenceCategory
-        android:title="@string/pref_style">
+    <PreferenceCategory android:title="@string/pref_style">
         <SwitchPreference
+            android:defaultValue="true"
             android:key="show_not_cur_week"
-            android:title="@string/pref_not_cur_week"
-            android:defaultValue="true"/>
+            android:title="@string/pref_not_cur_week" />
         <SwitchPreference
+            android:defaultValue="true"
             android:key="show_weekend"
-            android:title="@string/pref_show_weekend"
-            android:defaultValue="true"/>
+            android:title="@string/pref_show_weekend" />
         <SwitchPreference
+            android:defaultValue="true"
             android:key="show_course_time"
-            android:title="@string/pref_course_time"
-            android:defaultValue="true"/>
+            android:title="@string/pref_course_time" />
 
     </PreferenceCategory>
 </PreferenceScreen>

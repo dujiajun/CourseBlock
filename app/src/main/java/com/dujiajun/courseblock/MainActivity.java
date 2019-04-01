@@ -7,10 +7,14 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.zhuangfei.timetable.TimetableView;
 import com.zhuangfei.timetable.listener.OnSlideBuildAdapter;
+import com.zhuangfei.timetable.model.Schedule;
 import com.zhuangfei.timetable.view.WeekView;
+
+import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -18,17 +22,15 @@ import androidx.preference.PreferenceManager;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final int MAX_WEEKS = 22;
+    private final int MAX_STEPS = 13;
+    private SharedPreferences preferences;
+    private String cur_year;
+    private String cur_term;
+    private int cur_week;
     private CourseManager courseManager;
     private TimetableView timetableView;
     private WeekView weekView;
-
-    private final int MAX_WEEKS = 22;
-    private final int MAX_STEPS = 13;
-    SharedPreferences preferences;
-
-    String cur_year;// = preferences.getString("cur_year","2018");
-    String cur_term;// = preferences.getString("cur_term","3");
-    int cur_week;// = preferences.getInt("cur_week",1);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +47,9 @@ public class MainActivity extends AppCompatActivity {
         timetableView = findViewById(R.id.id_timetableView);
         weekView = findViewById(R.id.id_weekview);
 
-        //Toast.makeText(this, "test", Toast.LENGTH_SHORT).show();
         weekView.curWeek(cur_week)
                 .callback(week -> {
                     int cur = timetableView.curWeek();
-                    //更新切换后的日期，从当前周cur->切换的周week
                     timetableView.onDateBuildListener()
                             .onUpdateDate(cur, week);
                     timetableView.changeWeekOnly(week);
@@ -75,10 +75,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /**
-     * 显示时间
-     * 设置侧边栏构建监听，TimeSlideAdapter是控件实现的可显示时间的侧边栏
-     */
     protected void showTime() {
         String[] times = new String[]{
                 "8:00\n8:45", "8:55\n9:40", "10:00\n10:45", "10:55\n11:40",
@@ -142,9 +138,17 @@ public class MainActivity extends AppCompatActivity {
             CourseManager.SEMESTER semester = CourseManager.getSemesterFromValue(cur_term);
             courseManager.updateCourseDatabase(cur_year
                     , semester
-                    , schedules -> {
-                        timetableView.data(schedules).showView();
-                        weekView.data(schedules).updateView();
+                    , new CourseManager.ShowInUICallback() {
+                        @Override
+                        public void onShow(List<Schedule> schedules) {
+                            timetableView.data(schedules).showView();
+                            weekView.data(schedules).updateView();
+                        }
+
+                        @Override
+                        public void onToast(String message) {
+                            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                        }
                     });
         } else if (id == R.id.action_expand){
             if (weekView.isShowing())
