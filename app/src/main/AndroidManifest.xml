@@ -33,6 +33,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".CourseActivity"
+            android:label="@string/course_name"
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

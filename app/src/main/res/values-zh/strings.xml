@@ -31,4 +31,31 @@
     <string name="cancel">取消</string>
     <string name="sync_to_update">点击主页的同步按钮更新显示内容</string>
     <string name="summer_term">夏季学期的课程将会显示在第二学期的19–22周</string>
+    <string name="course_name">课程</string>
+    <string name="location">地点</string>
+    <string name="teacher">教师</string>
+    <string name="weeks">周次</string>
+    <string name="time">时间</string>
+    <string name="not_filled">未填写</string>
+    <string name="note">备注</string>
+    <string name="not_chosen">未选择</string>
+
+    <string-array name="days_in_week">
+        <item>周一</item>
+        <item>周二</item>
+        <item>周三</item>
+        <item>周四</item>
+        <item>周五</item>
+        <item>周六</item>
+        <item>周日</item>
+    </string-array>
+    <string name="select_day">周几：</string>
+    <string name="to">至</string>
+    <string name="select_start">选择开始节次：</string>
+    <string name="select_end">选择结束节次：</string>
+    <string name="period">第%s节</string>
+    <string name="week">第%s周</string>
+    <string name="select_week">选择周次：</string>
+    <string name="select_all">全选</string>
+    <string name="unselect_all">全不选</string>
 </resources>

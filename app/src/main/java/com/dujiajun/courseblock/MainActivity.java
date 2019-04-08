@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.zhuangfei.timetable.TimetableView;
 import com.zhuangfei.timetable.listener.OnSlideBuildAdapter;
+import com.zhuangfei.timetable.listener.OnSpaceItemClickAdapter;
 import com.zhuangfei.timetable.model.Schedule;
 import com.zhuangfei.timetable.view.WeekView;
 
@@ -22,8 +23,6 @@ import androidx.preference.PreferenceManager;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final int MAX_WEEKS = 22;
-    private final int MAX_STEPS = 13;
     private SharedPreferences preferences;
     private String cur_year;
     private String cur_term;
@@ -40,9 +39,9 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        cur_year = preferences.getString("cur_year","2018");
-        cur_term = preferences.getString("cur_term","3");
-        cur_week = preferences.getInt("cur_week",1);
+        cur_year = preferences.getString("cur_year", "2018");
+        cur_term = preferences.getString("cur_term", "3");
+        cur_week = preferences.getInt("cur_week", 1);
 
         timetableView = findViewById(R.id.id_timetableView);
         weekView = findViewById(R.id.id_weekview);
@@ -55,17 +54,28 @@ public class MainActivity extends AppCompatActivity {
                     timetableView.changeWeekOnly(week);
                 })
                 .callback(this::showCurrentWeekDialog)
-                .itemCount(MAX_WEEKS)
+                .itemCount(CourseManager.MAX_WEEKS)
                 .isShow(false).showView();
 
-        boolean show_weekend = preferences.getBoolean("show_weekend",true);
-        boolean show_not_cur_week = preferences.getBoolean("show_not_cur_week",true);
-        boolean show_time = preferences.getBoolean("show_course_time",true);
+        boolean show_weekend = preferences.getBoolean("show_weekend", true);
+        boolean show_not_cur_week = preferences.getBoolean("show_not_cur_week", true);
+        boolean show_time = preferences.getBoolean("show_course_time", true);
 
         timetableView.curWeek(cur_week)
                 .isShowNotCurWeek(show_not_cur_week)
                 .isShowWeekends(show_weekend)
-                .maxSlideItem(MAX_STEPS);
+                .maxSlideItem(CourseManager.MAX_STEPS)
+                .callback(new OnSpaceItemClickAdapter() {
+                    @Override
+                    public void onSpaceItemClick(int day, int start) {
+                        Intent intent = new Intent(MainActivity.this, CourseActivity.class);
+                        intent.putExtra("day", day);
+                        intent.putExtra("start", start);
+                        intent.putExtra("week", timetableView.curWeek());
+                        startActivity(intent);
+                        //Toast.makeText(MainActivity.this, String.valueOf(day)+" "+String.valueOf(start), Toast.LENGTH_SHORT).show();
+                    }
+                });
         if (show_time)
             showTime();
         courseManager = CourseManager.getInstance(getApplicationContext());
@@ -76,31 +86,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void showTime() {
-        String[] times = new String[]{
-                "8:00\n8:45", "8:55\n9:40", "10:00\n10:45", "10:55\n11:40",
-                "12:00\n12:45", "12:55\n13:40", "14:00\n14:55", "14:55\n13:40",
-                "16:00\n16:45", "16:55\n17:40", "18:00\n18:45","18:55\n19:40",
-                "20:00\n20:20"
-        };
-        OnSlideBuildAdapter listener= (OnSlideBuildAdapter) timetableView.onSlideBuildListener();
-        listener.setTimes(times)
+        OnSlideBuildAdapter listener = (OnSlideBuildAdapter) timetableView.onSlideBuildListener();
+        listener.setTimes(CourseManager.times)
                 .setTimeTextColor(Color.BLACK);
         timetableView.updateSlideView();
     }
 
     private void showCurrentWeekDialog() {
 
-        final String[] items = new String[MAX_WEEKS];
-        for (int i = 1;i <= MAX_WEEKS;i++)
-            items[i-1] = String.valueOf(i);
+        final String[] items = new String[CourseManager.MAX_WEEKS];
+        for (int i = 1; i <= CourseManager.MAX_WEEKS; i++)
+            items[i - 1] = String.valueOf(i);
         AlertDialog.Builder listDialog =
                 new AlertDialog.Builder(MainActivity.this);
         listDialog.setTitle(R.string.current_week);
         listDialog.setItems(items, (dialog, which) -> {
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putInt("cur_week",which+1);
-            weekView.curWeek(which+1).updateView();
-            timetableView.changeWeekOnly(which+1);
+            editor.putInt("cur_week", which + 1);
+            weekView.curWeek(which + 1).updateView();
+            timetableView.changeWeekOnly(which + 1);
             editor.apply();
         });
         listDialog.show();
@@ -110,9 +114,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        cur_year = preferences.getString("cur_year","2018");
-        cur_term = preferences.getString("cur_term","12");
-        cur_week = preferences.getInt("cur_week",1);
+        cur_year = preferences.getString("cur_year", "2018");
+        cur_term = preferences.getString("cur_term", "12");
+        cur_week = preferences.getInt("cur_week", 1);
+        timetableView.updateView();
     }
 
     @Override
@@ -150,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
                         }
                     });
-        } else if (id == R.id.action_expand){
+        } else if (id == R.id.action_expand) {
             if (weekView.isShowing())
                 item.setIcon(R.mipmap.ic_expand_more_black_24dp);
             else

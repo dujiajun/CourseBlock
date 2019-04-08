@@ -35,6 +35,14 @@ import okhttp3.Response;
 
 class CourseManager {
 
+    static final int MAX_WEEKS = 22;
+    static final int MAX_STEPS = 13;
+    static final String[] times = new String[]{
+            "8:00\n8:45", "8:55\n9:40", "10:00\n10:45", "10:55\n11:40",
+            "12:00\n12:45", "12:55\n13:40", "14:00\n14:55", "14:55\n13:40",
+            "16:00\n16:45", "16:55\n17:40", "18:00\n18:45", "18:55\n19:40",
+            "20:00\n20:20"
+    };
     private static CourseManager singleton;
     private final int MSG_TYPE_HEADER = 1;
     private final int MSG_TYPE_BODY = 0;
@@ -107,6 +115,7 @@ class CourseManager {
             values.put("weeklist", getStringFromWeekList(s.getWeekList()));
             db.insert("course", null, values);
         }
+        db.close();
     }
 
     void readFromDatabase() {
@@ -127,6 +136,7 @@ class CourseManager {
             } while (cursor.moveToNext());
         }
         cursor.close();
+        db.close();
     }
 
     private String getStringFromWeekList(List<Integer> weekList) {
@@ -185,6 +195,30 @@ class CourseManager {
                 responseHandler.sendMessage(message);
             }
         });
+    }
+
+    public Schedule findCourseByDayAndStart(int day, int start) {
+        for (Schedule s :
+                scheduleList) {
+            if (s.getDay() == day && s.getStart() <= start && (s.getStart() + s.getStep() - 1) >= start)
+                return s;
+        }
+        return null;
+    }
+
+    public void insertNewCourse(Schedule s){
+        scheduleList.add(s);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", s.getName());
+        values.put("room", s.getRoom());
+        values.put("teacher", s.getTeacher());
+        values.put("start", s.getStart());
+        values.put("step", s.getStep());
+        values.put("day", s.getDay());
+        values.put("weeklist", getStringFromWeekList(s.getWeekList()));
+        db.insert("course", null, values);
+        db.close();
     }
 
     private void parseCourseJson(String json) {

@@ -40,4 +40,32 @@
     <string name="cancel">Cancel</string>
     <string name="sync_to_update">Click sync button on main frame to take change</string>
     <string name="summer_term">Select second term to show courses in summer term</string>
+    <string name="course_name">Course</string>
+    <string name="location">Location</string>
+
+    <string name="teacher">Teacher</string>
+    <string name="weeks">Weeks</string>
+    <string name="time">Time</string>
+    <string name="not_filled">Not filled</string>
+    <string name="note">Note</string>
+    <string name="not_chosen">Not chosen</string>
+    <string name="select_day">Select day:</string>
+
+    <string-array name="days_in_week">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+    <string name="to">To</string>
+    <string name="select_start">Select start:</string>
+    <string name="select_end">Select end:</string>
+    <string name="select_week">Select week:</string>
+    <string name="period">Period %s</string>
+    <string name="week">Week %s</string>
+    <string name="select_all">Select all</string>
+    <string name="unselect_all">Unselect all</string>
 </resources>
