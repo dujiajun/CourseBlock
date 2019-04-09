@@ -26,7 +26,7 @@
     <string name="pref_course_time">显示课程时间</string>
     <string name="change_take_effect">重启应用后生效</string>
     <string name="action_expand">展开</string>
-    <string name="current_week">输入当前周次</string>
+    <string name="current_week">选择当前周次</string>
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
     <string name="sync_to_update">点击主页的同步按钮更新显示内容</string>

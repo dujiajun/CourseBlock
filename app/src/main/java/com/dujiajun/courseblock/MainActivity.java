@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private CourseManager courseManager;
     private TimetableView timetableView;
     private WeekView weekView;
+    private int selectWeek = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,19 +70,19 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSpaceItemClick(int day, int start) {
                         Intent intent = new Intent(MainActivity.this, CourseActivity.class);
-                        intent.putExtra("day", day+1);
+                        intent.putExtra("day", day + 1);
                         intent.putExtra("start", start);
                         intent.putExtra("week", timetableView.curWeek());
-                        intent.putExtra("action",CourseActivity.ACTION_INSERT);
+                        intent.putExtra("action", CourseActivity.ACTION_INSERT);
                         startActivity(intent);
                         //Toast.makeText(MainActivity.this, String.valueOf(day)+" "+String.valueOf(start), Toast.LENGTH_SHORT).show();
                     }
                 })
                 .callback((ISchedule.OnItemLongClickListener) (v, day, start) -> {
-                    Course c = courseManager.findCourseByDayAndStart(day,start);
-                    Intent intent = new Intent(MainActivity.this,CourseActivity.class);
-                    intent.putExtra("action",CourseActivity.ACTION_DETAIL);
-                    intent.putExtra("course",c);
+                    Course c = courseManager.findCourseByDayAndStart(day, start);
+                    Intent intent = new Intent(MainActivity.this, CourseActivity.class);
+                    intent.putExtra("action", CourseActivity.ACTION_DETAIL);
+                    intent.putExtra("course", c);
                     startActivity(intent);
                     //Toast.makeText(MainActivity.this, c.getCourseId()+c.getCourseName(), Toast.LENGTH_SHORT).show();
                 });
@@ -105,18 +106,24 @@ public class MainActivity extends AppCompatActivity {
 
         final String[] items = new String[CourseManager.MAX_WEEKS];
         for (int i = 1; i <= CourseManager.MAX_WEEKS; i++)
-            items[i - 1] = String.valueOf(i);
-        AlertDialog.Builder listDialog =
+            items[i - 1] = String.format(getString(R.string.week), String.valueOf(i));
+        AlertDialog.Builder builder =
                 new AlertDialog.Builder(MainActivity.this);
-        listDialog.setTitle(R.string.current_week);
-        listDialog.setItems(items, (dialog, which) -> {
+        builder.setTitle(R.string.current_week);
+
+        builder.setSingleChoiceItems(items, cur_week - 1, (dialog, which) -> {
+            selectWeek = which + 1;
+        });
+        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putInt("cur_week", which + 1);
-            weekView.curWeek(which + 1).updateView();
-            timetableView.changeWeekOnly(which + 1);
+            editor.putInt("cur_week", selectWeek);
+            cur_week = selectWeek;
+            weekView.curWeek(selectWeek).updateView();
+            timetableView.changeWeekOnly(selectWeek);
             editor.apply();
         });
-        listDialog.show();
+        builder.setNegativeButton(R.string.cancel, null);
+        builder.show();
 
     }
 
