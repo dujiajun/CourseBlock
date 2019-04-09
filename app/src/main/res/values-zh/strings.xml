@@ -58,4 +58,11 @@
     <string name="select_week">选择周次：</string>
     <string name="select_all">全选</string>
     <string name="unselect_all">全不选</string>
+    <string name="action_apply">应用</string>
+    <string name="action_delete">删除</string>
+    <string name="action_modify">编辑</string>
+    <string name="course_id">课号</string>
+    <string name="warning">警告</string>
+    <string name="sure_to_delete">确认删除 %s ?</string>
+    <string name="pref_remove_customized">同步时清空自定义课程</string>
 </resources>

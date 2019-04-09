@@ -10,9 +10,9 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.zhuangfei.timetable.TimetableView;
+import com.zhuangfei.timetable.listener.ISchedule;
 import com.zhuangfei.timetable.listener.OnSlideBuildAdapter;
 import com.zhuangfei.timetable.listener.OnSpaceItemClickAdapter;
-import com.zhuangfei.timetable.model.Schedule;
 import com.zhuangfei.timetable.view.WeekView;
 
 import java.util.List;
@@ -69,19 +69,28 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSpaceItemClick(int day, int start) {
                         Intent intent = new Intent(MainActivity.this, CourseActivity.class);
-                        intent.putExtra("day", day);
+                        intent.putExtra("day", day+1);
                         intent.putExtra("start", start);
                         intent.putExtra("week", timetableView.curWeek());
+                        intent.putExtra("action",CourseActivity.ACTION_INSERT);
                         startActivity(intent);
                         //Toast.makeText(MainActivity.this, String.valueOf(day)+" "+String.valueOf(start), Toast.LENGTH_SHORT).show();
                     }
+                })
+                .callback((ISchedule.OnItemLongClickListener) (v, day, start) -> {
+                    Course c = courseManager.findCourseByDayAndStart(day,start);
+                    Intent intent = new Intent(MainActivity.this,CourseActivity.class);
+                    intent.putExtra("action",CourseActivity.ACTION_DETAIL);
+                    intent.putExtra("course",c);
+                    startActivity(intent);
+                    //Toast.makeText(MainActivity.this, c.getCourseId()+c.getCourseName(), Toast.LENGTH_SHORT).show();
                 });
         if (show_time)
             showTime();
         courseManager = CourseManager.getInstance(getApplicationContext());
         courseManager.readFromDatabase();
-        timetableView.data(courseManager.getScheduleList()).showView();
-        weekView.data(courseManager.getScheduleList()).updateView();
+        timetableView.source(courseManager.getCourseList()).showView();
+        weekView.source(courseManager.getCourseList()).updateView();
 
     }
 
@@ -117,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         cur_year = preferences.getString("cur_year", "2018");
         cur_term = preferences.getString("cur_term", "12");
         cur_week = preferences.getInt("cur_week", 1);
-        timetableView.updateView();
+        timetableView.source(courseManager.getCourseList()).updateView();
     }
 
     @Override
@@ -145,9 +154,9 @@ public class MainActivity extends AppCompatActivity {
                     , semester
                     , new CourseManager.ShowInUICallback() {
                         @Override
-                        public void onShow(List<Schedule> schedules) {
-                            timetableView.data(schedules).showView();
-                            weekView.data(schedules).updateView();
+                        public void onShow(List<Course> schedules) {
+                            timetableView.source(schedules).showView();
+                            weekView.source(schedules).updateView();
                         }
 
                         @Override

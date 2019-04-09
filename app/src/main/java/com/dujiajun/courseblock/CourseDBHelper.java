@@ -16,12 +16,15 @@ public class CourseDBHelper extends SQLiteOpenHelper {
             "start integer," +
             "step integer," +
             "day integer," +
-            "weeklist text)";
+            "weeklist text," +
+            "course_id text," +
+            "note text," +
+            "from_server integer default 1)";
     private static final String DB_NAME = "course.db";
     private Context mContext;
 
     public CourseDBHelper(@Nullable Context context) {
-        super(context, DB_NAME, null, 1);
+        super(context, DB_NAME, null, 3);
         mContext = context;
     }
 
@@ -33,6 +36,12 @@ public class CourseDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        switch (oldVersion){
+            case 1:
+                db.execSQL("ALTER TABLE course ADD COLUMN course_id text");
+                db.execSQL("ALTER TABLE course ADD COLUMN note text");
+            case 2:
+                db.execSQL("ALTER TABLE course ADD COLUMN from_server integer default 1");
+        }
     }
 }

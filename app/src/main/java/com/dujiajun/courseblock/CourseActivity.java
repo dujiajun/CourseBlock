@@ -9,8 +9,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.zhuangfei.timetable.model.Schedule;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,14 +18,23 @@ import androidx.appcompat.widget.Toolbar;
 
 public class CourseActivity extends AppCompatActivity {
 
-    private EditText etCourse, etTeacher, etLocation, etNote;
+    public static final int ACTION_INSERT = 0;
+    public static final int ACTION_MODIFY = 1;
+    public static final int ACTION_DETAIL = 2;
+    private EditText etCourse, etTeacher, etLocation, etNote, etCourseId;
     private TextView tvWeeks, tvDay, tvStart, tvEnd;
     private int day;
     private int start;
     private int end;
     private CourseManager courseManager;
     private boolean[] isWeekSelected = new boolean[CourseManager.MAX_WEEKS];
-    private List<Integer> weekList = new ArrayList<>();
+    private String[] weekItems = new String[CourseManager.MAX_WEEKS];
+    private String[] dayItems;
+    private String[] startItems = new String[CourseManager.MAX_STEPS];
+    private String[] endItems;// = new String[CourseManager.MAX_STEPS - start + 1];
+    private List<Integer> weekList;
+    private int action;
+    private Course courseFromMain;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,13 +45,6 @@ public class CourseActivity extends AppCompatActivity {
     }
 
     private void initUI() {
-        Intent intent = getIntent();
-        day = intent.getIntExtra("day", 0);
-        start = intent.getIntExtra("start", 1);
-        int week = intent.getIntExtra("week", 1);
-        end = start;
-        isWeekSelected[week - 1] = true;
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -53,6 +53,7 @@ public class CourseActivity extends AppCompatActivity {
         etTeacher = findViewById(R.id.et_teacher);
         etLocation = findViewById(R.id.et_location);
         etNote = findViewById(R.id.et_note);
+        etCourseId = findViewById(R.id.et_course_id);
         tvWeeks = findViewById(R.id.tv_weeks);
         tvDay = findViewById(R.id.tv_day);
         tvDay.setText(getResources().getStringArray(R.array.days_in_week)[day]);
@@ -65,7 +66,51 @@ public class CourseActivity extends AppCompatActivity {
         tvEnd.setOnClickListener(v -> showEndDialog());
         tvWeeks.setOnClickListener(v -> showWeekDialog());
 
+        Intent intent = getIntent();
+        action = intent.getIntExtra("action", ACTION_INSERT);
+        if (action == ACTION_INSERT) {
+            day = intent.getIntExtra("day", 1);
+            start = intent.getIntExtra("start", 1);
+            int week = intent.getIntExtra("week", 1);
+            end = start;
+            isWeekSelected[week - 1] = true;
+            weekList = new ArrayList<>();
+        } else if (action == ACTION_DETAIL) {
+            courseFromMain = (Course) intent.getSerializableExtra("course");
+        }
+        actionChange();
         refreshTextViewAfterDialog();
+    }
+
+    private void loadInitData() {
+        if (action == ACTION_DETAIL) {
+            etCourse.setText(courseFromMain.getCourseName());
+            etLocation.setText(courseFromMain.getLocation());
+            etTeacher.setText(courseFromMain.getTeacher());
+            etNote.setText(courseFromMain.getNote());
+            etCourseId.setText(courseFromMain.getCourseId());
+            day = courseFromMain.getDay();
+            start = courseFromMain.getStart();
+            end = courseFromMain.getStart() + courseFromMain.getStep() - 1;
+            weekList = new ArrayList<>(courseFromMain.getWeekList());
+            for (int i = 0; i < isWeekSelected.length; i++) {
+                isWeekSelected[i] = weekList.contains(i + 1);
+            }
+        }
+
+        for (int i = 1; i <= CourseManager.MAX_WEEKS; i++) {
+            weekItems[i - 1] = String.format(getString(R.string.week), String.valueOf(i));
+        }
+        dayItems = getResources().getStringArray(R.array.days_in_week);
+        for (int i = 1; i <= CourseManager.MAX_STEPS; i++)
+            startItems[i - 1] = String.format(getString(R.string.period), String.valueOf(i));
+        endItems = new String[CourseManager.MAX_STEPS - start + 1];
+        for (int i = start; i <= CourseManager.MAX_STEPS; i++)
+            endItems[i - start] = String.format(getString(R.string.period), String.valueOf(i));
+
+        tvStart.setText(startItems[start - 1]);
+        tvDay.setText(dayItems[day - 1]);
+        tvEnd.setText(endItems[end - start]);
     }
 
     private void refreshTextViewAfterDialog() {
@@ -88,14 +133,9 @@ public class CourseActivity extends AppCompatActivity {
     }
 
     private void showWeekDialog() {
-
-        final String[] items = new String[CourseManager.MAX_WEEKS];
-        for (int i = 1; i <= CourseManager.MAX_WEEKS; i++) {
-            items[i - 1] = String.format(getString(R.string.week), String.valueOf(i));
-        }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.select_week));
-        builder.setMultiChoiceItems(items, isWeekSelected, (dialog, which, isChecked) -> isWeekSelected[which] = isChecked);
+        builder.setMultiChoiceItems(weekItems, isWeekSelected, (dialog, which, isChecked) -> isWeekSelected[which] = isChecked);
         builder.setNeutralButton(R.string.ok,
                 (dialog, which) -> refreshTextViewAfterDialog());
         builder.setNegativeButton(getString(R.string.select_all), (dialog, which) -> {
@@ -112,64 +152,94 @@ public class CourseActivity extends AppCompatActivity {
     }
 
     private void showStartDialog() {
-        final String[] items = new String[CourseManager.MAX_STEPS];
-        for (int i = 1; i <= CourseManager.MAX_STEPS; i++)
-            items[i - 1] = String.format(getString(R.string.period), String.valueOf(i));
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.select_start));
-        builder.setSingleChoiceItems(items, start - 1,
+        builder.setSingleChoiceItems(startItems, start - 1,
                 (dialog, which) -> start = which + 1);
         builder.setPositiveButton(R.string.ok,
-                (dialog, which) -> tvStart.setText(items[start - 1]));
+                (dialog, which) -> tvStart.setText(startItems[start - 1]));
         builder.setNegativeButton(R.string.cancel, null);
         builder.show();
     }
 
     private void showDayDialog() {
-        final String[] items = getResources().getStringArray(R.array.days_in_week);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.select_day));
-        builder.setSingleChoiceItems(items, day,
-                (dialog, which) -> day = which);
+        builder.setSingleChoiceItems(dayItems, day - 1,
+                (dialog, which) -> day = which + 1);
         builder.setPositiveButton(R.string.ok,
-                (dialog, which) -> tvDay.setText(items[day]));
+                (dialog, which) -> tvDay.setText(dayItems[day - 1]));
         builder.setNegativeButton(R.string.cancel, null);
         builder.show();
     }
 
     private void showEndDialog() {
-        final String[] items = new String[CourseManager.MAX_STEPS - start + 1];
+        endItems = new String[CourseManager.MAX_STEPS - start + 1];
         for (int i = start; i <= CourseManager.MAX_STEPS; i++)
-            items[i - start] = String.format(getString(R.string.period), String.valueOf(i));
+            endItems[i - start] = String.format(getString(R.string.period), String.valueOf(i));
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.select_end));
-        builder.setSingleChoiceItems(items, end - 1,
-                (dialog, which) -> end = which + 1);
+        builder.setSingleChoiceItems(endItems, end - start,
+                (dialog, which) -> end = which + start);
         builder.setPositiveButton(R.string.ok,
-                (dialog, which) -> tvEnd.setText(items[end - 1]));
+                (dialog, which) -> tvEnd.setText(endItems[end - start]));
         builder.setNegativeButton(R.string.cancel, null);
         builder.show();
     }
 
-    private boolean checkAndApply() {
+
+    private Course checkAndNewCourse() {
         if ("".equals(etCourse.getText().toString().trim())) {
             Toast.makeText(this, "Please input the course name!", Toast.LENGTH_SHORT).show();
-            return false;
+            return null;
         }
         if ("".equals(tvWeeks.getText().toString().trim())) {
             Toast.makeText(this, "Please input the course name!", Toast.LENGTH_SHORT).show();
-            return false;
+            return null;
         }
-        Schedule schedule = new Schedule();
-        schedule.setName(etCourse.getText().toString().trim());
-        schedule.setTeacher(etTeacher.getText().toString().trim());
-        schedule.setWeekList(weekList);
-        schedule.setStart(start);
-        schedule.setStep(end - start + 1);
-        schedule.setDay(day+1);
-        schedule.setRoom(etLocation.getText().toString().trim());
-        courseManager.insertNewCourse(schedule);
+        Course course = new Course();
+        if (action == ACTION_MODIFY) {
+            course.setId(courseFromMain.getId());
+        }
+        course.setCourseName(etCourse.getText().toString().trim());
+        course.setTeacher(etTeacher.getText().toString().trim());
+        course.setWeekList(weekList);
+        course.setStart(start);
+        course.setStep(end - start + 1);
+        course.setDay(day);
+        course.setLocation(etLocation.getText().toString().trim());
+        course.setNote(etNote.getText().toString().trim());
+        course.setCourseId(etCourseId.getText().toString().trim());
+        course.setFromServer(false);
+        return course;
+    }
+
+    private boolean checkAndInsert() {
+        Course course = checkAndNewCourse();
+        if (course == null)
+            return false;
+        courseManager.insertNewCourse(course);
         return true;
+    }
+
+    private boolean checkAndModify() {
+        Course course = checkAndNewCourse();
+        if (course == null)
+            return false;
+        courseManager.modifyCourse(course);
+        return true;
+    }
+
+    private void deleteCourse() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.warning))
+                .setMessage(String.format(getString(R.string.sure_to_delete), courseFromMain.getCourseName()))
+                .setPositiveButton(R.string.ok, (dialog, which) -> {
+                    courseManager.deleteCourseById(courseFromMain.getId());
+                    finish();
+                })
+                .setNegativeButton(R.string.cancel, null);
+        builder.show();
     }
 
     @Override
@@ -180,18 +250,54 @@ public class CourseActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.action_apply).setVisible(action != ACTION_DETAIL);
+        menu.findItem(R.id.action_modify).setVisible(action == ACTION_DETAIL);
+        menu.findItem(R.id.action_delete).setVisible(action == ACTION_MODIFY);
+        menu.findItem(R.id.action_cancel).setVisible(action == ACTION_MODIFY);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_apply) {
-            if (checkAndApply())
-                finish();
+        switch (item.getItemId()) {
+            case R.id.action_apply:
+                if (action == ACTION_INSERT) {
+                    if (checkAndInsert())
+                        finish();
+                } else if (action == ACTION_MODIFY) {
+                    if (checkAndModify())
+                        finish();
+                }
+                break;
+            case R.id.action_cancel:
+                action = ACTION_DETAIL;
+                invalidateOptionsMenu();
+                actionChange();
+                break;
+            case R.id.action_delete:
+                deleteCourse();
+                break;
+            case R.id.action_modify:
+                action = ACTION_MODIFY;
+                invalidateOptionsMenu();
+                actionChange();
+                break;
         }
-
         return true;
+    }
+
+    private void actionChange() {
+        etCourse.setEnabled(action != ACTION_DETAIL);
+        etNote.setEnabled(action != ACTION_DETAIL);
+        etTeacher.setEnabled(action != ACTION_DETAIL);
+        etLocation.setEnabled(action != ACTION_DETAIL);
+        etCourseId.setEnabled(action != ACTION_DETAIL);
+        tvWeeks.setEnabled(action != ACTION_DETAIL);
+        tvEnd.setEnabled(action != ACTION_DETAIL);
+        tvStart.setEnabled(action != ACTION_DETAIL);
+        tvDay.setEnabled(action != ACTION_DETAIL);
+
+        loadInitData();
     }
 }

@@ -2,16 +2,16 @@ package com.dujiajun.courseblock;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.webkit.CookieManager;
-
-import com.zhuangfei.timetable.model.Schedule;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,7 +47,7 @@ class CourseManager {
     private final int MSG_TYPE_HEADER = 1;
     private final int MSG_TYPE_BODY = 0;
     private Resources resources;
-    private List<Schedule> scheduleList;
+    private List<Course> courseList;
     private CourseDBHelper dbHelper;
     private OkHttpClient client = new OkHttpClient.Builder()
             .cookieJar(new WebViewCookieHandler())
@@ -63,15 +63,16 @@ class CourseManager {
                 parseCourseJson(resp);
                 writeToDatabase();
                 if (callback != null)
-                    callback.onShow(scheduleList);
+                    callback.onShow(courseList);
             }
         }
     };
-
+    private SharedPreferences preferences;
     private CourseManager(Context context) {
-        scheduleList = new ArrayList<>();
+        courseList = new ArrayList<>();
         dbHelper = new CourseDBHelper(context);
         resources = context.getResources();
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     static CourseManager getInstance(Context context) {
@@ -96,23 +97,29 @@ class CourseManager {
         }
     }
 
-    List<Schedule> getScheduleList() {
-        return scheduleList;
+    List<Course> getCourseList() {
+        return courseList;
     }
 
     private void writeToDatabase() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL("delete from course");
-        for (Schedule s :
-                scheduleList) {
+        boolean removeCustomized = preferences.getBoolean("remove_customized_when_sync",true);
+        if (removeCustomized)
+            db.execSQL("delete from course");
+        else
+            db.execSQL("delete from course where from_server = 1");
+        for (Course s :
+                courseList) {
             ContentValues values = new ContentValues();
-            values.put("name", s.getName());
-            values.put("room", s.getRoom());
+            values.put("name", s.getCourseName());
+            values.put("room", s.getLocation());
             values.put("teacher", s.getTeacher());
             values.put("start", s.getStart());
             values.put("step", s.getStep());
             values.put("day", s.getDay());
             values.put("weeklist", getStringFromWeekList(s.getWeekList()));
+            values.put("note", s.getNote());
+            values.put("course_id", s.getCourseId());
             db.insert("course", null, values);
         }
         db.close();
@@ -121,18 +128,21 @@ class CourseManager {
     void readFromDatabase() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from course", null);
-        scheduleList.clear();
+        courseList.clear();
         if (cursor.moveToFirst()) {
             do {
-                Schedule schedule = new Schedule();
-                schedule.setName(cursor.getString(cursor.getColumnIndex("name")));
-                schedule.setRoom(cursor.getString(cursor.getColumnIndex("room")));
-                schedule.setTeacher(cursor.getString(cursor.getColumnIndex("teacher")));
-                schedule.setStart(cursor.getInt(cursor.getColumnIndex("start")));
-                schedule.setStep(cursor.getInt(cursor.getColumnIndex("step")));
-                schedule.setDay(cursor.getInt(cursor.getColumnIndex("day")));
-                schedule.setWeekList(getWeekListFromString(cursor.getString(cursor.getColumnIndex("weeklist"))));
-                scheduleList.add(schedule);
+                Course course = new Course();
+                course.setCourseName(cursor.getString(cursor.getColumnIndex("name")));
+                course.setLocation(cursor.getString(cursor.getColumnIndex("room")));
+                course.setTeacher(cursor.getString(cursor.getColumnIndex("teacher")));
+                course.setStart(cursor.getInt(cursor.getColumnIndex("start")));
+                course.setStep(cursor.getInt(cursor.getColumnIndex("step")));
+                course.setDay(cursor.getInt(cursor.getColumnIndex("day")));
+                course.setWeekList(getWeekListFromString(cursor.getString(cursor.getColumnIndex("weeklist"))));
+                course.setNote(cursor.getString(cursor.getColumnIndex("note")).trim());
+                course.setCourseId(cursor.getString(cursor.getColumnIndex("course_id")));
+                course.setId(cursor.getInt(cursor.getColumnIndex("id")));
+                courseList.add(course);
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -197,48 +207,79 @@ class CourseManager {
         });
     }
 
-    public Schedule findCourseByDayAndStart(int day, int start) {
-        for (Schedule s :
-                scheduleList) {
+    public Course findCourseByDayAndStart(int day, int start) {
+        for (Course s :
+                courseList) {
             if (s.getDay() == day && s.getStart() <= start && (s.getStart() + s.getStep() - 1) >= start)
                 return s;
         }
         return null;
     }
 
-    public void insertNewCourse(Schedule s){
-        scheduleList.add(s);
+    public void insertNewCourse(Course s) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("name", s.getName());
-        values.put("room", s.getRoom());
+        values.put("name", s.getCourseName());
+        values.put("room", s.getLocation());
         values.put("teacher", s.getTeacher());
         values.put("start", s.getStart());
         values.put("step", s.getStep());
         values.put("day", s.getDay());
         values.put("weeklist", getStringFromWeekList(s.getWeekList()));
+        values.put("note", s.getNote());
+        values.put("course_id", s.getCourseId());
+        values.put("from_server", s.isFromServer() ? 1 : 0);
         db.insert("course", null, values);
         db.close();
+        readFromDatabase();
+    }
+
+    public void deleteCourseById(int id) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.delete("course", "id = ?", new String[]{String.valueOf(id)});
+        db.close();
+        readFromDatabase();
+    }
+
+    public void modifyCourse(Course course) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", course.getCourseName());
+        values.put("room", course.getLocation());
+        values.put("teacher", course.getTeacher());
+        values.put("start", course.getStart());
+        values.put("step", course.getStep());
+        values.put("day", course.getDay());
+        values.put("weeklist", getStringFromWeekList(course.getWeekList()));
+        values.put("note", course.getNote());
+        values.put("course_id", course.getCourseId());
+        values.put("from_server", course.isFromServer() ? 1 : 0);
+        db.update("course", values, "id = ?", new String[]{String.valueOf(course.getId())});
+        db.close();
+        readFromDatabase();
     }
 
     private void parseCourseJson(String json) {
         try {
-            scheduleList.clear();
+            courseList.clear();
             JSONObject jsonObject = new JSONObject(json);
             JSONArray jsonArrayKb = jsonObject.getJSONArray("kbList");
 
             for (int i = 0; i < jsonArrayKb.length(); i++) {
                 JSONObject jsonCourse = jsonArrayKb.getJSONObject(i);
-                Schedule schedule = new Schedule();
-                schedule.setName(jsonCourse.getString("kcmc"));
-                schedule.setRoom(jsonCourse.getString("cdmc"));
-                schedule.setDay(jsonCourse.getInt("xqj"));
+                Course course = new Course();
+                course.setCourseName(jsonCourse.getString("kcmc"));
+                course.setLocation(jsonCourse.getString("cdmc"));
+                course.setDay(jsonCourse.getInt("xqj"));
                 List<Integer> startAndStep = getStartAndStep(jsonCourse.getString("jcs"));
-                schedule.setStart(startAndStep.get(0));
-                schedule.setStep(startAndStep.get(1));
-                schedule.setTeacher(jsonCourse.getString("xm"));
-                schedule.setWeekList(getWeekList(jsonCourse.getString("zcd")));
-                scheduleList.add(schedule);
+                course.setStart(startAndStep.get(0));
+                course.setStep(startAndStep.get(1));
+                course.setTeacher(jsonCourse.getString("xm"));
+                course.setWeekList(getWeekList(jsonCourse.getString("zcd")));
+                course.setCourseId(jsonCourse.getString("kch_id"));
+                course.setNote(jsonCourse.getString("xkbz"));
+                course.setFromServer(true);
+                courseList.add(course);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -286,7 +327,7 @@ class CourseManager {
 
 
     public interface ShowInUICallback {
-        void onShow(List<Schedule> schedules);
+        void onShow(List<Course> courses);
 
         void onToast(String message);
     }

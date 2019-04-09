@@ -2,11 +2,32 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.dujiajun.courseblock.CourseActivity">
+
+    <item
+        android:id="@+id/action_cancel"
+        android:icon="@mipmap/ic_clear_white_24dp"
+        android:orderInCategory="100"
+        android:title="@string/cancel"
+        app:showAsAction="ifRoom"
+        />
     <item
         android:id="@+id/action_apply"
         android:icon="@mipmap/ic_check_white_24dp"
         android:orderInCategory="100"
-        android:title="@string/action_login"
-        app:showAsAction="always" />
+        android:title="@string/action_apply"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_modify"
+        android:icon="@mipmap/ic_mode_edit_white_24dp"
+        android:orderInCategory="100"
+        android:title="@string/action_modify"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_delete"
+        android:icon="@mipmap/ic_delete_white_24dp"
+        android:orderInCategory="100"
+        android:title="@string/action_delete"
+        app:showAsAction="never"
+        />
 
 </menu>

@@ -10,6 +10,12 @@
             android:key="cur_term"
             android:title="@string/pref_cur_term" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/action_sync">
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="remove_customized_when_sync"
+            android:title="@string/pref_remove_customized" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_style">
         <SwitchPreference
             android:defaultValue="true"
@@ -23,6 +29,5 @@
             android:defaultValue="true"
             android:key="show_course_time"
             android:title="@string/pref_course_time" />
-
     </PreferenceCategory>
 </PreferenceScreen>
