@@ -166,9 +166,9 @@ public class MainActivity extends AppCompatActivity {
                     });
         } else if (id == R.id.action_expand) {
             if (weekView.isShowing())
-                item.setIcon(R.mipmap.ic_expand_more_black_24dp);
+                item.setIcon(R.mipmap.ic_expand_more_white_24dp);
             else
-                item.setIcon(R.mipmap.ic_expand_less_black_24dp);
+                item.setIcon(R.mipmap.ic_expand_less_white_24dp);
 
             weekView.isShow(!weekView.isShowing());
         }
