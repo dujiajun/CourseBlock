@@ -68,6 +68,7 @@ class CourseManager {
         }
     };
     private SharedPreferences preferences;
+
     private CourseManager(Context context) {
         courseList = new ArrayList<>();
         dbHelper = new CourseDBHelper(context);
@@ -103,7 +104,7 @@ class CourseManager {
 
     private void writeToDatabase() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        boolean removeCustomized = preferences.getBoolean("remove_customized_when_sync",true);
+        boolean removeCustomized = preferences.getBoolean("remove_customized_when_sync", true);
         if (removeCustomized)
             db.execSQL("delete from course");
         else
@@ -139,8 +140,12 @@ class CourseManager {
                 course.setStep(cursor.getInt(cursor.getColumnIndex("step")));
                 course.setDay(cursor.getInt(cursor.getColumnIndex("day")));
                 course.setWeekList(getWeekListFromString(cursor.getString(cursor.getColumnIndex("weeklist"))));
-                course.setNote(cursor.getString(cursor.getColumnIndex("note")).trim());
-                course.setCourseId(cursor.getString(cursor.getColumnIndex("course_id")));
+                String note = cursor.getString(cursor.getColumnIndex("note"));
+                if (note != null)
+                    course.setNote(note.trim());
+                String courseId = cursor.getString(cursor.getColumnIndex("course_id"));
+                if (courseId != null)
+                    course.setCourseId(courseId);
                 course.setId(cursor.getInt(cursor.getColumnIndex("id")));
                 courseList.add(course);
             } while (cursor.moveToNext());
