@@ -26,6 +26,7 @@ public class CourseActivity extends AppCompatActivity {
     private int day;
     private int start;
     private int end;
+    private int step;
     private CourseManager courseManager;
     private boolean[] isWeekSelected = new boolean[CourseManager.MAX_WEEKS];
     private String[] weekItems = new String[CourseManager.MAX_WEEKS];
@@ -73,6 +74,7 @@ public class CourseActivity extends AppCompatActivity {
             start = intent.getIntExtra("start", 1);
             int week = intent.getIntExtra("week", 1);
             end = start;
+            step = 1;
             isWeekSelected[week - 1] = true;
             weekList = new ArrayList<>();
         } else if (action == ACTION_DETAIL) {
@@ -91,7 +93,8 @@ public class CourseActivity extends AppCompatActivity {
             etCourseId.setText(courseFromMain.getCourseId());
             day = courseFromMain.getDay();
             start = courseFromMain.getStart();
-            end = courseFromMain.getStart() + courseFromMain.getStep() - 1;
+            step = courseFromMain.getStep();
+            end = start + step - 1;
             weekList = new ArrayList<>(courseFromMain.getWeekList());
             for (int i = 0; i < isWeekSelected.length; i++) {
                 isWeekSelected[i] = weekList.contains(i + 1);
@@ -157,7 +160,17 @@ public class CourseActivity extends AppCompatActivity {
         builder.setSingleChoiceItems(startItems, start - 1,
                 (dialog, which) -> start = which + 1);
         builder.setPositiveButton(R.string.ok,
-                (dialog, which) -> tvStart.setText(startItems[start - 1]));
+                (dialog, which) -> {
+                    tvStart.setText(startItems[start - 1]);
+                    endItems = new String[CourseManager.MAX_STEPS - start + 1];
+                    for (int i = start; i <= CourseManager.MAX_STEPS; i++)
+                        endItems[i - start] = String.format(getString(R.string.period), String.valueOf(i));
+                    if (step - 1 < CourseManager.MAX_STEPS - start)
+                        tvEnd.setText(endItems[step - 1]);
+                    else
+                        tvEnd.setText(endItems[0]);
+                    end = start + step - 1;
+                });
         builder.setNegativeButton(R.string.cancel, null);
         builder.show();
     }
@@ -179,10 +192,13 @@ public class CourseActivity extends AppCompatActivity {
             endItems[i - start] = String.format(getString(R.string.period), String.valueOf(i));
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.select_end));
-        builder.setSingleChoiceItems(endItems, end - start,
-                (dialog, which) -> end = which + start);
+        builder.setSingleChoiceItems(endItems, step - 1,
+                (dialog, which) -> {
+                    end = which + start;
+                    step = end - start + 1;
+                });
         builder.setPositiveButton(R.string.ok,
-                (dialog, which) -> tvEnd.setText(endItems[end - start]));
+                (dialog, which) -> tvEnd.setText(endItems[step - 1]));
         builder.setNegativeButton(R.string.cancel, null);
         builder.show();
     }
@@ -190,11 +206,15 @@ public class CourseActivity extends AppCompatActivity {
 
     private Course checkAndNewCourse() {
         if ("".equals(etCourse.getText().toString().trim())) {
-            Toast.makeText(this, "Please input the course name!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.please_input_name), Toast.LENGTH_SHORT).show();
             return null;
         }
         if ("".equals(tvWeeks.getText().toString().trim())) {
-            Toast.makeText(this, "Please input the course name!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.please_select_weeks), Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        if (end < start) {
+            Toast.makeText(this, getString(R.string.please_select_period), Toast.LENGTH_SHORT).show();
             return null;
         }
         Course course = new Course();
@@ -205,7 +225,7 @@ public class CourseActivity extends AppCompatActivity {
         course.setTeacher(etTeacher.getText().toString().trim());
         course.setWeekList(weekList);
         course.setStart(start);
-        course.setStep(end - start + 1);
+        course.setStep(step);
         course.setDay(day);
         course.setLocation(etLocation.getText().toString().trim());
         course.setNote(etNote.getText().toString().trim());
