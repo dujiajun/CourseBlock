@@ -212,10 +212,10 @@ class CourseManager {
         });
     }
 
-    public Course findCourseByDayAndStart(int day, int start) {
+    public Course findCourseByDayAndStart(int week, int day, int start) {
         for (Course s :
                 courseList) {
-            if (s.getDay() == day && s.getStart() <= start && (s.getStart() + s.getStep() - 1) >= start)
+            if (s.getWeekList().contains(week) && s.getDay() == day && s.getStart() <= start && (s.getStart() + s.getStep() - 1) >= start)
                 return s;
         }
         return null;

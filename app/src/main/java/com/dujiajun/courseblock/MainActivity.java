@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private TimetableView timetableView;
     private WeekView weekView;
     private int selectWeek = 0;
+    private int showWeek = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         cur_year = preferences.getString("cur_year", "2018");
         cur_term = preferences.getString("cur_term", "3");
         cur_week = preferences.getInt("cur_week", 1);
+        showWeek = cur_week;
 
         timetableView = findViewById(R.id.id_timetableView);
         weekView = findViewById(R.id.id_weekview);
@@ -53,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
                     timetableView.onDateBuildListener()
                             .onUpdateDate(cur, week);
                     timetableView.changeWeekOnly(week);
+                    showWeek = week;
                 })
                 .callback(this::showCurrentWeekDialog)
                 .itemCount(CourseManager.MAX_WEEKS)
@@ -75,16 +78,16 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra("week", timetableView.curWeek());
                         intent.putExtra("action", CourseActivity.ACTION_INSERT);
                         startActivity(intent);
-                        //Toast.makeText(MainActivity.this, String.valueOf(day)+" "+String.valueOf(start), Toast.LENGTH_SHORT).show();
                     }
                 })
                 .callback((ISchedule.OnItemLongClickListener) (v, day, start) -> {
-                    Course c = courseManager.findCourseByDayAndStart(day, start);
-                    Intent intent = new Intent(MainActivity.this, CourseActivity.class);
-                    intent.putExtra("action", CourseActivity.ACTION_DETAIL);
-                    intent.putExtra("course", c);
-                    startActivity(intent);
-                    //Toast.makeText(MainActivity.this, c.getCourseId()+c.getCourseName(), Toast.LENGTH_SHORT).show();
+                    Course c = courseManager.findCourseByDayAndStart(showWeek, day, start);
+                    if (c != null) {
+                        Intent intent = new Intent(MainActivity.this, CourseActivity.class);
+                        intent.putExtra("action", CourseActivity.ACTION_DETAIL);
+                        intent.putExtra("course", c);
+                        startActivity(intent);
+                    }
                 });
         if (show_time)
             showTime();
@@ -118,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = preferences.edit();
             editor.putInt("cur_week", selectWeek);
             cur_week = selectWeek;
+            showWeek = cur_week;
             weekView.curWeek(selectWeek).updateView();
             timetableView.changeWeekOnly(selectWeek);
             editor.apply();
@@ -134,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
         cur_term = preferences.getString("cur_term", "12");
         cur_week = preferences.getInt("cur_week", 1);
         timetableView.source(courseManager.getCourseList()).updateView();
+        showWeek = timetableView.curWeek();
+        weekView.source(courseManager.getCourseList()).updateView();
     }
 
     @Override
