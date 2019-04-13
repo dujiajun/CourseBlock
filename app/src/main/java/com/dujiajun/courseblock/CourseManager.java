@@ -62,6 +62,7 @@ class CourseManager {
                 String resp = (String) msg.obj;
                 parseCourseJson(resp);
                 writeToDatabase();
+                readFromDatabase();
                 if (callback != null)
                     callback.onShow(courseList);
             }
