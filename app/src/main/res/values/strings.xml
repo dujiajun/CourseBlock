@@ -78,4 +78,5 @@
     <string name="please_input_name">Please input the course name!</string>
     <string name="please_select_weeks">Please select weeks!</string>
     <string name="please_select_period">Please select correct start and end period!</string>
+    <string name="action_feedback">Feedback</string>
 </resources>

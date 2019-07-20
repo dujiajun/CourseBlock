@@ -3,8 +3,6 @@ package com.dujiajun.courseblock;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import java.util.Calendar;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -12,6 +10,8 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreference;
+
+import java.util.Calendar;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -54,7 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
             String[] year_values = new String[4];
             for (int i = 0; i < 4; i++) {
                 year_values[i] = String.valueOf(i + curRealYear - 4 + 1);
-                years[i] = (String.valueOf(i + curRealYear - 4 + 1) + "-" + String.valueOf(i + curRealYear - 4 + 2));
+                years[i] = ((i + curRealYear - 4 + 1) + "-" + (i + curRealYear - 4 + 2));
             }
             curYearListPreference.setEntries(years);
             curYearListPreference.setEntryValues(year_values);
@@ -87,11 +87,20 @@ public class SettingsActivity extends AppCompatActivity {
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             switch (preference.getKey()) {
                 case "cur_year":
+                    if (Integer.valueOf((String) newValue) < 2018
+                            && curTermListPreference.getEntryValues() != null
+                            && curTermListPreference.getEntryValues()[2].equals(newValue)) {
+                        Toast.makeText(getActivity(), R.string.summer_term, Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
                     curYearListPreference.setSummary(curYearListPreference.getEntries()
                             [curYearListPreference.findIndexOfValue((String) newValue)]);
                     break;
                 case "cur_term":
-                    if (curTermListPreference.getEntryValues()[2].equals(newValue)){
+
+                    if (curYearListPreference.getValue() != null
+                            && Integer.valueOf(curYearListPreference.getValue()) < 2018
+                            && curTermListPreference.getEntryValues()[2].equals(newValue)) {
                         Toast.makeText(getActivity(), R.string.summer_term, Toast.LENGTH_SHORT).show();
                         return false;
                     }

@@ -68,4 +68,5 @@
     <string name="please_input_name">请输入课程名！</string>
     <string name="please_select_weeks">请选择周次！</string>
     <string name="please_select_period">请选择正确的课程时间！</string>
+    <string name="action_feedback">问题反馈</string>
 </resources>
