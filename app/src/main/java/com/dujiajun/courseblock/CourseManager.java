@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.webkit.CookieManager;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,6 +53,7 @@ class CourseManager {
     private OkHttpClient client = new OkHttpClient.Builder()
             .cookieJar(new WebViewCookieHandler())
             .build();
+    private SharedPreferences preferences;
     private ResponseHandler responseHandler = new ResponseHandler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
@@ -68,7 +70,6 @@ class CourseManager {
             }
         }
     };
-    private SharedPreferences preferences;
 
     private CourseManager(Context context) {
         courseList = new ArrayList<>();
@@ -190,12 +191,12 @@ class CourseManager {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 e.printStackTrace();
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 String header = response.header("Content-Type");
                 String body = response.body().string();
                 Message message = new Message();
@@ -305,13 +306,12 @@ class CourseManager {
         String[] weekStrings = weekString.split(",");
         List<Integer> weekList = new ArrayList<>();
 
-        for (int idx = 0; idx < weekStrings.length; idx++) {
-            String weekStr = weekStrings[idx];
+        for (String week : weekStrings) {
             String[] weeks;
-            if (weekStr.contains("-")) {
-                weeks = weekStr.split("-");
+            if (week.contains("-")) {
+                weeks = week.split("-");
             } else {
-                weeks = new String[]{weekStr, weekStr};
+                weeks = new String[]{week, week};
             }
             for (int i = Integer.parseInt(weeks[0]); i <= Integer.parseInt(weeks[1]); i = i + 1 + isEven) {
                 weekList.add(i);
@@ -360,6 +360,7 @@ class CourseManager {
             }
         }
 
+        @NotNull
         @Override
         public List<Cookie> loadForRequest(HttpUrl url) {
             String urlString = url.toString();

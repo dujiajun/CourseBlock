@@ -34,7 +34,7 @@ public class CourseDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        switch (oldVersion){
+        switch (oldVersion) {
             case 1:
                 db.execSQL("ALTER TABLE course ADD COLUMN course_id text");
                 db.execSQL("ALTER TABLE course ADD COLUMN note text");
