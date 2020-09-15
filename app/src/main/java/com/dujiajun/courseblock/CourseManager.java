@@ -36,12 +36,12 @@ import okhttp3.Response;
 class CourseManager {
 
     static final int MAX_WEEKS = 22;
-    static final int MAX_STEPS = 13;
+    static final int MAX_STEPS = 14;
     static final String[] times = new String[]{
             "8:00\n8:45", "8:55\n9:40", "10:00\n10:45", "10:55\n11:40",
             "12:00\n12:45", "12:55\n13:40", "14:00\n14:55", "14:55\n15:40",
             "16:00\n16:45", "16:55\n17:40", "18:00\n18:45", "18:55\n19:40",
-            "20:00\n20:20"
+            "20:00\n20:45", "20:55\n21:40"
     };
     private static CourseManager singleton;
     private final int MSG_TYPE_HEADER = 1;

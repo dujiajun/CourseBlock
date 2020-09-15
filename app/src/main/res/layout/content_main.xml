@@ -19,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/app_white"
-        app:max_slide_item="13"/>
+        app:max_slide_item="14" />
 
     <TextView
         android:id="@+id/text_course"
