@@ -135,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        cur_year = preferences.getString("cur_year", "2018");
-        cur_term = preferences.getString("cur_term", "12");
+        cur_year = preferences.getString("cur_year", "2020");
+        cur_term = preferences.getString("cur_term", "3");
         cur_week = preferences.getInt("cur_week", 1);
         timetableView.source(courseManager.getCourseList()).updateView();
         showWeek = timetableView.curWeek();

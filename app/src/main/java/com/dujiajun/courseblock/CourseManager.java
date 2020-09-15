@@ -93,6 +93,7 @@ class CourseManager {
                 return SEMESTER.SECOND;
             case "16":
                 return SEMESTER.SUMMER;
+            case "3":
             default:
                 return SEMESTER.FIRST;
         }
