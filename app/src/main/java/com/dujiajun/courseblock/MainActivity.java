@@ -1,8 +1,10 @@
 package com.dujiajun.courseblock;
 
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -138,9 +140,23 @@ public class MainActivity extends AppCompatActivity {
         cur_year = preferences.getString("cur_year", "2020");
         cur_term = preferences.getString("cur_term", "3");
         cur_week = preferences.getInt("cur_week", 1);
+        boolean use_chi_icon = preferences.getBoolean("use_chi_icon", false);
+        setIcon(use_chi_icon);
         timetableView.source(courseManager.getCourseList()).updateView();
         showWeek = timetableView.curWeek();
         weekView.source(courseManager.getCourseList()).updateView();
+    }
+
+    private void setIcon(boolean use_chi_icon) {
+        String disable_activity = use_chi_icon ? ".MainActivity" : ".MainAliasActivity";
+        String enable_activity = (!use_chi_icon) ? ".MainActivity" : ".MainAliasActivity";
+        PackageManager packageManager = getPackageManager();
+        packageManager.setComponentEnabledSetting(new ComponentName(this, getPackageName() +
+                disable_activity), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager
+                .DONT_KILL_APP);
+        packageManager.setComponentEnabledSetting(new ComponentName(this, getPackageName() +
+                enable_activity), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager
+                .DONT_KILL_APP);
     }
 
     @Override
@@ -185,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                 item.setIcon(R.mipmap.ic_expand_less_white_24dp);
 
             weekView.isShow(!weekView.isShowing());
-        } else if (id == R.id.action_feedback){
+        } else if (id == R.id.action_feedback) {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             Uri content_url = Uri.parse("https://github.com/dujiajun/CourseBlock/issues");

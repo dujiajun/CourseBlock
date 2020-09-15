@@ -29,5 +29,9 @@
             android:defaultValue="true"
             android:key="show_course_time"
             android:title="@string/pref_course_time" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="use_chi_icon"
+            android:title="@string/pref_chi_icon" />
     </PreferenceCategory>
 </PreferenceScreen>
