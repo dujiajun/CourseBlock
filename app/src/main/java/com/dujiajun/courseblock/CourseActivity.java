@@ -9,12 +9,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CourseActivity extends AppCompatActivity {
 
@@ -142,13 +143,11 @@ public class CourseActivity extends AppCompatActivity {
         builder.setNeutralButton(R.string.ok,
                 (dialog, which) -> refreshTextViewAfterDialog());
         builder.setNegativeButton(getString(R.string.select_all), (dialog, which) -> {
-            for (int i = 0; i < isWeekSelected.length; i++)
-                isWeekSelected[i] = true;
+            Arrays.fill(isWeekSelected, true);
             refreshTextViewAfterDialog();
         });
         builder.setPositiveButton(getString(R.string.unselect_all), (dialog, which) -> {
-            for (int i = 0; i < isWeekSelected.length; i++)
-                isWeekSelected[i] = false;
+            Arrays.fill(isWeekSelected, false);
             refreshTextViewAfterDialog();
         });
         builder.show();

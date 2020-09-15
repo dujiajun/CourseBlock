@@ -21,11 +21,9 @@ public class CourseDBHelper extends SQLiteOpenHelper {
             "note text," +
             "from_server integer default 1)";
     private static final String DB_NAME = "course.db";
-    private Context mContext;
 
     public CourseDBHelper(@Nullable Context context) {
         super(context, DB_NAME, null, 3);
-        mContext = context;
     }
 
     @Override

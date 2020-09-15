@@ -88,8 +88,6 @@ class CourseManager {
         if (value == null)
             return SEMESTER.FIRST;
         switch (value) {
-            case "3":
-                return SEMESTER.FIRST;
             case "12":
                 return SEMESTER.SECOND;
             case "16":
@@ -181,7 +179,7 @@ class CourseManager {
                 .add("xnm", year)
                 .add("xqm", semester.getValue())
                 .build();
-        String courseJsonUrl = "http://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html";
+        String courseJsonUrl = "https://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html";
         Request request = new Request.Builder()
                 .url(courseJsonUrl)
                 .post(requestBody)
@@ -304,7 +302,7 @@ class CourseManager {
         }
         String[] weeks = weekString.replace("周", "").split("-");
         List<Integer> weekList = new ArrayList<>();
-        for (Integer i = Integer.valueOf(weeks[0]); i <= Integer.valueOf(weeks[1]); i = i + 1 + isEven) {
+        for (int i = Integer.parseInt(weeks[0]); i <= Integer.parseInt(weeks[1]); i = i + 1 + isEven) {
             weekList.add(i);
         }
         return weekList;
@@ -314,7 +312,7 @@ class CourseManager {
         List<Integer> startAndStep = new ArrayList<>();
         String[] jc = jcor.split("-");
         startAndStep.add(Integer.valueOf(jc[0]));
-        startAndStep.add(Integer.valueOf(jc[1]) - Integer.valueOf(jc[0]) + 1);
+        startAndStep.add(Integer.parseInt(jc[1]) - Integer.parseInt(jc[0]) + 1);
         return startAndStep;
     }
 
@@ -369,7 +367,7 @@ class CourseManager {
         }
     }
 
-    private class ResponseHandler extends Handler {
+    private static class ResponseHandler extends Handler {
         ShowInUICallback callback;
 
         ResponseHandler(Looper looper) {

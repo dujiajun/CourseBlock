@@ -35,7 +35,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-        String loginUrl = "http://i.sjtu.edu.cn/jaccountlogin";
+        String loginUrl = "https://i.sjtu.edu.cn/jaccountlogin";
         webView.loadUrl(loginUrl);
     }
 }

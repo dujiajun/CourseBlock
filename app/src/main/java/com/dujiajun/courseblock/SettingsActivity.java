@@ -32,9 +32,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         private ListPreference curYearListPreference;
         private ListPreference curTermListPreference;
-        private SwitchPreference showNotCurWeekPreference;
-        private SwitchPreference showWeekendPreference;
-        private SwitchPreference showTimePreference;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -44,9 +41,9 @@ public class SettingsActivity extends AppCompatActivity {
             curYearListPreference = (ListPreference) findPreference("cur_year");
             curTermListPreference = (ListPreference) findPreference("cur_term");
 
-            showNotCurWeekPreference = (SwitchPreference) findPreference("show_not_cur_week");
-            showWeekendPreference = (SwitchPreference) findPreference("show_weekend");
-            showTimePreference = (SwitchPreference) findPreference("show_course_time");
+            SwitchPreference showNotCurWeekPreference = (SwitchPreference) findPreference("show_not_cur_week");
+            SwitchPreference showWeekendPreference = (SwitchPreference) findPreference("show_weekend");
+            SwitchPreference showTimePreference = (SwitchPreference) findPreference("show_course_time");
 
             int curRealYear = Calendar.getInstance().get(Calendar.YEAR);
 
@@ -75,10 +72,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public boolean onPreferenceTreeClick(Preference preference) {
-            switch (preference.getKey()) {
-                default:
-                    break;
-            }
             return true;
         }
 
@@ -87,7 +80,7 @@ public class SettingsActivity extends AppCompatActivity {
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             switch (preference.getKey()) {
                 case "cur_year":
-                    if (Integer.valueOf((String) newValue) < 2018
+                    if (Integer.parseInt((String) newValue) < 2018
                             && curTermListPreference.getEntryValues() != null
                             && curTermListPreference.getEntryValues()[2].equals(newValue)) {
                         Toast.makeText(getActivity(), R.string.summer_term, Toast.LENGTH_SHORT).show();
@@ -99,7 +92,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case "cur_term":
 
                     if (curYearListPreference.getValue() != null
-                            && Integer.valueOf(curYearListPreference.getValue()) < 2018
+                            && Integer.parseInt(curYearListPreference.getValue()) < 2018
                             && curTermListPreference.getEntryValues()[2].equals(newValue)) {
                         Toast.makeText(getActivity(), R.string.summer_term, Toast.LENGTH_SHORT).show();
                         return false;
