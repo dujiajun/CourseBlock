@@ -300,10 +300,22 @@ class CourseManager {
             isEven = 1;
             weekString = weekString.replace("(双)", "");
         }
-        String[] weeks = weekString.replace("周", "").split("-");
+        weekString = weekString.replace("周", "");
+
+        String[] weekStrings = weekString.split(",");
         List<Integer> weekList = new ArrayList<>();
-        for (int i = Integer.parseInt(weeks[0]); i <= Integer.parseInt(weeks[1]); i = i + 1 + isEven) {
-            weekList.add(i);
+
+        for (int idx = 0; idx < weekStrings.length; idx++) {
+            String weekStr = weekStrings[idx];
+            String[] weeks;
+            if (weekStr.contains("-")) {
+                weeks = weekStr.split("-");
+            } else {
+                weeks = new String[]{weekStr, weekStr};
+            }
+            for (int i = Integer.parseInt(weeks[0]); i <= Integer.parseInt(weeks[1]); i = i + 1 + isEven) {
+                weekList.add(i);
+            }
         }
         return weekList;
     }
