@@ -34,6 +34,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+
 class CourseManager {
 
     static final int MAX_WEEKS = 22;
@@ -119,7 +120,7 @@ class CourseManager {
             values.put("start", s.getStart());
             values.put("step", s.getStep());
             values.put("day", s.getDay());
-            values.put("weeklist", getStringFromWeekList(s.getWeekList()));
+            values.put("weeklist", CourseUtils.getStringFromWeekList(s.getWeekList()));
             values.put("note", s.getNote());
             values.put("course_id", s.getCourseId());
             db.insert("course", null, values);
@@ -140,7 +141,7 @@ class CourseManager {
                 course.setStart(cursor.getInt(cursor.getColumnIndex("start")));
                 course.setStep(cursor.getInt(cursor.getColumnIndex("step")));
                 course.setDay(cursor.getInt(cursor.getColumnIndex("day")));
-                course.setWeekList(getWeekListFromString(cursor.getString(cursor.getColumnIndex("weeklist"))));
+                course.setWeekList(CourseUtils.getWeekListFromDBString(cursor.getString(cursor.getColumnIndex("weeklist"))));
                 String note = cursor.getString(cursor.getColumnIndex("note"));
                 if (note != null)
                     course.setNote(note.trim());
@@ -155,25 +156,6 @@ class CourseManager {
         db.close();
     }
 
-    private String getStringFromWeekList(List<Integer> weekList) {
-        StringBuilder builder = new StringBuilder();
-        for (Integer i :
-                weekList) {
-            builder.append(i);
-            builder.append(',');
-        }
-        return builder.toString();
-    }
-
-    private List<Integer> getWeekListFromString(String s) {
-        String[] arr = s.split(",");
-        List<Integer> weekList = new ArrayList<>();
-        for (String week :
-                arr) {
-            weekList.add(Integer.valueOf(week));
-        }
-        return weekList;
-    }
 
     void updateCourseDatabase(String year, SEMESTER semester, ShowInUICallback callback) {
 
@@ -231,7 +213,7 @@ class CourseManager {
         values.put("start", s.getStart());
         values.put("step", s.getStep());
         values.put("day", s.getDay());
-        values.put("weeklist", getStringFromWeekList(s.getWeekList()));
+        values.put("weeklist", CourseUtils.getStringFromWeekList(s.getWeekList()));
         values.put("note", s.getNote());
         values.put("course_id", s.getCourseId());
         values.put("from_server", s.isFromServer() ? 1 : 0);
@@ -256,7 +238,7 @@ class CourseManager {
         values.put("start", course.getStart());
         values.put("step", course.getStep());
         values.put("day", course.getDay());
-        values.put("weeklist", getStringFromWeekList(course.getWeekList()));
+        values.put("weeklist", CourseUtils.getStringFromWeekList(course.getWeekList()));
         values.put("note", course.getNote());
         values.put("course_id", course.getCourseId());
         values.put("from_server", course.isFromServer() ? 1 : 0);
@@ -277,11 +259,11 @@ class CourseManager {
                 course.setCourseName(jsonCourse.getString("kcmc"));
                 course.setLocation(jsonCourse.getString("cdmc"));
                 course.setDay(jsonCourse.getInt("xqj"));
-                List<Integer> startAndStep = getStartAndStep(jsonCourse.getString("jcs"));
+                List<Integer> startAndStep = CourseUtils.getStartAndStep(jsonCourse.getString("jcs"));
                 course.setStart(startAndStep.get(0));
                 course.setStep(startAndStep.get(1));
                 course.setTeacher(jsonCourse.getString("xm"));
-                course.setWeekList(getWeekList(jsonCourse.getString("zcd")));
+                course.setWeekList(CourseUtils.getWeekListFromOnlineString(jsonCourse.getString("zcd")));
                 course.setCourseId(jsonCourse.getString("kch_id"));
                 course.setNote(jsonCourse.getString("xkbz"));
                 course.setFromServer(true);
@@ -292,42 +274,6 @@ class CourseManager {
         }
     }
 
-    private List<Integer> getWeekList(String weekString) {
-        int isEven = 0;
-        if (weekString.contains("(单)")) {
-            isEven = 1;
-            weekString = weekString.replace("(单)", "");
-        }
-        if (weekString.contains("(双)")) {
-            isEven = 1;
-            weekString = weekString.replace("(双)", "");
-        }
-        weekString = weekString.replace("周", "");
-
-        String[] weekStrings = weekString.split(",");
-        List<Integer> weekList = new ArrayList<>();
-
-        for (String week : weekStrings) {
-            String[] weeks;
-            if (week.contains("-")) {
-                weeks = week.split("-");
-            } else {
-                weeks = new String[]{week, week};
-            }
-            for (int i = Integer.parseInt(weeks[0]); i <= Integer.parseInt(weeks[1]); i = i + 1 + isEven) {
-                weekList.add(i);
-            }
-        }
-        return weekList;
-    }
-
-    private List<Integer> getStartAndStep(String jcor) {
-        List<Integer> startAndStep = new ArrayList<>();
-        String[] jc = jcor.split("-");
-        startAndStep.add(Integer.valueOf(jc[0]));
-        startAndStep.add(Integer.parseInt(jc[1]) - Integer.parseInt(jc[0]) + 1);
-        return startAndStep;
-    }
 
     public enum SEMESTER {
         FIRST("3"), SECOND("12"), SUMMER("16");
