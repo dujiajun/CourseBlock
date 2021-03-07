@@ -187,7 +187,7 @@
             android:layout_weight="1"
             android:background="@null"
             android:hint="@string/not_filled"
-            android:maxLines="1"
+            android:maxLines="2"
             android:textSize="18sp" />
     </LinearLayout>
 
