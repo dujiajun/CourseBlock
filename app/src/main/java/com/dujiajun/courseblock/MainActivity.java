@@ -1,39 +1,39 @@
 package com.dujiajun.courseblock;
 
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.PreferenceManager;
 
+import com.dujiajun.courseblock.helper.CourseManager;
+import com.dujiajun.courseblock.helper.WeekManager;
+import com.dujiajun.courseblock.model.Course;
 import com.zhuangfei.timetable.TimetableView;
 import com.zhuangfei.timetable.listener.ISchedule;
 import com.zhuangfei.timetable.listener.OnSlideBuildAdapter;
 import com.zhuangfei.timetable.listener.OnSpaceItemClickAdapter;
 import com.zhuangfei.timetable.view.WeekView;
 
-import java.util.List;
-
 public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences preferences;
-    private String cur_year;
-    private String cur_term;
-    private int cur_week;
     private CourseManager courseManager;
     private TimetableView timetableView;
     private WeekView weekView;
-    private int selectWeek = 0;
+    private WeekManager weekManager;
     private int showWeek = 1;
 
     @Override
@@ -44,15 +44,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        cur_year = preferences.getString("cur_year", "2018");
-        cur_term = preferences.getString("cur_term", "3");
-        cur_week = preferences.getInt("cur_week", 1);
-        showWeek = cur_week;
-
+        weekManager = WeekManager.getInstance(this);
+        weekManager.updateCurWeek();
         timetableView = findViewById(R.id.id_timetableView);
         weekView = findViewById(R.id.id_weekview);
-
-        weekView.curWeek(cur_week)
+        weekView.curWeek(weekManager.getCurWeek())
                 .callback(week -> {
                     int cur = timetableView.curWeek();
                     timetableView.onDateBuildListener()
@@ -60,25 +56,25 @@ public class MainActivity extends AppCompatActivity {
                     timetableView.changeWeekOnly(week);
                     showWeek = week;
                 })
-                .callback(this::showCurrentWeekDialog)
-                .itemCount(CourseManager.MAX_WEEKS)
+                .hideLeftLayout()
+                .itemCount(Course.MAX_WEEKS)
                 .isShow(false).showView();
 
         boolean show_weekend = preferences.getBoolean("show_weekend", true);
         boolean show_not_cur_week = preferences.getBoolean("show_not_cur_week", true);
         boolean show_time = preferences.getBoolean("show_course_time", true);
 
-        timetableView.curWeek(cur_week)
+        timetableView.curWeek(weekManager.getCurWeek())
                 .isShowNotCurWeek(show_not_cur_week)
                 .isShowWeekends(show_weekend)
-                .maxSlideItem(CourseManager.MAX_STEPS)
+                .maxSlideItem(Course.MAX_STEPS)
                 .callback(new OnSpaceItemClickAdapter() {
                     @Override
                     public void onSpaceItemClick(int day, int start) {
                         Intent intent = new Intent(MainActivity.this, CourseActivity.class);
                         intent.putExtra("day", day + 1);
                         intent.putExtra("start", start);
-                        intent.putExtra("week", timetableView.curWeek());
+                        intent.putExtra("week", showWeek);
                         intent.putExtra("action", CourseActivity.ACTION_INSERT);
                         startActivity(intent);
                     }
@@ -88,63 +84,35 @@ public class MainActivity extends AppCompatActivity {
                     if (c != null) {
                         Intent intent = new Intent(MainActivity.this, CourseActivity.class);
                         intent.putExtra("action", CourseActivity.ACTION_DETAIL);
-                        intent.putExtra("course", c);
+                        intent.putExtra("course", c.getId());
                         startActivity(intent);
                     }
                 });
         if (show_time)
             showTime();
         courseManager = CourseManager.getInstance(getApplicationContext());
-        courseManager.readFromDatabase();
-        timetableView.source(courseManager.getCourseList()).showView();
-        weekView.source(courseManager.getCourseList()).updateView();
-
+        updateView();
+        updateWeek();
     }
 
     protected void showTime() {
         OnSlideBuildAdapter listener = (OnSlideBuildAdapter) timetableView.onSlideBuildListener();
-        listener.setTimes(CourseManager.times)
+        listener.setTimes(Course.CLASS_TIMES)
                 .setTimeTextColor(Color.BLACK);
         timetableView.updateSlideView();
-    }
-
-    private void showCurrentWeekDialog() {
-
-        final String[] items = new String[CourseManager.MAX_WEEKS];
-        for (int i = 1; i <= CourseManager.MAX_WEEKS; i++)
-            items[i - 1] = String.format(getString(R.string.week), String.valueOf(i));
-        AlertDialog.Builder builder =
-                new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle(R.string.current_week);
-
-        builder.setSingleChoiceItems(items, cur_week - 1, (dialog, which) -> {
-            selectWeek = which + 1;
-        });
-        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putInt("cur_week", selectWeek);
-            cur_week = selectWeek;
-            showWeek = cur_week;
-            weekView.curWeek(selectWeek).updateView();
-            timetableView.changeWeekOnly(selectWeek);
-            editor.apply();
-        });
-        builder.setNegativeButton(R.string.cancel, null);
-        builder.show();
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        cur_year = preferences.getString("cur_year", "2020");
-        cur_term = preferences.getString("cur_term", "3");
-        cur_week = preferences.getInt("cur_week", 1);
+
         boolean use_chi_icon = preferences.getBoolean("use_chi_icon", false);
         setIcon(use_chi_icon);
-        timetableView.source(courseManager.getCourseList()).updateView();
+
+        courseManager.updateStatus();
+
         showWeek = timetableView.curWeek();
-        weekView.source(courseManager.getCourseList()).updateView();
+        updateView();
     }
 
     private void setIcon(boolean use_chi_icon) {
@@ -161,39 +129,34 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_login) {
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
         } else if (id == R.id.action_settings) {
             startActivity(new Intent(MainActivity.this, SettingsActivity.class));
         } else if (id == R.id.action_sync) {
-            CourseManager.SEMESTER semester = CourseManager.getSemesterFromValue(cur_term);
-            courseManager.updateCourseDatabase(cur_year
-                    , semester
-                    , new CourseManager.ShowInUICallback() {
-                        @Override
-                        public void onShow(List<Course> schedules) {
-                            timetableView.source(schedules).showView();
-                            weekView.source(schedules).updateView();
-                        }
+            courseManager.updateCourses(new Handler(Looper.getMainLooper()) {
+                @Override
+                public void handleMessage(@NonNull Message msg) {
+                    super.handleMessage(msg);
+                    if (msg.what == CourseManager.SUCCEEDED) {
+                        updateView();
+                        Toast.makeText(MainActivity.this, R.string.succeed_in_sync, Toast.LENGTH_SHORT).show();
+                    } else if (msg.what == CourseManager.UNLOGIN) {
+                        Toast.makeText(MainActivity.this, R.string.please_log_in, Toast.LENGTH_SHORT).show();
+                    } else if (msg.what == CourseManager.FAILED) {
+                        Toast.makeText(MainActivity.this, R.string.failed, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
 
-                        @Override
-                        public void onToast(String message) {
-                            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-                        }
-                    });
         } else if (id == R.id.action_expand) {
             if (weekView.isShowing())
                 item.setIcon(R.mipmap.ic_expand_more_white_24dp);
@@ -201,16 +164,20 @@ public class MainActivity extends AppCompatActivity {
                 item.setIcon(R.mipmap.ic_expand_less_white_24dp);
 
             weekView.isShow(!weekView.isShowing());
-        } else if (id == R.id.action_feedback) {
-            Intent intent = new Intent();
-            intent.setAction("android.intent.action.VIEW");
-            Uri content_url = Uri.parse("https://github.com/dujiajun/CourseBlock/issues");
-            intent.setData(content_url);
-            startActivity(intent);
         }
 
         return true;
     }
 
+    private void updateView() {
+        courseManager.loadCourses();
+        timetableView.source(courseManager.getCourses()).updateView();
+        weekView.source(courseManager.getCourses()).showView();
+    }
 
+    private void updateWeek() {
+        weekManager.updateCurWeek();
+        timetableView.curWeek(weekManager.getCurWeek());
+        weekView.curWeek(weekManager.getCurWeek());
+    }
 }

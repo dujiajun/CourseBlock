@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="@string/pref_info">
+        <DropDownPreference
+            android:entries="@array/pref_status_entries"
+            android:entryValues="@array/pref_status_entry_values"
+            android:key="status"
+            android:title="@string/pref_status" />
         <ListPreference
             android:key="cur_year"
             android:title="@string/pref_cur_year" />
         <ListPreference
             android:entries="@array/pref_term_entries"
-            android:entryValues="@array/pref_term_entry_values"
             android:key="cur_term"
             android:title="@string/pref_cur_term" />
+        <Preference
+            android:key="first_monday"
+            android:title="@string/pref_first_monday" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/action_sync">
         <SwitchPreference
@@ -33,5 +40,14 @@
             android:defaultValue="false"
             android:key="use_chi_icon"
             android:title="@string/pref_chi_icon" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/about">
+        <Preference
+            android:key="homepage"
+            android:title="@string/homepage" />
+        <Preference
+            android:key="feedback"
+            android:title="@string/action_feedback" />
+
     </PreferenceCategory>
 </PreferenceScreen>

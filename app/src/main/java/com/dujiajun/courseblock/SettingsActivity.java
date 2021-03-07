@@ -1,17 +1,27 @@
 package com.dujiajun.courseblock;
 
+import android.app.DatePickerDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.preference.DropDownPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreference;
 
+import com.dujiajun.courseblock.helper.CourseManager;
+import com.dujiajun.courseblock.helper.WeekManager;
+
 import java.util.Calendar;
+import java.util.Locale;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -32,42 +42,97 @@ public class SettingsActivity extends AppCompatActivity {
 
         private ListPreference curYearListPreference;
         private ListPreference curTermListPreference;
+        private static final int SHOW_YEARS = 4;
+        private DropDownPreference statusPreference;
+        private WeekManager weekManager;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.pref_settings, rootKey);
-
-
-            curYearListPreference = (ListPreference) findPreference("cur_year");
-            curTermListPreference = (ListPreference) findPreference("cur_term");
-
-            SwitchPreference showNotCurWeekPreference = (SwitchPreference) findPreference("show_not_cur_week");
-            SwitchPreference showWeekendPreference = (SwitchPreference) findPreference("show_weekend");
-            SwitchPreference showTimePreference = (SwitchPreference) findPreference("show_course_time");
-
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            weekManager = WeekManager.getInstance(getContext());
+            curYearListPreference = findPreference("cur_year");
             int curRealYear = Calendar.getInstance().get(Calendar.YEAR);
 
-            String[] years = new String[4];
-            String[] year_values = new String[4];
-            for (int i = 0; i < 4; i++) {
+            String[] years = new String[SHOW_YEARS];
+            String[] year_values = new String[SHOW_YEARS];
+            String pref_values = preferences.getString("cur_year", CourseManager.DEFAULT_YEAR);
+            String summary = "";
+            for (int i = 0; i < SHOW_YEARS; i++) {
                 year_values[i] = String.valueOf(i + curRealYear - 4 + 1);
                 years[i] = ((i + curRealYear - 4 + 1) + "-" + (i + curRealYear - 4 + 2));
+                if (pref_values.equals(year_values[i]))
+                    summary = years[i];
             }
             curYearListPreference.setEntries(years);
             curYearListPreference.setEntryValues(year_values);
 
-            curYearListPreference.setDefaultValue(year_values[0]);
-            curYearListPreference.setSummary(curYearListPreference.getEntry());
 
-            curTermListPreference.setDefaultValue(getResources().getStringArray(R.array.pref_term_entries)[0]);
-            curTermListPreference.setSummary(curTermListPreference.getEntry());
-
+            curYearListPreference.setSummary(summary);
             curYearListPreference.setOnPreferenceChangeListener(this);
+
+
+            statusPreference = findPreference("status");
+            statusPreference.setSummary(statusPreference.getEntry());
+            statusPreference.setOnPreferenceChangeListener(this);
+
+            SwitchPreference showNotCurWeekPreference = findPreference("show_not_cur_week");
+            SwitchPreference showWeekendPreference = findPreference("show_weekend");
+            SwitchPreference showTimePreference = findPreference("show_course_time");
+
+            curTermListPreference = findPreference("cur_term");
+            pref_values = preferences.getString("cur_term", CourseManager.DEFAULT_TERM);
+            String[] terms = new String[]{"1", "2", "3"};
+            for (int i = 0; i < terms.length; i++) {
+                if (pref_values.equals(terms[i]))
+                    summary = getResources().getStringArray(R.array.pref_term_entries)[i];
+            }
+            curTermListPreference.setEntryValues(terms);
+            curTermListPreference.setSummary(summary);
+
+
             curTermListPreference.setOnPreferenceChangeListener(this);
 
             showTimePreference.setOnPreferenceChangeListener(this);
             showWeekendPreference.setOnPreferenceChangeListener(this);
             showNotCurWeekPreference.setOnPreferenceChangeListener(this);
+
+            Preference firstDayPreference = findPreference("first_monday");
+            Calendar calendar = Calendar.getInstance(Locale.CHINA);
+            firstDayPreference.setOnPreferenceClickListener(preference -> {
+                DatePickerDialog dialog = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
+                    if (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
+                        Toast.makeText(getActivity(), R.string.change_to_monday, Toast.LENGTH_SHORT).show();
+                    }
+                    weekManager.setFirstDay(year, month, dayOfMonth);
+                    preference.setSummary(weekManager.getShowDate());
+                    calendar.setTime(weekManager.getFirstDate());
+                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+                dialog.getDatePicker().setFirstDayOfWeek(Calendar.MONDAY);
+                dialog.show();
+                return true;
+            });
+            firstDayPreference.setSummary(weekManager.getShowDate());
+
+            Preference homepagePreference = findPreference("homepage");
+            homepagePreference.setOnPreferenceClickListener(preference -> {
+                openUrl("https://github.com/dujiajun/CourseBlock/");
+                return false;
+            });
+
+            Preference feedbackPreference = findPreference("feedback");
+            feedbackPreference.setOnPreferenceClickListener(preference -> {
+                openUrl("https://github.com/dujiajun/CourseBlock/issues");
+                return false;
+            });
+        }
+
+        private void openUrl(String url) {
+            Intent intent = new Intent();
+            intent.setAction("android.intent.action.VIEW");
+            Uri content_url = Uri.parse(url);
+            intent.setData(content_url);
+            startActivity(intent);
         }
 
         @Override
@@ -99,6 +164,9 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                     curTermListPreference.setSummary(curTermListPreference.getEntries()
                             [curTermListPreference.findIndexOfValue((String) newValue)]);
+                    break;
+                case "status":
+                    statusPreference.setSummary(statusPreference.getEntries()[statusPreference.findIndexOfValue((String) newValue)]);
                     break;
                 case "show_weekend":
                 case "show_not_cur_week":

@@ -70,4 +70,18 @@
     <string name="please_select_period">请选择正确的课程时间！</string>
     <string name="action_feedback">问题反馈</string>
     <string name="pref_chi_icon">开启迟课表</string>
+    <string name="pref_status">身份</string>
+    <string name="failed">失败</string>
+    <string name="class_id">班号</string>
+    <string name="succeed_in_sync">已同步课表</string>
+    <string name="not_filled_required">未填写（必填）</string>
+    <string name="pref_first_monday">学期起始日</string>
+    <string name="change_to_monday">自动切换为周一，重启生效</string>
+    <string name="about">关于</string>
+    <string name="homepage">项目地址</string>
+
+    <string-array name="pref_status_entries">
+        <item>本科生</item>
+        <item>研究生</item>
+    </string-array>
 </resources>
