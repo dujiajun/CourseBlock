@@ -172,6 +172,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case "show_not_cur_week":
                 case "show_course_time":
                 case "use_chi_icon":
+                case "first_monday":
                     Toast.makeText(getActivity(), R.string.change_take_effect, Toast.LENGTH_SHORT).show();
                     break;
                 default:
