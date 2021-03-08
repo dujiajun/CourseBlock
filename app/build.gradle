@@ -6,8 +6,8 @@ android {
         applicationId "com.dujiajun.courseblock"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 5
-        versionName "3.1.0"
+        versionCode 6
+        versionName "3.1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -22,6 +22,15 @@ android {
     }
     testOptions {
         unitTests.returnDefaultValues = true
+    }
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            if (variant.buildType.name == 'release') {
+                outputFileName = "交课表_v${variant.versionName}.apk"
+            } else {
+                outputFileName = "交课表_v${variant.versionName}_debug.apk"
+            }
+        }
     }
 }
 
