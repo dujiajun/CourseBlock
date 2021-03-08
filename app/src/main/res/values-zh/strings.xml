@@ -79,9 +79,13 @@
     <string name="change_to_monday">自动切换为周一，重启生效</string>
     <string name="about">关于</string>
     <string name="homepage">项目地址</string>
+    <string name="no_course">没有课</string>
+    <string name="following_courses">接下来的课</string>
+    <string name="widget_update">交课表桌面小部件已更新</string>
 
     <string-array name="pref_status_entries">
         <item>本科生</item>
         <item>研究生</item>
     </string-array>
+    <string name="refresh">刷新</string>
 </resources>

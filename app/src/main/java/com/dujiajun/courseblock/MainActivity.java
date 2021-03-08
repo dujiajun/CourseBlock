@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         weekManager = WeekManager.getInstance(this);
-        weekManager.updateCurWeek();
+
         timetableView = findViewById(R.id.id_timetableView);
         weekView = findViewById(R.id.id_weekview);
         weekView.curWeek(weekManager.getCurWeek())
@@ -97,7 +97,11 @@ public class MainActivity extends AppCompatActivity {
 
     protected void showTime() {
         OnSlideBuildAdapter listener = (OnSlideBuildAdapter) timetableView.onSlideBuildListener();
-        listener.setTimes(Course.CLASS_TIMES)
+        String[] showTimes = new String[Course.MAX_STEPS];
+        for (int i = 0; i < Course.MAX_STEPS; i++) {
+            showTimes[i] = Course.START_TIMES[i] + "\n" + Course.END_TIMES[i];
+        }
+        listener.setTimes(showTimes)
                 .setTimeTextColor(Color.BLACK);
         timetableView.updateSlideView();
     }

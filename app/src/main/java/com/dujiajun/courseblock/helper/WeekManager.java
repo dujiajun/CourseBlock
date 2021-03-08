@@ -71,6 +71,7 @@ public class WeekManager {
     }
 
     public int getCurWeek() {
+        updateCurWeek();
         return curWeek;
     }
 }

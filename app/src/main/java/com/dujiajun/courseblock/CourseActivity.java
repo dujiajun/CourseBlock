@@ -141,10 +141,12 @@ public class CourseActivity extends AppCompatActivity {
                 (dialog, which) -> refreshTextViewAfterDialog());
         builder.setNegativeButton(getString(R.string.select_all), (dialog, which) -> {
             Arrays.fill(isWeekSelected, true);
+            Arrays.fill(weekCode, '1');
             refreshTextViewAfterDialog();
         });
         builder.setPositiveButton(getString(R.string.unselect_all), (dialog, which) -> {
             Arrays.fill(isWeekSelected, false);
+            Arrays.fill(weekCode, '0');
             refreshTextViewAfterDialog();
         });
         builder.show();
@@ -225,8 +227,7 @@ public class CourseActivity extends AppCompatActivity {
         course.setCourseId(etCourseId.getText().toString().trim());
         course.setWeekCode(new String(weekCode));
         course.setToDefault("isFromServer");
-        course.save();
-        return true;
+        return course.save();
     }
 
 

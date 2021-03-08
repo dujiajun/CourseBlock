@@ -10,12 +10,20 @@ import java.util.List;
 
 public class Course extends LitePalSupport implements ScheduleEnable {
     public static final int MAX_STEPS = 14;
-    public static final String[] CLASS_TIMES = new String[]{
-            "8:00\n8:45", "8:55\n9:40", "10:00\n10:45", "10:55\n11:40",
-            "12:00\n12:45", "12:55\n13:40", "14:00\n14:55", "14:55\n15:40",
-            "16:00\n16:45", "16:55\n17:40", "18:00\n18:45", "18:55\n19:40",
-            "20:00\n20:45", "20:55\n21:40"
+
+    public static final String[] START_TIMES = new String[]{
+            "8:00", "8:55", "10:00", "10:55",
+            "12:00", "12:55", "14:00", "14:55",
+            "16:00", "16:55", "18:00", "18:55",
+            "20:00", "20:55"
     };
+    public static final String[] END_TIMES = new String[]{
+            "8:45", "9:40", "10:45", "11:40",
+            "12:45", "13:40", "14:55", "15:40",
+            "16:45", "17:40", "18:45", "19:40",
+            "20:45", "21:40"
+    };
+
     public static final int MAX_WEEKS = 22;
     private int id;
     private String courseId;

@@ -83,6 +83,10 @@
     <string name="change_to_monday">Change to Monday. Restart to take effect.</string>
     <string name="about">About</string>
     <string name="homepage">Homepage</string>
+    <string name="no_course">No course</string>
+    <string name="following_courses">Courses</string>
+    <string name="refresh">refresh</string>
+    <string name="widget_update">Widget updated</string>
 
     <string-array name="pref_status_entries">
         <item>Undergraduate</item>
