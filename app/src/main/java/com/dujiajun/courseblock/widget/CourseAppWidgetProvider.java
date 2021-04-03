@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 import com.dujiajun.courseblock.CourseActivity;
 import com.dujiajun.courseblock.MainActivity;
@@ -71,7 +70,6 @@ public class CourseAppWidgetProvider extends AppWidgetProvider {
             rv.setPendingIntentTemplate(R.id.lv_courses, toastPendingIntent);
 
             appWidgetManager.updateAppWidget(appWidgetId, rv);
-            Toast.makeText(context, R.string.widget_update, Toast.LENGTH_SHORT).show();
         }
         super.onUpdate(context, appWidgetManager, appWidgetIds);
     }
