@@ -66,6 +66,7 @@ public class GraduateDownloader extends CourseDownloader {
         try {
             JSONObject jsonObject = new JSONObject(json).getJSONObject("datas").getJSONObject("xspkjgcx");
             JSONArray courseRows = jsonObject.getJSONArray("rows");
+            HashMap<String, Integer> endTime = new HashMap<>();
             HashMap<String, Course> map = new HashMap<>();
             for (int i = 0; i < courseRows.length(); i++) {
                 JSONObject courseRow = courseRows.getJSONObject(i);
@@ -86,9 +87,18 @@ public class GraduateDownloader extends CourseDownloader {
                 }
                 int classTime = courseRow.getInt("KSJCDM");
                 course.setStart(Math.min(classTime, course.getStart()));
-                course.setStep(Math.max(course.getStep(), classTime - course.getStart() + 1));
+                Integer end = endTime.get(classId);
+                if (end == null || end < classTime) {
+                    endTime.put(classId, classTime);
+                }
             }
-            return new ArrayList<>(map.values());
+            List<Course> courses = new ArrayList<>(map.values());
+            for (Course c : courses) {
+                Integer end = endTime.get(c.getClassId());
+                if (end == null) end = Course.MAX_STEPS;
+                c.setStep(end - c.getStart() + 1);
+            }
+            return courses;
         } catch (JSONException e) {
             e.printStackTrace();
         }
