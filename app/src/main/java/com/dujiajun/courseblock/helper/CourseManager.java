@@ -13,11 +13,12 @@ import com.dujiajun.courseblock.model.Course;
 
 import org.litepal.LitePal;
 
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class CourseManager {
-    public static final String DEFAULT_YEAR = "2020";
-    public static final String DEFAULT_TERM = "2";
+    public static final String DEFAULT_TERM = "1";
 
     public static final int SUCCEEDED = CourseDownloader.DOWNLOADED;
     public static final int FAILED = CourseDownloader.FAILED;
@@ -41,6 +42,10 @@ public class CourseManager {
         return singleton;
     }
 
+    public static String getDefaultYear() {
+        Calendar calendar = Calendar.getInstance(Locale.CHINA);
+        return String.valueOf(calendar.get(Calendar.YEAR));
+    }
 
     public void updateStatus() {
         String s = preferences.getString("status", "0");
@@ -80,7 +85,8 @@ public class CourseManager {
                 uiHandler.sendMessage(uiMessage);
             }
         };
-        String year = preferences.getString("cur_year", DEFAULT_YEAR);
+
+        String year = preferences.getString("cur_year", getDefaultYear());
         String term = preferences.getString("cur_term", DEFAULT_TERM);
         downloader.getCourses(year, term, handler);
     }

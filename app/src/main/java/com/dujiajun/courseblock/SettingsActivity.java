@@ -42,7 +42,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         private ListPreference curYearListPreference;
         private ListPreference curTermListPreference;
-        private static final int SHOW_YEARS = 4;
+        private static final int SHOW_YEARS = 7;
         private DropDownPreference statusPreference;
         private WeekManager weekManager;
 
@@ -56,11 +56,11 @@ public class SettingsActivity extends AppCompatActivity {
 
             String[] years = new String[SHOW_YEARS];
             String[] year_values = new String[SHOW_YEARS];
-            String pref_values = preferences.getString("cur_year", CourseManager.DEFAULT_YEAR);
+            String pref_values = preferences.getString("cur_year", CourseManager.getDefaultYear());
             String summary = "";
             for (int i = 0; i < SHOW_YEARS; i++) {
-                year_values[i] = String.valueOf(i + curRealYear - 4 + 1);
-                years[i] = ((i + curRealYear - 4 + 1) + "-" + (i + curRealYear - 4 + 2));
+                year_values[i] = String.valueOf(i + curRealYear - SHOW_YEARS + 1);
+                years[i] = ((i + curRealYear - SHOW_YEARS + 1) + "-" + (i + curRealYear - SHOW_YEARS + 2));
                 if (pref_values.equals(year_values[i]))
                     summary = years[i];
             }

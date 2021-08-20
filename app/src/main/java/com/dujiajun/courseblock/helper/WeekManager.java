@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.Locale;
 
 public class WeekManager {
-    private static final String FIRST_DATE = "2021-02-22 00:00:00";
+    private static final String FIRST_DATE = "2021-09-13 00:00:00";
     private static WeekManager singleton;
     private final SharedPreferences preferences;
     public SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
