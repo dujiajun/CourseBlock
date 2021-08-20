@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -17,11 +18,22 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreference;
 
+import com.dujiajun.courseblock.helper.APKVersionInfoUtils;
 import com.dujiajun.courseblock.helper.CourseManager;
 import com.dujiajun.courseblock.helper.WeekManager;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Locale;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -124,6 +136,47 @@ public class SettingsActivity extends AppCompatActivity {
             feedbackPreference.setOnPreferenceClickListener(preference -> {
                 openUrl("https://github.com/dujiajun/CourseBlock/issues");
                 return false;
+            });
+
+            checkNewVersion();
+        }
+
+        private void checkNewVersion() {
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url("https://api.github.com/repos/dujiajun/CourseBlock/releases/latest")
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    String body = response.body().string();
+                    try {
+                        JSONObject json = new JSONObject(body);
+                        String tag = json.getString("tag_name");
+                        JSONObject asset = json.getJSONArray("assets").getJSONObject(0);
+                        String download_url = asset.getString("browser_download_url");
+                        String cur_version = 'v' + APKVersionInfoUtils.getVersionName(getActivity());
+                        if (cur_version.compareTo(tag) < 0) {
+                            getActivity().runOnUiThread(() -> {
+                                Preference homepagePreference = findPreference("homepage");
+                                homepagePreference.setSummary("有新版本，点击下载");
+                                homepagePreference.setOnPreferenceClickListener(preference -> {
+                                    openUrl(download_url);
+                                    return false;
+                                });
+                            });
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
             });
         }
 
