@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class CourseManager {
-    public static final String DEFAULT_TERM = "1";
-
     public static final int SUCCEEDED = CourseDownloader.DOWNLOADED;
     public static final int FAILED = CourseDownloader.FAILED;
     public static final int UNLOGIN = CourseDownloader.UNLOGIN;
@@ -44,7 +42,26 @@ public class CourseManager {
 
     public static String getDefaultYear() {
         Calendar calendar = Calendar.getInstance(Locale.CHINA);
-        return String.valueOf(calendar.get(Calendar.YEAR));
+        int curRealMonth = calendar.get(Calendar.MONTH) + 1;
+        int curRealYear = calendar.get(Calendar.YEAR);
+        if (curRealMonth < 9) {
+            curRealYear--; // 9月前为上一学年
+        }
+        return String.valueOf(curRealYear);
+    }
+
+    public static String getDefaultTerm() {
+        Calendar calendar = Calendar.getInstance(Locale.CHINA);
+        int curRealMonth = calendar.get(Calendar.MONTH) + 1;
+        String term;
+        if (curRealMonth >= 9 || curRealMonth < 2) {
+            term = "1"; // 秋季学期
+        } else if (curRealMonth < 7) {
+            term = "2"; // 春季学期
+        } else {
+            term = "3"; //夏季学期
+        }
+        return term;
     }
 
     public void updateStatus() {
@@ -87,7 +104,7 @@ public class CourseManager {
         };
 
         String year = preferences.getString("cur_year", getDefaultYear());
-        String term = preferences.getString("cur_term", DEFAULT_TERM);
+        String term = preferences.getString("cur_term", getDefaultTerm());
         downloader.getCourses(year, term, handler);
     }
 

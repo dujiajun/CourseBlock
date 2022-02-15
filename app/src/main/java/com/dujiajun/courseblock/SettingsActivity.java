@@ -64,7 +64,12 @@ public class SettingsActivity extends AppCompatActivity {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
             weekManager = WeekManager.getInstance(getContext());
             curYearListPreference = findPreference("cur_year");
+
+            int curRealMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
             int curRealYear = Calendar.getInstance().get(Calendar.YEAR);
+            if (curRealMonth < 9) {
+                curRealYear--; // 9月前为上一学年
+            }
 
             String[] years = new String[SHOW_YEARS];
             String[] year_values = new String[SHOW_YEARS];
@@ -93,7 +98,7 @@ public class SettingsActivity extends AppCompatActivity {
             SwitchPreference showTimePreference = findPreference("show_course_time");
 
             curTermListPreference = findPreference("cur_term");
-            pref_values = preferences.getString("cur_term", CourseManager.DEFAULT_TERM);
+            pref_values = preferences.getString("cur_term", CourseManager.getDefaultTerm());
             String[] terms = new String[]{"1", "2", "3"};
             for (int i = 0; i < terms.length; i++) {
                 if (pref_values.equals(terms[i]))
