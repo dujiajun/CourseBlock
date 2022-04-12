@@ -6,8 +6,8 @@ android {
         applicationId "com.dujiajun.courseblock"
         minSdkVersion 23
         targetSdkVersion 31
-        versionCode 11
-        versionName "3.1.6"
+        versionCode 12
+        versionName "3.1.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

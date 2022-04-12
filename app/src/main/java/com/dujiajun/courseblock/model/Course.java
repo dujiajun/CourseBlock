@@ -19,7 +19,7 @@ public class Course extends LitePalSupport implements ScheduleEnable {
     };
     public static final String[] END_TIMES = new String[]{
             "8:45", "9:40", "10:45", "11:40",
-            "12:45", "13:40", "14:55", "15:40",
+            "12:45", "13:40", "14:45", "15:40",
             "16:45", "17:40", "18:45", "19:40",
             "20:45", "21:40"
     };
