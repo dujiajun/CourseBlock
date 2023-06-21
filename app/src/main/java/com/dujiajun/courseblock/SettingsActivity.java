@@ -67,8 +67,8 @@ public class SettingsActivity extends AppCompatActivity {
 
             int curRealMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
             int curRealYear = Calendar.getInstance().get(Calendar.YEAR);
-            if (curRealMonth < 9) {
-                curRealYear--; // 9月前为上一学年
+            if (curRealMonth < 6) {
+                curRealYear--; // 6月前为上一学年，6月底学期结束，开放下一学年课表
             }
 
             String[] years = new String[SHOW_YEARS];
