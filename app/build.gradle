@@ -23,6 +23,7 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
+    namespace 'com.dujiajun.courseblock'
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach {
             if (variant.buildType.name == 'release') {
