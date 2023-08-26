@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 34
+    compileSdk 34
     defaultConfig {
         applicationId "com.dujiajun.courseblock"
         minSdkVersion 23
@@ -36,16 +36,16 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.3.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
-    implementation 'androidx.preference:preference:1.1.1'
-    implementation 'com.github.zfman:TimetableView:v2.0.7'
+    implementation 'androidx.preference:preference:1.2.1'
     implementation 'org.litepal.guolindev:core:3.2.3'
+    implementation project(path: ':TimeTableView')
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.json:json:20180813"
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.0")
-    androidTestImplementation 'androidx.test:runner:1.4.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
