@@ -1,4 +1,7 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
 
 android {
     compileSdk 34
@@ -44,6 +47,8 @@ dependencies {
     implementation 'androidx.preference:preference:1.2.1'
     implementation 'org.litepal.guolindev:core:3.2.3'
     implementation project(path: ':TimeTableView')
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.json:json:20180813"
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.0")
