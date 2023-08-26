@@ -44,7 +44,7 @@ public class CourseAppWidgetProvider extends AppWidgetProvider {
             mainIntent.addCategory("android.intent.category.LAUNCHER");
             mainIntent.setComponent(new ComponentName(context.getPackageName(),
                     MainActivity.class.getName()));
-            PendingIntent mainPending = PendingIntent.getActivity(context, 0, mainIntent, 0);
+            PendingIntent mainPending = PendingIntent.getActivity(context, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             rv.setOnClickPendingIntent(R.id.title, mainPending);
             rv.setOnClickPendingIntent(R.id.empty_view, mainPending);
 
