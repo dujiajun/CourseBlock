@@ -1,31 +1,29 @@
-package com.zhuangfei.timetable.model;
+package com.zhuangfei.timetable.model
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.text.TextUtils;
-
-import com.zhuangfei.timetable.TimetableView;
-import com.zhuangfei.timetable.listener.ISchedule;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import android.content.Context
+import android.content.SharedPreferences
+import android.text.TextUtils
+import com.zhuangfei.timetable.TimetableView
+import com.zhuangfei.timetable.listener.ISchedule.OnConfigHandleListener
 
 /**
  * 本地配置
  */
-public class ScheduleConfig {
-    private ISchedule.OnConfigHandleListener mOnConfigHandleListener;
-    private SharedPreferences mConfigPreferences;
-    private SharedPreferences.Editor mEditor;
-    private Map<String, String> mConfigMap;
-    private final Context context;
-    private String configName = "default_schedule_config";
+class ScheduleConfig(private val context: Context) {
+    /**
+     * 获取配置处理器
+     *
+     * @return ISchedule.OnConfigHandleListener
+     */
+    var onConfigHandleListener: OnConfigHandleListener? = null
+        private set
+    private var mConfigPreferences: SharedPreferences? = null
+    private var mEditor: SharedPreferences.Editor? = null
+    private var mConfigMap: MutableMap<String, String>
+    private var configName: String? = "default_schedule_config"
 
-    public ScheduleConfig(Context context) {
-        this.context = context;
-        mConfigMap = new HashMap<>();
+    init {
+        mConfigMap = HashMap()
     }
 
     /**
@@ -34,23 +32,14 @@ public class ScheduleConfig {
      * @param name 配置名称
      * @return ScheduleConfig
      */
-    public ScheduleConfig setConfigName(String name) {
-        if (configName == null || name == null) return this;
-        if (mConfigPreferences == null || !configName.equals(name)) {
-            configName = name;
-            mConfigPreferences = context.getSharedPreferences(configName, Context.MODE_PRIVATE);
-            mEditor = mConfigPreferences.edit();
+    fun setConfigName(name: String): ScheduleConfig {
+        if (configName == null) return this
+        if (mConfigPreferences == null || configName != name) {
+            configName = name
+            mConfigPreferences = context.getSharedPreferences(configName, Context.MODE_PRIVATE)
+            mEditor = mConfigPreferences?.edit()
         }
-        return this;
-    }
-
-    /**
-     * 获取配置处理器
-     *
-     * @return ISchedule.OnConfigHandleListener
-     */
-    public ISchedule.OnConfigHandleListener getOnConfigHandleListener() {
-        return mOnConfigHandleListener;
+        return this
     }
 
     /**
@@ -59,9 +48,9 @@ public class ScheduleConfig {
      * @param mOnConfigHandleListener 配置处理器
      * @return ScheduleConfig
      */
-    public ScheduleConfig setOnConfigHandleListener(ISchedule.OnConfigHandleListener mOnConfigHandleListener) {
-        this.mOnConfigHandleListener = mOnConfigHandleListener;
-        return this;
+    fun setOnConfigHandleListener(mOnConfigHandleListener: OnConfigHandleListener?): ScheduleConfig {
+        onConfigHandleListener = mOnConfigHandleListener
+        return this
     }
 
     /**
@@ -71,10 +60,9 @@ public class ScheduleConfig {
      * @param value 属性值
      * @return ScheduleConfig
      */
-    public ScheduleConfig put(String key, String value) {
-        if (mConfigMap == null || value == null) return this;
-        mConfigMap.put(key, value);
-        return this;
+    fun put(key: String, value: String): ScheduleConfig {
+        mConfigMap[key] = value
+        return this
     }
 
     /**
@@ -83,54 +71,51 @@ public class ScheduleConfig {
      * @param key 属性名
      * @return String
      */
-    public String get(String key) {
-        if (mConfigMap == null) return null;
-        return mConfigMap.get(key);
+    operator fun get(key: String): String? {
+        return mConfigMap[key]
     }
 
-    /**
-     * 获取缓存的属性Map
-     *
-     * @return
-     */
-    public Map<String, String> getConfigMap() {
-        return mConfigMap;
-    }
+    val configMap: Map<String, String>
+        /**
+         * 获取缓存的属性Map
+         *
+         * @return
+         */
+        get() = mConfigMap
 
     /**
      * 将指定的Map作为缓存
      *
-     * @param mConfigMap Map<String, String>
+     * @param mConfigMap Map<String></String>, String>
      * @return ScheduleConfig
      */
-    public ScheduleConfig setConfigMap(Map<String, String> mConfigMap) {
-        this.mConfigMap = mConfigMap;
-        return this;
+    fun setConfigMap(mConfigMap: MutableMap<String, String>): ScheduleConfig {
+        this.mConfigMap = mConfigMap
+        return this
     }
 
     /**
      * 将缓存中的修改提交到本地
      */
-    public void commit() {
-        Set<String> set = new HashSet<>();
-        for (Map.Entry<String, String> entry : mConfigMap.entrySet()) {
-            if (entry.getKey() == null || entry.getValue() == null) continue;
-            set.add(entry.getKey().trim() + "=" + entry.getValue().trim());
+    fun commit() {
+        val set: MutableSet<String> = HashSet()
+        for ((key, value) in mConfigMap) {
+            set.add(key.trim { it <= ' ' } + "=" + value.trim { it <= ' ' })
         }
-        Set<String> finalSet = mConfigPreferences.getStringSet("scheduleconfig_set", new HashSet<String>());
-        finalSet.addAll(set);
-        mConfigMap.clear();
-        mEditor.putStringSet("scheduleconfig_set", finalSet);
-        mEditor.commit();
+        val finalSet = mConfigPreferences!!.getStringSet("scheduleconfig_set", HashSet())
+        finalSet!!.addAll(set)
+        mConfigMap.clear()
+        mEditor!!.putStringSet("scheduleconfig_set", finalSet)
+        mEditor!!.commit()
     }
 
     /**
      * 清除缓存和本地属性配置
      */
-    public void clear() {
-        mConfigMap.clear();
-        mEditor.clear();
-        mEditor.commit();
+    fun clear() {
+        mConfigMap.clear()
+        mEditor!!.clear()
+        mEditor!!.commit()
     }
 
     /**
@@ -138,9 +123,8 @@ public class ScheduleConfig {
      *
      * @return set集合，每个元素都是一个配置，格式：key=value
      */
-    public Set<String> export() {
-        Set<String> finalSet = mConfigPreferences.getStringSet("scheduleconfig_set", new HashSet<String>());
-        return finalSet;
+    fun export(): Set<String>? {
+        return mConfigPreferences!!.getStringSet("scheduleconfig_set", HashSet())
     }
 
     /**
@@ -148,12 +132,12 @@ public class ScheduleConfig {
      *
      * @param data
      */
-    public void load(Set<String> data) {
-        Set<String> finalSet = mConfigPreferences.getStringSet("scheduleconfig_set", new HashSet<String>());
-        finalSet.addAll(data);
-        mConfigMap.clear();
-        mEditor.putStringSet("scheduleconfig_set", finalSet);
-        mEditor.commit();
+    fun load(data: Set<String>) {
+        val finalSet = mConfigPreferences!!.getStringSet("scheduleconfig_set", HashSet())
+        finalSet!!.addAll(data)
+        mConfigMap.clear()
+        mEditor!!.putStringSet("scheduleconfig_set", finalSet)
+        mEditor!!.commit()
     }
 
     /**
@@ -161,16 +145,16 @@ public class ScheduleConfig {
      *
      * @param view TimetableView
      */
-    public void use(TimetableView view) {
-        if (getConfigMap() == null || getOnConfigHandleListener() == null) return;
-        Set<String> keySet = mConfigPreferences.getStringSet("scheduleconfig_set", new HashSet<String>());
-        String[] configArray = null;
-        for (String str : keySet) {
-            if (!TextUtils.isEmpty(str) && str.indexOf("=") != -1) {
-                str = str.trim();
-                configArray = str.split("=");
-                if (configArray.length == 2) {
-                    getOnConfigHandleListener().onParseConfig(configArray[0], configArray[1], view);
+    fun use(view: TimetableView?) {
+        if (onConfigHandleListener == null) return
+        val keySet = mConfigPreferences!!.getStringSet("scheduleconfig_set", HashSet())
+
+        for (key in keySet!!) {
+            if (!TextUtils.isEmpty(key) && key.indexOf("=") != -1) {
+                val trimmed = key.trim { it <= ' ' }
+                val configArray = trimmed.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                if (configArray.size == 2) {
+                    onConfigHandleListener!!.onParseConfig(configArray[0], configArray[1], view)
                 }
             }
         }
