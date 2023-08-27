@@ -47,8 +47,7 @@ open class MainActivity : AppCompatActivity() {
             .callback(object : OnWeekItemClickedListener {
                 override fun onWeekClicked(week: Int) {
                     val cur = timetableView.curWeek()
-                    timetableView.onDateBuildListener()
-                        .onUpdateDate(cur, week)
+                    timetableView.onDateBuildListener().onUpdateDate(cur, week)
                     timetableView.changeWeekOnly(week)
                     showWeek = week
                 }
@@ -102,7 +101,7 @@ open class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val useChiIcon = preferences.getBoolean("use_chi_icon", false)
+        val useChiIcon = preferences.getBoolean(PreferenceKey.USE_CHI_ICON, false)
         setIcon(useChiIcon)
         courseManager.updateStatus()
         showWeek = timetableView.curWeek()

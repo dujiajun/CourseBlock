@@ -17,7 +17,7 @@ class WebViewCookieHandler : CookieJar {
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         val urlString = url.toString()
         val cookiesString = mCookieManager.getCookie(urlString)
-        if (cookiesString != null && !cookiesString.isEmpty()) {
+        if (cookiesString != null && cookiesString.isNotEmpty()) {
             val cookieHeaders =
                 cookiesString.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             val cookies: MutableList<Cookie> = ArrayList(cookieHeaders.size)

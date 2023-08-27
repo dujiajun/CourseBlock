@@ -29,7 +29,7 @@ class LoginActivity : AppCompatActivity() {
                 val headers = request.requestHeaders
                 headers["Referer"]?.let {
                     if (it != "")
-                        courseManager?.setReferer(it)
+                        courseManager.setReferer(it)
                 }
                 return super.shouldInterceptRequest(view, request)
             }
@@ -50,18 +50,14 @@ class LoginActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView, url: String) {
                 super.onPageFinished(view, url)
-                if (courseManager != null) {
-                    if (url.contains(courseManager.afterLoginPattern)) {
-                        Toast.makeText(this@LoginActivity, R.string.already_logged_in, Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
+                if (url.contains(courseManager.afterLoginPattern)) {
+                    Toast.makeText(this@LoginActivity, R.string.already_logged_in, Toast.LENGTH_SHORT).show()
+                    finish()
                 }
             }
         }
 
-        val loginUrl = courseManager?.loginUrl
-        if (loginUrl != null) {
-            webView.loadUrl(loginUrl)
-        }
+        val loginUrl = courseManager.loginUrl
+        webView.loadUrl(loginUrl)
     }
 }

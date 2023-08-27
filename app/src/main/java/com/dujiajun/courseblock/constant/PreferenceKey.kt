@@ -12,6 +12,7 @@ class PreferenceKey {
         const val SHOW_WEEKEND = "show_weekend"
         const val SHOW_NOT_CUR_WEEK = "show_not_cur_week"
         const val SHOW_COURSE_TIME = "show_course_time"
+        const val USE_CHI_ICON = "use_chi_icon"
     }
 
 }

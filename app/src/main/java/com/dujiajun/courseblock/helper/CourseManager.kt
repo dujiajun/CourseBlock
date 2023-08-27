@@ -63,8 +63,8 @@ class CourseManager private constructor(private val context: Context) {
                 uiHandler.sendMessage(uiMessage)
             }
         }
-        val year = preferences.getString("cur_year", defaultYear)
-        val term = preferences.getString("cur_term", defaultTerm)
+        val year = preferences.getString(PreferenceKey.CURRENT_YEAR, defaultYear)
+        val term = preferences.getString(PreferenceKey.CURRENT_TERM, defaultTerm)
         downloader.getCourses(year!!, term!!, handler)
     }
 

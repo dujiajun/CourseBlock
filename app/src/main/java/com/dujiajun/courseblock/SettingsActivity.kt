@@ -4,7 +4,6 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -63,7 +62,8 @@ class SettingsActivity : AppCompatActivity() {
             }
             val years = arrayOfNulls<String>(SHOW_YEARS)
             val yearValues = arrayOfNulls<String>(SHOW_YEARS)
-            var prefValues = preferences.getString(PreferenceKey.CURRENT_YEAR, CourseManager.defaultYear)
+            var prefValues =
+                preferences.getString(PreferenceKey.CURRENT_YEAR, CourseManager.defaultYear)
             var summary: String? = ""
             for (i in 0 until SHOW_YEARS) {
                 yearValues[i] = (i + curRealYear - SHOW_YEARS + 1).toString()
@@ -78,11 +78,15 @@ class SettingsActivity : AppCompatActivity() {
             statusPreference = findPreference(PreferenceKey.STATUS)!!
             statusPreference.summary = statusPreference.entry
             statusPreference.onPreferenceChangeListener = this
-            val showNotCurWeekPreference = findPreference<SwitchPreference>(PreferenceKey.SHOW_NOT_CUR_WEEK)!!
-            val showWeekendPreference = findPreference<SwitchPreference>(PreferenceKey.SHOW_WEEKEND)!!
-            val showTimePreference = findPreference<SwitchPreference>(PreferenceKey.SHOW_COURSE_TIME)!!
+            val showNotCurWeekPreference =
+                findPreference<SwitchPreference>(PreferenceKey.SHOW_NOT_CUR_WEEK)!!
+            val showWeekendPreference =
+                findPreference<SwitchPreference>(PreferenceKey.SHOW_WEEKEND)!!
+            val showTimePreference =
+                findPreference<SwitchPreference>(PreferenceKey.SHOW_COURSE_TIME)!!
             curTermListPreference = findPreference(PreferenceKey.CURRENT_TERM)!!
-            prefValues = preferences.getString(PreferenceKey.CURRENT_TERM, CourseManager.defaultTerm)
+            prefValues =
+                preferences.getString(PreferenceKey.CURRENT_TERM, CourseManager.defaultTerm)
             val terms = arrayOf("1", "2", "3")
             for (i in terms.indices) {
                 if (prefValues == terms[i]) summary =
@@ -169,6 +173,7 @@ class SettingsActivity : AppCompatActivity() {
                 .build()
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {}
+
                 @Throws(IOException::class)
                 override fun onResponse(call: Call, response: Response) {
                     val body = response.body!!.string()
@@ -217,7 +222,10 @@ class SettingsActivity : AppCompatActivity() {
                         Toast.makeText(activity, R.string.summer_term, Toast.LENGTH_SHORT).show()
                         return false
                     }
-                    curYearListPreference.summary = curYearListPreference.entries[curYearListPreference.findIndexOfValue(newValue)]
+                    curYearListPreference.summary =
+                        curYearListPreference.entries[curYearListPreference.findIndexOfValue(
+                            newValue
+                        )]
                 }
 
                 PreferenceKey.CURRENT_TERM -> {
@@ -225,11 +233,15 @@ class SettingsActivity : AppCompatActivity() {
                         Toast.makeText(activity, R.string.summer_term, Toast.LENGTH_SHORT).show()
                         return false
                     }
-                    curTermListPreference.summary = curTermListPreference.entries[curTermListPreference.findIndexOfValue(newValue as String)]
+                    curTermListPreference.summary =
+                        curTermListPreference.entries[curTermListPreference.findIndexOfValue(
+                            newValue as String
+                        )]
                 }
 
                 PreferenceKey.STATUS ->
-                    statusPreference.summary = statusPreference.entries[statusPreference.findIndexOfValue(newValue as String)]
+                    statusPreference.summary =
+                        statusPreference.entries[statusPreference.findIndexOfValue(newValue as String)]
 
                 PreferenceKey.SHOW_WEEKEND, PreferenceKey.SHOW_COURSE_TIME, PreferenceKey.SHOW_NOT_CUR_WEEK, "use_chi_icon", PreferenceKey.FIRST_MONDAY, PreferenceKey.LAST_SUNDAY ->
                     Toast.makeText(activity, R.string.change_take_effect, Toast.LENGTH_SHORT).show()

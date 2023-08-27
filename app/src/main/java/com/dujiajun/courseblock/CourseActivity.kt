@@ -133,9 +133,7 @@ class CourseActivity : AppCompatActivity() {
             isWeekSelected[which] = isChecked
             weekCode[which] = if (isChecked) '1' else '0'
         }
-        builder.setNeutralButton(
-            R.string.ok
-        ) { _: DialogInterface?, _: Int -> refreshTextViewAfterDialog() }
+        builder.setNeutralButton(R.string.ok) { _: DialogInterface?, _: Int -> refreshTextViewAfterDialog() }
         builder.setNegativeButton(getString(R.string.select_all)) { _: DialogInterface?, _: Int ->
             Arrays.fill(isWeekSelected, true)
             Arrays.fill(weekCode, '1')
@@ -153,11 +151,10 @@ class CourseActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.select_start))
         builder.setSingleChoiceItems(
-            startItems, start - 1
+            startItems,
+            start - 1
         ) { _: DialogInterface?, which: Int -> start = which + 1 }
-        builder.setPositiveButton(
-            R.string.ok
-        ) { _: DialogInterface?, _: Int ->
+        builder.setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
             tvStart.text = startItems[start - 1]
             endItems = Array(Course.MAX_STEPS - start + 1) { "" }
             for (i in start..Course.MAX_STEPS) endItems[i - start] =
@@ -176,17 +173,17 @@ class CourseActivity : AppCompatActivity() {
         builder.setSingleChoiceItems(
             dayItems, day - 1
         ) { _: DialogInterface?, which: Int -> day = which + 1 }
-        builder.setPositiveButton(
-            R.string.ok
-        ) { _: DialogInterface?, _: Int -> tvDay.text = dayItems[day - 1] }
+        builder.setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
+            tvDay.text = dayItems[day - 1]
+        }
         builder.setNegativeButton(R.string.cancel, null)
         builder.show()
     }
 
     private fun showEndDialog() {
         endItems = Array(Course.MAX_STEPS - start + 1) { "" }
-        for (i in start..Course.MAX_STEPS) endItems[i - start] =
-            String.format(getString(R.string.period), i.toString())
+        for (i in start..Course.MAX_STEPS)
+            endItems[i - start] = String.format(getString(R.string.period), i.toString())
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.select_end))
         builder.setSingleChoiceItems(
@@ -195,9 +192,9 @@ class CourseActivity : AppCompatActivity() {
             end = which + start
             step = end - start + 1
         }
-        builder.setPositiveButton(
-            R.string.ok
-        ) { _: DialogInterface?, _: Int -> tvEnd.text = endItems[step - 1] }
+        builder.setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
+            tvEnd.text = endItems[step - 1]
+        }
         builder.setNegativeButton(R.string.cancel, null)
         builder.show()
     }
