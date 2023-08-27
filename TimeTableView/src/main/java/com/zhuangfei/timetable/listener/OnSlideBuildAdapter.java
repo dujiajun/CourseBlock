@@ -21,19 +21,34 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
     protected String[] times;
 
     //节次文本的颜色、字号
-    protected int textColor= Color.BLACK;
-    protected float textSize=14;
+    protected int textColor = Color.BLACK;
+    protected float textSize = 14;
 
     //时刻文本的颜色、字号
-    protected float timeTextSize=12;
-    protected int timeTextColor=Color.GRAY;
+    protected float timeTextSize = 12;
+    protected int timeTextColor = Color.GRAY;
 
     //侧边栏背景色
-    protected int background=Color.WHITE;
-    protected float alpha=1;
+    protected int background = Color.WHITE;
+    protected float alpha = 1;
+
+    public OnSlideBuildAdapter setBackground(int backgroundColor) {
+        this.background = backgroundColor;
+        return this;
+    }
+
+    /**
+     * 获取时刻数组
+     *
+     * @return
+     */
+    public String[] getTimes() {
+        return times;
+    }
 
     /**
      * 设置时刻数组
+     *
      * @param times
      * @return
      */
@@ -42,22 +57,9 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
         return this;
     }
 
-    public OnSlideBuildAdapter setBackground(int backgroundColor) {
-        this.background=backgroundColor;
-        return this;
-    }
-
-    /**
-     * 获取时刻数组
-     * @return
-     */
-    public String[] getTimes() {
-        return times;
-    }
-
-
     /**
      * 设置节次文本颜色
+     *
      * @param textColor 指定颜色
      * @return
      */
@@ -68,6 +70,7 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
 
     /**
      * 设置节次文本的大小
+     *
      * @param textSize 指定字号
      * @return
      */
@@ -78,6 +81,7 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
 
     /**
      * 设置节次时间的文本颜色
+     *
      * @param timeTextColor 颜色
      * @return
      */
@@ -88,6 +92,7 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
 
     /**
      * 设置节次时间的文本大小
+     *
      * @param timeTextSize 字号
      * @return
      */
@@ -98,20 +103,20 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
 
     @Override
     public View getView(int pos, LayoutInflater inflater, int itemHeight, int marTop) {
-        View view=inflater.inflate(R.layout.item_slide_time,null,false);
-        TextView numberTextView=view.findViewById(R.id.item_slide_number);
-        TextView timeTextView=view.findViewById(R.id.item_slide_time);
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+        View view = inflater.inflate(R.layout.item_slide_time, null, false);
+        TextView numberTextView = view.findViewById(R.id.item_slide_number);
+        TextView timeTextView = view.findViewById(R.id.item_slide_time);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 itemHeight);
-        lp.setMargins(0,marTop,0,0);
+        lp.setMargins(0, marTop, 0, 0);
         view.setLayoutParams(lp);
 
-        numberTextView.setText((pos+1)+"");
+        numberTextView.setText((pos + 1) + "");
         numberTextView.setTextSize(textSize);
         numberTextView.setTextColor(textColor);
 
-        if(times==null) timeTextView.setText("");
-        if(times!=null&&pos>=0&&pos<times.length){
+        if (times == null) timeTextView.setText("");
+        if (times != null && pos >= 0 && pos < times.length) {
             timeTextView.setText(times[pos]);
             timeTextView.setTextColor(timeTextColor);
             timeTextView.setTextSize(timeTextSize);
@@ -121,8 +126,8 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
 
     @Override
     public void onInit(LinearLayout layout, float alpha) {
-        this.alpha=alpha;
-        int alphaColor=ColorUtils.alphaColor(background,alpha);
-        if(layout!=null) layout.setBackgroundColor(alphaColor);
+        this.alpha = alpha;
+        int alphaColor = ColorUtils.alphaColor(background, alpha);
+        if (layout != null) layout.setBackgroundColor(alphaColor);
     }
 }

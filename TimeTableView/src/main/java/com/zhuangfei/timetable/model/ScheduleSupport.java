@@ -259,7 +259,7 @@ public class ScheduleSupport {
      */
     public static List<Schedule> findSubjects(Schedule subject, List<Schedule> data) {
         List<Schedule> result = new ArrayList<>();
-        if(subject==null||data==null) return result;
+        if (subject == null || data == null) return result;
         for (int i = 0; i < data.size(); i++) {
             Schedule bean = data.get(i);
             if (bean.getStart() >= subject.getStart() && bean.getStart() < (subject.getStart() + subject.getStep()))
@@ -302,8 +302,7 @@ public class ScheduleSupport {
      */
     public static boolean isThisWeek(Schedule subject, int cur_week) {
         List<Integer> weekList = subject.getWeekList();
-        if (weekList.indexOf(cur_week) != -1) return true;
-        return false;
+        return weekList.contains(cur_week);
     }
 
     /**
@@ -317,33 +316,33 @@ public class ScheduleSupport {
         if (data == null) return new ArrayList<>();
         Set<Schedule> result = new HashSet<>();
 
-        if(!isShowNotCurWeek){
-            List<Schedule> filter=new ArrayList<>();
-            for(int i=0;i<data.size();i++){
-                Schedule s=data.get(i);
-                if(ScheduleSupport.isThisWeek(s,curWeek)) filter.add(s);
+        if (!isShowNotCurWeek) {
+            List<Schedule> filter = new ArrayList<>();
+            for (int i = 0; i < data.size(); i++) {
+                Schedule s = data.get(i);
+                if (ScheduleSupport.isThisWeek(s, curWeek)) filter.add(s);
             }
-            data=filter;
+            data = filter;
         }
-        if(data.size()>=1){
+        if (data.size() >= 1) {
             result.add(data.get(0));
         }
         for (int i = 1; i < data.size(); i++) {
             Schedule s = data.get(i);
-            boolean is=true;
+            boolean is = true;
             for (int j = 0; j < i; j++) {
                 Schedule s2 = data.get(j);
-                if(s.getStart()>=s2.getStart()&&s.getStart()<=(s2.getStart()+s2.getStep()-1)){
-                    is=false;
-                    if(isThisWeek(s2,curWeek)){
+                if (s.getStart() >= s2.getStart() && s.getStart() <= (s2.getStart() + s2.getStep() - 1)) {
+                    is = false;
+                    if (isThisWeek(s2, curWeek)) {
                         break;
-                    }else if(isThisWeek(s,curWeek)){
+                    } else if (isThisWeek(s, curWeek)) {
                         result.remove(s2);
                         result.add(s);
                     }
                 }
             }
-            if(is) result.add(s);
+            if (is) result.add(s);
         }
         List<Schedule> list = new ArrayList<>(result);
         sortList(list);

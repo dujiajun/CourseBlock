@@ -9,159 +9,158 @@ import java.util.Map;
 /**
  * 课程实体类<br/>
  * 1.增加了extras,可以保存一些自己需要的东西<br/>
- * @author Administrator 刘壮飞
  *
+ * @author Administrator 刘壮飞
  */
-public class Schedule implements Serializable,Comparable<Schedule>{
+public class Schedule implements Serializable, Comparable<Schedule> {
 
-	/**
-	 * 课程名
-	 */
-	private String name="";
-	
-	/**
-	 * 教室
-	 */
-	private String room="";
-	
-	/**
-	 * 教师
-	 */
-	private String teacher="";
-	
-	/**
-	 * 第几周至第几周上
-	 */
-	private List<Integer> weekList=new ArrayList<>();
-	
-	/**
-	 * 开始上课的节次
-	 */
-	private int start=0;
-	
-	/**
-	 * 上课节数
-	 */
-	private int step=0;
-	
-	/**
-	 * 周几上
-	 */
-	private int day=0;
-	
-	/**
-	 *  一个随机数，用于对应课程的颜色
-	 */
-	private int colorRandom = 0;
+    /**
+     * 课程名
+     */
+    private String name = "";
 
-	/**
-	 * 额外信息
-	 */
-	private Map<String,Object> extras=new HashMap<>();
-	
-	public Schedule(String name, String room, String teacher,
-					List<Integer> weekList, int start, int step, int day,
-					int colorRandom) {
-		super();
-		this.name = name;
-		this.room = room;
-		this.teacher = teacher;
-		this.weekList = weekList;
-		this.start = start;
-		this.step = step;
-		this.day = day;
-		this.colorRandom = colorRandom;
-	}
+    /**
+     * 教室
+     */
+    private String room = "";
 
-	public Map<String,Object> getExtras(){
-		return extras;
-	}
+    /**
+     * 教师
+     */
+    private String teacher = "";
 
-	public void setExtras(Map<String,Object> map){
-		this.extras=map;
-	}
+    /**
+     * 第几周至第几周上
+     */
+    private List<Integer> weekList = new ArrayList<>();
 
-	public void putExtras(String key,Object val){
-		getExtras().put(key,val);
-	}
+    /**
+     * 开始上课的节次
+     */
+    private int start = 0;
 
+    /**
+     * 上课节数
+     */
+    private int step = 0;
 
-	public String getName() {
-		return name;
-	}
+    /**
+     * 周几上
+     */
+    private int day = 0;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    /**
+     * 一个随机数，用于对应课程的颜色
+     */
+    private int colorRandom = 0;
 
-	public String getRoom() {
-		return room;
-	}
+    /**
+     * 额外信息
+     */
+    private Map<String, Object> extras = new HashMap<>();
 
-	public void setRoom(String room) {
-		this.room = room;
-	}
+    public Schedule(String name, String room, String teacher,
+                    List<Integer> weekList, int start, int step, int day,
+                    int colorRandom) {
+        super();
+        this.name = name;
+        this.room = room;
+        this.teacher = teacher;
+        this.weekList = weekList;
+        this.start = start;
+        this.step = step;
+        this.day = day;
+        this.colorRandom = colorRandom;
+    }
 
-	public String getTeacher() {
-		return teacher;
-	}
+    public Schedule() {
+        super();
+    }
 
-	public void setTeacher(String teacher) {
-		this.teacher = teacher;
-	}
+    public Map<String, Object> getExtras() {
+        return extras;
+    }
 
-	public void setWeekList(List<Integer> weekList) {
-		this.weekList = weekList;
-	}
-	
-	public List<Integer> getWeekList() {
-		return weekList;
-	}
+    public void setExtras(Map<String, Object> map) {
+        this.extras = map;
+    }
 
-	public int getStart() {
-		return start;
-	}
+    public void putExtras(String key, Object val) {
+        getExtras().put(key, val);
+    }
 
-	public void setStart(int start) {
-		this.start = start;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public int getStep() {
-		return step;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setStep(int step) {
-		this.step = step;
-	}
+    public String getRoom() {
+        return room;
+    }
 
-	public int getDay() {
-		return day;
-	}
+    public void setRoom(String room) {
+        this.room = room;
+    }
 
-	public void setDay(int day) {
-		this.day = day;
-	}
+    public String getTeacher() {
+        return teacher;
+    }
 
-	public int getColorRandom() {
-		return colorRandom;
-	}
+    public void setTeacher(String teacher) {
+        this.teacher = teacher;
+    }
 
-	public void setColorRandom(int colorRandom) {
-		this.colorRandom = colorRandom;
-	}
+    public List<Integer> getWeekList() {
+        return weekList;
+    }
 
-	public Schedule() {
-		super();
-	}
+    public void setWeekList(List<Integer> weekList) {
+        this.weekList = weekList;
+    }
 
-	@Override
-	public int compareTo(Schedule o) {
-		if(getStart()<o.getStart()){
-			return -1;
-		}else if(getStart()==o.getStart()){
-			return 0;
-		}else{
-			return 1;
-		}
-	}
+    public int getStart() {
+        return start;
+    }
+
+    public void setStart(int start) {
+        this.start = start;
+    }
+
+    public int getStep() {
+        return step;
+    }
+
+    public void setStep(int step) {
+        this.step = step;
+    }
+
+    public int getDay() {
+        return day;
+    }
+
+    public void setDay(int day) {
+        this.day = day;
+    }
+
+    public int getColorRandom() {
+        return colorRandom;
+    }
+
+    public void setColorRandom(int colorRandom) {
+        this.colorRandom = colorRandom;
+    }
+
+    @Override
+    public int compareTo(Schedule o) {
+        if (getStart() < o.getStart()) {
+            return -1;
+        } else if (getStart() == o.getStart()) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
 }

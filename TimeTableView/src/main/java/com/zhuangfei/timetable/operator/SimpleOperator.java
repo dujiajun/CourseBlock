@@ -34,7 +34,7 @@ import java.util.Map;
  * @see SimpleOperator#showView()
  * @see SimpleOperator#updateDateView()
  * @see SimpleOperator#updateSlideView()
- *
+ * <p>
  * Created by Liu ZhuangFei on 2018/9/1.
  */
 public class SimpleOperator extends AbsOperator {
@@ -67,7 +67,7 @@ public class SimpleOperator extends AbsOperator {
         dateLayout = mView.findViewById(R.id.id_datelayout);
         mView.monthWidthDp(40);
         initAttr(attrs);
-        scheduleConfig=new ScheduleConfig(context);
+        scheduleConfig = new ScheduleConfig(context);
     }
 
     /**
@@ -76,7 +76,7 @@ public class SimpleOperator extends AbsOperator {
      * @param attrs
      */
     protected void initAttr(AttributeSet attrs) {
-        if(attrs==null) return;
+        if (attrs == null) return;
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.TimetableView);
         int curWeek = ta.getInteger(R.styleable.TimetableView_cur_week, 1);
         String curTerm = ta.getString(R.styleable.TimetableView_cur_term);
@@ -113,10 +113,11 @@ public class SimpleOperator extends AbsOperator {
 
     /**
      * 获取旗标布局,需要在showView方法执行后执行
+     *
      * @return
      */
     @Override
-    public LinearLayout getFlagLayout(){
+    public LinearLayout getFlagLayout() {
         return flagLayout;
     }
 
@@ -174,8 +175,8 @@ public class SimpleOperator extends AbsOperator {
         layout.setLayoutParams(lp);
 
         boolean isThisWeek = ScheduleSupport.isThisWeek(subject, curWeek);
-        TextView textView = (TextView) view.findViewById(R.id.id_course_item_course);
-        TextView countTextView = (TextView) view.findViewById(R.id.id_course_item_count);
+        TextView textView = view.findViewById(R.id.id_course_item_course);
+        TextView countTextView = view.findViewById(R.id.id_course_item_count);
         textView.setText(mView.onItemBuildListener().getItemText(subject, isThisWeek));
 
         countTextView.setText("");
@@ -184,20 +185,20 @@ public class SimpleOperator extends AbsOperator {
         GradientDrawable gd = new GradientDrawable();
         if (isThisWeek) {
             textView.setTextColor(mView.itemTextColorWithThisWeek());
-            Map<String,Integer> colorMap=mView.colorPool().getColorMap();
-            if(!colorMap.isEmpty()&&colorMap.containsKey(subject.getName())){
-                gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.getName()),mView.itemAlpha()));
-            }else{
+            Map<String, Integer> colorMap = mView.colorPool().getColorMap();
+            if (!colorMap.isEmpty() && colorMap.containsKey(subject.getName())) {
+                gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.getName()), mView.itemAlpha()));
+            } else {
                 gd.setColor(mView.colorPool().getColorAutoWithAlpha(subject.getColorRandom(), mView.itemAlpha()));
             }
             gd.setCornerRadius(mView.corner(true));
 
             List<Schedule> clist = ScheduleSupport.findSubjects(subject, originData);
-            int count =0;
-            if(clist!=null){
-                for(int k=0;k<clist.size();k++){
-                    Schedule p=clist.get(k);
-                    if(p!=null&&ScheduleSupport.isThisWeek(p,curWeek)) count++;
+            int count = 0;
+            if (clist != null) {
+                for (int k = 0; k < clist.size(); k++) {
+                    Schedule p = clist.get(k);
+                    if (p != null && ScheduleSupport.isThisWeek(p, curWeek)) count++;
                 }
             }
             if (count > 1) {
@@ -206,10 +207,10 @@ public class SimpleOperator extends AbsOperator {
             }
         } else {
             textView.setTextColor(mView.itemTextColorWithNotThis());
-            Map<String,Integer> colorMap=mView.colorPool().getColorMap();
-            if(!colorMap.isEmpty()&&mView.colorPool().isIgnoreUserlessColor()&&colorMap.containsKey(subject.getName())){
-                gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.getName()),mView.itemAlpha()));
-            }else{
+            Map<String, Integer> colorMap = mView.colorPool().getColorMap();
+            if (!colorMap.isEmpty() && mView.colorPool().isIgnoreUserlessColor() && colorMap.containsKey(subject.getName())) {
+                gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.getName()), mView.itemAlpha()));
+            } else {
                 gd.setColor(mView.colorPool().getUselessColorWithAlpha(mView.itemAlpha()));
             }
             gd.setCornerRadius(mView.corner(false));
@@ -249,14 +250,14 @@ public class SimpleOperator extends AbsOperator {
         layout.removeAllViews();
 
         //遍历
-        List<Schedule> filter = ScheduleSupport.fliterSchedule(data, curWeek,mView.isShowNotCurWeek());
-        Schedule pre=null;
-        if(filter.size()>0){
+        List<Schedule> filter = ScheduleSupport.fliterSchedule(data, curWeek, mView.isShowNotCurWeek());
+        Schedule pre = null;
+        if (filter.size() > 0) {
             pre = filter.get(0);
         }
         for (int i = 0; i < filter.size(); i++) {
             final Schedule subject = filter.get(i);
-            View view = newItemView(data,filter, subject, pre, i, curWeek);
+            View view = newItemView(data, filter, subject, pre, i, curWeek);
             if (view != null) {
                 layout.addView(view);
                 pre = subject;
@@ -269,9 +270,9 @@ public class SimpleOperator extends AbsOperator {
      * 点击panel时的事件响应
      */
     protected void onPanelClicked(View view, float y) {
-        if(mView.isShowFlaglayout()){
+        if (mView.isShowFlagLayout()) {
             flagLayout.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             flagLayout.setVisibility(View.GONE);
         }
 
@@ -291,35 +292,37 @@ public class SimpleOperator extends AbsOperator {
 
         // 判断点击的是第几节课，1：第1节
         final int start = (int) Math.ceil((y / (mView.itemHeight() + mView.marTop())));
-        if(!checkPosition(day,start)){
-            mView.onSpaceItemClickListener().onSpaceItemClick(day,start);
+        if (!checkPosition(day, start)) {
+            mView.onSpaceItemClickListener().onSpaceItemClick(day, start);
         }
         final int finalDay = day;
         flagLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mView.onFlaglayoutClickListener().onFlagLayoutClick(finalDay,start);
+                mView.onFlaglayoutClickListener().onFlagLayoutClick(finalDay, start);
             }
         });
     }
 
     /**
      * 判断位置是否有课
+     *
      * @param day
      * @param start
      * @return true：有课，false：无课
      */
-    protected boolean checkPosition(int day,int start){
+    protected boolean checkPosition(int day, int start) {
         List<Schedule> list;
-        if(mView.isShowNotCurWeek()){
-            list= ScheduleSupport.getAllSubjectsWithDay(mView.dataSource(),day);
-        }else{
-            list= ScheduleSupport.getHaveSubjectsWithDay(mView.dataSource(),mView.curWeek(),day);
+        if (mView.isShowNotCurWeek()) {
+            list = ScheduleSupport.getAllSubjectsWithDay(mView.dataSource(), day);
+        } else {
+            list = ScheduleSupport.getHaveSubjectsWithDay(mView.dataSource(), mView.curWeek(), day);
         }
-        boolean isHave=false;
-        for(Schedule item:list){
-            if(start==item.getStart()||(start>=item.getStart()&&start<=(item.getStart()+item.getStep()-1))){
-                isHave=true;
+        boolean isHave = false;
+        for (Schedule item : list) {
+            if (start == item.getStart() || (start >= item.getStart() && start <= (item.getStart() + item.getStep() - 1))) {
+                isHave = true;
+                break;
             }
         }
         return isHave;
@@ -364,13 +367,13 @@ public class SimpleOperator extends AbsOperator {
     /**
      * 实现ScrollView的替换,只有在初始化时替换一次
      */
-    public void replaceScrollView(){
+    public void replaceScrollView() {
         if (mView.findViewById(R.id.id_scrollview) == null) {
             View view = mView.onScrollViewBuildListener().getScrollView(inflater);
             containerLayout.addView(view);
             //初始化
             weekPanel = mView.findViewById(R.id.weekPanel_0);
-            flagLayout=mView.findViewById(R.id.id_flaglayout);
+            flagLayout = mView.findViewById(R.id.id_flaglayout);
             initPanel();
         }
     }
@@ -378,21 +381,21 @@ public class SimpleOperator extends AbsOperator {
     /**
      * 设置旗标布局的配置
      */
-    public void applyFlagLayoutConf(){
+    public void applyFlagLayoutConf() {
         mView.hideFlaglayout();
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(mView.monthWidth(), LinearLayout.LayoutParams.MATCH_PARENT);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(mView.monthWidth(), LinearLayout.LayoutParams.MATCH_PARENT);
         weekPanel.setLayoutParams(lp);
         flagLayout.setBackgroundColor(mView.flagBgcolor());
-        float perWidth=getPerWidth();
+        float perWidth = getPerWidth();
         mView.onSpaceItemClickListener().onInit(flagLayout, mView.monthWidth(),
-                Math.round(perWidth),mView.itemHeight(),mView.marTop(),
-                Math.round(mView.marLeft()/2.0f));
+                Math.round(perWidth), mView.itemHeight(), mView.marTop(),
+                Math.round(mView.marLeft() / 2.0f));
     }
 
     /**
      * 开始装填数据
      */
-    public void startTodo(){
+    public void startTodo() {
         //清空、拆分数据
         for (int i = 0; i < 7; i++) {
             data[i].clear();
@@ -415,7 +418,7 @@ public class SimpleOperator extends AbsOperator {
     /**
      * 设置宽度
      */
-    public void applyWidthConfig(){
+    public void applyWidthConfig() {
         setWeekendsVisiable(mView.isShowWeekends());
     }
 
@@ -424,10 +427,10 @@ public class SimpleOperator extends AbsOperator {
      */
     @Override
     public void showView() {
-        if (mView==null||mView.dataSource() == null) return;
+        if (mView == null || mView.dataSource() == null) return;
         checkConfig();
         replaceScrollView();
-        Log.d(TAG, "showView: "+flagLayout);
+        Log.d(TAG, "showView: " + flagLayout);
         applyFlagLayoutConf();
         applyWidthConfig();
 
@@ -441,8 +444,8 @@ public class SimpleOperator extends AbsOperator {
      * 本地配置的加载
      */
     private void checkConfig() {
-        if(mView==null||mView.onConfigHandleListener()==null) return;
-        if(mView.onConfigHandleListener()!=scheduleConfig.getOnConfigHandleListener()){
+        if (mView == null || mView.onConfigHandleListener() == null) return;
+        if (mView.onConfigHandleListener() != scheduleConfig.getOnConfigHandleListener()) {
             scheduleConfig.setOnConfigHandleListener(mView.onConfigHandleListener());
         }
         scheduleConfig.setConfigName(mView.configName());
@@ -451,6 +454,7 @@ public class SimpleOperator extends AbsOperator {
 
     /**
      * 切换周次
+     *
      * @param week
      * @param isCurWeek 是否强制设置为当前周
      */
@@ -459,35 +463,36 @@ public class SimpleOperator extends AbsOperator {
         for (int i = 0; i < panels.length; i++) {
             addToLayout(panels[i], data[i], week);
         }
-        if (isCurWeek){
+        if (isCurWeek) {
             mView.curWeek(week);
-        }else{
+        } else {
             mView.onWeekChangedListener().onWeekChanged(week);
         }
     }
 
-    protected float getPerWidth(){
+    protected float getPerWidth() {
         float perWidth = 0;
-        if(mView.isShowWeekends()){
-            perWidth=(ScreenUtils.getWidthInPx(context) -mView.monthWidth())/7;
-        }else{
-            perWidth=(ScreenUtils.getWidthInPx(context) -mView.monthWidth())/5;
+        if (mView.isShowWeekends()) {
+            perWidth = (ScreenUtils.getWidthInPx(context) - mView.monthWidth()) / 7;
+        } else {
+            perWidth = (ScreenUtils.getWidthInPx(context) - mView.monthWidth()) / 5;
         }
         return perWidth;
     }
+
     /**
      * 更新日期栏
      */
     public void updateDateView() {
         dateLayout.removeAllViews();
 
-        float perWidth=getPerWidth();
+        float perWidth = getPerWidth();
 
         int height = context.getResources().getDimensionPixelSize(R.dimen.headHeight);
 //		//日期栏
         ISchedule.OnDateBuildListener listener = mView.onDateBuildListener();
         listener.onInit(dateLayout, mView.dateAlpha());
-        View[] views = mView.onDateBuildListener().getDateViews(inflater, mView.monthWidth(),perWidth, height);
+        View[] views = mView.onDateBuildListener().getDateViews(inflater, mView.monthWidth(), perWidth, height);
         for (View v : views) {
             if (v != null) {
                 dateLayout.addView(v);
@@ -509,13 +514,13 @@ public class SimpleOperator extends AbsOperator {
      * 设置周末的可见性
      */
     public void setWeekendsVisiable(boolean isShow) {
-        if(isShow){
-            if(panels!=null&&panels.length>6){
+        if (isShow) {
+            if (panels != null && panels.length > 6) {
                 panels[5].setVisibility(View.VISIBLE);
                 panels[6].setVisibility(View.VISIBLE);
             }
-        }else{
-            if(panels!=null&&panels.length>6){
+        } else {
+            if (panels != null && panels.length > 6) {
                 panels[5].setVisibility(View.GONE);
                 panels[6].setVisibility(View.GONE);
             }

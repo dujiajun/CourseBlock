@@ -39,8 +39,9 @@ import java.util.List;
  * {@link #updateSlideView()}
  * {@link #updateDateView()}
  * {@link #updateView()}
- *
+ * <p>
  * 文档参考 https://github.com/zfman/TimetableView/wiki/%E6%9C%80%E6%96%B0%E6%96%87%E6%A1%A3
+ *
  * @author Administrator
  * @see AbsOperator
  * @see SimpleOperator
@@ -50,7 +51,7 @@ public class TimetableView extends LinearLayout {
     protected static final String TAG = "TimetableView";
 
     //业务逻辑
-    private AbsOperator operater;
+    private AbsOperator operator;
     private Context context;
     protected AttributeSet attrs;
 
@@ -60,7 +61,7 @@ public class TimetableView extends LinearLayout {
     private List<Schedule> dataSource = null;
 
     //默认的本地配置名称
-    private String configName="default_schedule_config";
+    private String configName = "default_schedule_config";
 
     //上边距、左边距、项高度
     private int marTop, marLeft, itemHeight;
@@ -69,8 +70,8 @@ public class TimetableView extends LinearLayout {
     private int monthWidth;
 
     //旗标布局背景颜色
-    private int flagBgcolor = Color.rgb(220, 230, 239);//背景颜色
-    private boolean isShowFlaglayout = true;
+    private int flagBgColor = Color.rgb(220, 230, 239);//背景颜色
+    private boolean isShowFlagLayout = true;
 
     //本周、非本周的弧度
     private int thisWeekCorner;
@@ -92,7 +93,7 @@ public class TimetableView extends LinearLayout {
     private int itemTextColorWithThisWeek = Color.WHITE;//本周
     private int itemTextColorWithNotThis = Color.WHITE;//非本周
 
-    private boolean isShowWeekends=true;
+    private boolean isShowWeekends = true;
 
     //监听器
     private ISchedule.OnWeekChangedListener onWeekChangedListener;//周次改变监听
@@ -113,12 +114,13 @@ public class TimetableView extends LinearLayout {
     }
 
     public ISchedule.OnConfigHandleListener onConfigHandleListener() {
-        if(onConfigHandleListener==null) onConfigHandleListener=new OnConfigHandleAdapter();
+        if (onConfigHandleListener == null) onConfigHandleListener = new OnConfigHandleAdapter();
         return onConfigHandleListener;
     }
 
     /**
      * 是否显示周末
+     *
      * @param isShowWeekends
      * @return
      */
@@ -131,14 +133,14 @@ public class TimetableView extends LinearLayout {
         return isShowWeekends;
     }
 
-    public AbsOperator operater(){
-        if(operater==null) operater=new SimpleOperator();
-        return operater;
+    public AbsOperator operater() {
+        if (operator == null) operator = new SimpleOperator();
+        return operator;
     }
 
     public TimetableView operater(AbsOperator operater) {
-        operater.init(context,attrs,this);
-        this.operater = operater;
+        operater.init(context, attrs, this);
+        this.operator = operater;
         return this;
     }
 
@@ -266,7 +268,7 @@ public class TimetableView extends LinearLayout {
      * @return
      */
     public TimetableView flagBgcolor(int color) {
-        this.flagBgcolor = color;
+        this.flagBgColor = color;
         return this;
     }
 
@@ -285,8 +287,8 @@ public class TimetableView extends LinearLayout {
      *
      * @return
      */
-    public boolean isShowFlaglayout() {
-        return isShowFlaglayout;
+    public boolean isShowFlagLayout() {
+        return isShowFlagLayout;
     }
 
     /**
@@ -296,7 +298,7 @@ public class TimetableView extends LinearLayout {
      * @return
      */
     public TimetableView isShowFlaglayout(boolean isShowFlaglayout) {
-        this.isShowFlaglayout = isShowFlaglayout;
+        this.isShowFlagLayout = isShowFlaglayout;
         return this;
     }
 
@@ -306,7 +308,7 @@ public class TimetableView extends LinearLayout {
      * @return
      */
     public int flagBgcolor() {
-        return flagBgcolor;
+        return flagBgColor;
     }
 
     /**
@@ -786,8 +788,8 @@ public class TimetableView extends LinearLayout {
     public TimetableView(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
-        this.attrs=attrs;
-        operater().init(context,attrs,this);
+        this.attrs = attrs;
+        operater().init(context, attrs, this);
     }
 
     /**
@@ -857,7 +859,7 @@ public class TimetableView extends LinearLayout {
      * @param isCurWeek 是否强制设置为本周
      */
     public void changeWeek(int week, boolean isCurWeek) {
-        operater().changeWeek(week,isCurWeek);
+        operater().changeWeek(week, isCurWeek);
     }
 
     /**
@@ -866,7 +868,7 @@ public class TimetableView extends LinearLayout {
      * @param week
      */
     public void changeWeekOnly(int week) {
-        operater().changeWeek(week,false);
+        operater().changeWeek(week, false);
     }
 
     /**
@@ -875,7 +877,7 @@ public class TimetableView extends LinearLayout {
      * @param week
      */
     public void changeWeekForce(int week) {
-        operater().changeWeek(week,true);
+        operater().changeWeek(week, true);
     }
 
     /**
@@ -883,19 +885,19 @@ public class TimetableView extends LinearLayout {
      */
     public void updateFlaglayout() {
         flagLayout().setBackgroundColor(flagBgcolor());
-        if (!isShowFlaglayout()) hideFlaglayout();
+        if (!isShowFlagLayout()) hideFlaglayout();
     }
 
-    public void showView(){
+    public void showView() {
         operater().showView();
     }
 
-    public TimetableView configName(String configName){
-        this.configName=configName;
+    public TimetableView configName(String configName) {
+        this.configName = configName;
         return this;
     }
 
-    public String configName(){
+    public String configName() {
         return this.configName;
     }
 }

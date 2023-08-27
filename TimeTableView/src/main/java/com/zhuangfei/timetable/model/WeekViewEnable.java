@@ -11,6 +11,7 @@ import java.util.List;
 public interface WeekViewEnable<T> {
     /**
      * 设置当前周
+     *
      * @param curWeek
      * @return
      */
@@ -18,6 +19,7 @@ public interface WeekViewEnable<T> {
 
     /**
      * 设置项数
+     *
      * @param count
      * @return
      */
@@ -25,12 +27,14 @@ public interface WeekViewEnable<T> {
 
     /**
      * 获取项数
+     *
      * @return
      */
     int itemCount();
 
     /**
      * 设置数据源
+     *
      * @param list
      * @return
      */
@@ -38,13 +42,15 @@ public interface WeekViewEnable<T> {
 
     /**
      * 设置数据源
+     *
      * @param scheduleList
      * @return
      */
-    public T data(List<Schedule> scheduleList);
+    T data(List<Schedule> scheduleList);
 
     /**
      * 获取数据源
+     *
      * @return
      */
     List<Schedule> dataSource();
@@ -56,18 +62,21 @@ public interface WeekViewEnable<T> {
 
     /**
      * 当前周被改变后可以调用该方式修正一下底部的文本
+     *
      * @return
      */
     T updateView();
 
     /**
      * 设置控件的可见性
+     *
      * @param isShow true:显示，false:隐藏
      */
     T isShow(boolean isShow);
 
     /**
      * 判断该控件是否显示
+     *
      * @return
      */
     boolean isShowing();

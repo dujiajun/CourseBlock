@@ -39,10 +39,10 @@ public interface ISchedule {
          * 当课程项被点击时回调
          *
          * @param v
-         * @param day 星期，1：周一，7：周日
+         * @param day   星期，1：周一，7：周日
          * @param start 节次，从1开始
          */
-        void onLongClick(View v, int day,int start);
+        void onLongClick(View v, int day, int start);
     }
 
     /**
@@ -52,21 +52,22 @@ public interface ISchedule {
         /**
          * 当课程项被点击时回调
          *
-         * @param day 表示周几，0：周一，6：周日
+         * @param day   表示周几，0：周一，6：周日
          * @param start 表示点击空白格子的节次，1：第一节
          */
-        void onSpaceItemClick(int day,int start);
+        void onSpaceItemClick(int day, int start);
 
         /**
          * 初始化方法
+         *
          * @param flagLayout 一个指示器的布局
          * @param monthWidth 月份列宽度
-         * @param itemWidth 课程项宽度，itemWidth：是包含了边距的，设置宽度时所以需要减去边距
+         * @param itemWidth  课程项宽度，itemWidth：是包含了边距的，设置宽度时所以需要减去边距
          * @param itemHeight 课程项高度
-         * @param marTop 外边距
+         * @param marTop     外边距
          */
-        void onInit(LinearLayout flagLayout,int monthWidth,int itemWidth,
-                    int itemHeight,int marTop,int marLeft);
+        void onInit(LinearLayout flagLayout, int monthWidth, int itemWidth,
+                    int itemHeight, int marTop, int marLeft);
     }
 
     /**
@@ -76,7 +77,7 @@ public interface ISchedule {
         /**
          * 当旗标布局被点击时回调
          *
-         * @param day 表示周几，0：周一，6：周日
+         * @param day   表示周几，0：周一，6：周日
          * @param start 表示点击空白格子的节次，1：第一节
          */
         void onFlagLayoutClick(int day, int start);
@@ -143,10 +144,11 @@ public interface ISchedule {
 
         /**
          * 初始化方法
+         *
          * @param layout 日期栏容器
-         * @param alpha 透明度
+         * @param alpha  透明度
          */
-        void onInit(LinearLayout layout,float alpha);
+        void onInit(LinearLayout layout, float alpha);
     }
 
     /**
@@ -169,22 +171,23 @@ public interface ISchedule {
 
         /**
          * 初始化方法
+         *
          * @param layout 日期栏容器
-         * @param alpha 透明度
+         * @param alpha  透明度
          */
-        void onInit(LinearLayout layout,float alpha);
+        void onInit(LinearLayout layout, float alpha);
 
         /**
          * 获取View数组
          * 被废弃，自v2.0.3起该方法无效
          *
-         * @param mInflate 转换器
+         * @param mInflate   转换器
          * @param monthWidth 月份宽度px
-         * @param perWidth 日期每项宽度px
-         * @param height   默认的日期栏高度
+         * @param perWidth   日期每项宽度px
+         * @param height     默认的日期栏高度
          * @return
          */
-        View[] getDateViews(LayoutInflater mInflate, float monthWidth,float perWidth, int height);
+        View[] getDateViews(LayoutInflater mInflate, float monthWidth, float perWidth, int height);
 
         /**
          * 为日期栏设置高亮时回调
@@ -194,10 +197,10 @@ public interface ISchedule {
         /**
          * 更新日期时回调
          */
-        void onUpdateDate(int curWeek,int targetWeek);
+        void onUpdateDate(int curWeek, int targetWeek);
     }
 
-    interface OnConfigHandleListener{
+    interface OnConfigHandleListener {
         void onParseConfig(String key, String value, TimetableView mView);
     }
 }

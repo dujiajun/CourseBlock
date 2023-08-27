@@ -10,6 +10,7 @@ public interface ScheduleEnable {
 
     /**
      * 获取Schedule
+     *
      * @return
      */
     Schedule getSchedule();

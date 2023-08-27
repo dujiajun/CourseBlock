@@ -3,4 +3,3 @@
  */
 package com.zhuangfei.timetable.utils
 
-import com.zhuangfei.timetable.utils.ScreenUtils
