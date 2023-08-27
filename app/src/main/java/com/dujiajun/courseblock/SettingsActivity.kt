@@ -1,251 +1,246 @@
-package com.dujiajun.courseblock;
+package com.dujiajun.courseblock
 
-import android.app.DatePickerDialog;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.Bundle;
-import android.widget.Toast;
+import android.app.DatePickerDialog
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.view.View
+import android.widget.DatePicker
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.preference.DropDownPreference
+import androidx.preference.ListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
+import androidx.preference.SwitchPreference
+import com.dujiajun.courseblock.constant.PreferenceKey
+import com.dujiajun.courseblock.helper.APKVersionInfoUtils.getVersionName
+import com.dujiajun.courseblock.helper.CourseManager
+import com.dujiajun.courseblock.helper.WeekManager
+import com.dujiajun.courseblock.helper.WeekManager.Companion.getInstance
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Request.Builder
+import okhttp3.Response
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.IOException
+import java.util.Calendar
+import java.util.Locale
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.preference.DropDownPreference;
-import androidx.preference.ListPreference;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
-import androidx.preference.SwitchPreference;
-
-import com.dujiajun.courseblock.constant.PreferenceKey;
-import com.dujiajun.courseblock.helper.APKVersionInfoUtils;
-import com.dujiajun.courseblock.helper.CourseManager;
-import com.dujiajun.courseblock.helper.WeekManager;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Locale;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
-public class SettingsActivity extends AppCompatActivity {
-
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, new SettingsFragment())
-                .commit();
+class SettingsActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_settings)
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        toolbar.setNavigationOnClickListener { finish() }
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, SettingsFragment())
+            .commit()
     }
 
-    public static class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
-
-        private static final int SHOW_YEARS = 7;
-        private ListPreference curYearListPreference;
-        private ListPreference curTermListPreference;
-        private DropDownPreference statusPreference;
-        private WeekManager weekManager;
-
-        @Override
-        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-            setPreferencesFromResource(R.xml.pref_settings, rootKey);
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            weekManager = WeekManager.getInstance(getContext());
-            curYearListPreference = findPreference(PreferenceKey.CURRENT_YEAR);
-
-            int curRealMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
-            int curRealYear = Calendar.getInstance().get(Calendar.YEAR);
+    class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChangeListener {
+        private lateinit var curYearListPreference: ListPreference
+        private lateinit var curTermListPreference: ListPreference
+        private lateinit var statusPreference: DropDownPreference
+        private lateinit var weekManager: WeekManager
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.pref_settings, rootKey)
+            val preferences = PreferenceManager.getDefaultSharedPreferences(
+                requireActivity()
+            )
+            weekManager = getInstance(requireContext())
+            curYearListPreference = findPreference(PreferenceKey.CURRENT_YEAR)!!
+            val curRealMonth = Calendar.getInstance()[Calendar.MONTH] + 1
+            var curRealYear = Calendar.getInstance()[Calendar.YEAR]
             if (curRealMonth < 6) {
-                curRealYear--; // 6月前为上一学年，6月底学期结束，开放下一学年课表
+                curRealYear-- // 6月前为上一学年，6月底学期结束，开放下一学年课表
             }
-
-            String[] years = new String[SHOW_YEARS];
-            String[] year_values = new String[SHOW_YEARS];
-            String pref_values = preferences.getString(PreferenceKey.CURRENT_YEAR, CourseManager.getDefaultYear());
-            String summary = "";
-            for (int i = 0; i < SHOW_YEARS; i++) {
-                year_values[i] = String.valueOf(i + curRealYear - SHOW_YEARS + 1);
-                years[i] = ((i + curRealYear - SHOW_YEARS + 1) + "-" + (i + curRealYear - SHOW_YEARS + 2));
-                if (pref_values.equals(year_values[i]))
-                    summary = years[i];
+            val years = arrayOfNulls<String>(SHOW_YEARS)
+            val yearValues = arrayOfNulls<String>(SHOW_YEARS)
+            var prefValues = preferences.getString(PreferenceKey.CURRENT_YEAR, CourseManager.defaultYear)
+            var summary: String? = ""
+            for (i in 0 until SHOW_YEARS) {
+                yearValues[i] = (i + curRealYear - SHOW_YEARS + 1).toString()
+                years[i] =
+                    (i + curRealYear - SHOW_YEARS + 1).toString() + "-" + (i + curRealYear - SHOW_YEARS + 2)
+                if (prefValues == yearValues[i]) summary = years[i]
             }
-            curYearListPreference.setEntries(years);
-            curYearListPreference.setEntryValues(year_values);
-
-
-            curYearListPreference.setSummary(summary);
-            curYearListPreference.setOnPreferenceChangeListener(this);
-
-
-            statusPreference = findPreference(PreferenceKey.STATUS);
-            statusPreference.setSummary(statusPreference.getEntry());
-            statusPreference.setOnPreferenceChangeListener(this);
-
-            SwitchPreference showNotCurWeekPreference = findPreference(PreferenceKey.SHOW_NOT_CUR_WEEK);
-            SwitchPreference showWeekendPreference = findPreference(PreferenceKey.SHOW_WEEKEND);
-            SwitchPreference showTimePreference = findPreference(PreferenceKey.SHOW_COURSE_TIME);
-
-            curTermListPreference = findPreference(PreferenceKey.CURRENT_TERM);
-            pref_values = preferences.getString(PreferenceKey.CURRENT_TERM, CourseManager.getDefaultTerm());
-            String[] terms = new String[]{"1", "2", "3"};
-            for (int i = 0; i < terms.length; i++) {
-                if (pref_values.equals(terms[i]))
-                    summary = getResources().getStringArray(R.array.pref_term_entries)[i];
+            curYearListPreference.entries = years
+            curYearListPreference.entryValues = yearValues
+            curYearListPreference.summary = summary
+            curYearListPreference.onPreferenceChangeListener = this
+            statusPreference = findPreference(PreferenceKey.STATUS)!!
+            statusPreference.summary = statusPreference.entry
+            statusPreference.onPreferenceChangeListener = this
+            val showNotCurWeekPreference = findPreference<SwitchPreference>(PreferenceKey.SHOW_NOT_CUR_WEEK)!!
+            val showWeekendPreference = findPreference<SwitchPreference>(PreferenceKey.SHOW_WEEKEND)!!
+            val showTimePreference = findPreference<SwitchPreference>(PreferenceKey.SHOW_COURSE_TIME)!!
+            curTermListPreference = findPreference(PreferenceKey.CURRENT_TERM)!!
+            prefValues = preferences.getString(PreferenceKey.CURRENT_TERM, CourseManager.defaultTerm)
+            val terms = arrayOf("1", "2", "3")
+            for (i in terms.indices) {
+                if (prefValues == terms[i]) summary =
+                    resources.getStringArray(R.array.pref_term_entries)[i]
             }
-            curTermListPreference.setEntryValues(terms);
-            curTermListPreference.setSummary(summary);
-
-
-            curTermListPreference.setOnPreferenceChangeListener(this);
-
-            showTimePreference.setOnPreferenceChangeListener(this);
-            showWeekendPreference.setOnPreferenceChangeListener(this);
-            showNotCurWeekPreference.setOnPreferenceChangeListener(this);
-
-            Preference firstDayPreference = findPreference(PreferenceKey.FIRST_MONDAY);
-            Preference lastDayPreference = findPreference(PreferenceKey.LAST_SUNDAY);
-            Calendar calendar = Calendar.getInstance(Locale.CHINA);
-            firstDayPreference.setOnPreferenceClickListener(preference -> {
-                DatePickerDialog dialog = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
-                    if (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
-                        Toast.makeText(getActivity(), R.string.change_to_monday, Toast.LENGTH_SHORT).show();
-                    }
-                    weekManager.setFirstDay(year, month, dayOfMonth);
-                    preference.setSummary(weekManager.getShowFirstDate());
-                    calendar.setTime(weekManager.getFirstDate());
-                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-                dialog.getDatePicker().setFirstDayOfWeek(Calendar.MONDAY);
-                dialog.show();
-                return true;
-            });
-            lastDayPreference.setOnPreferenceClickListener(preference -> {
-                DatePickerDialog dialog = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
-                    if (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY) {
-                        Toast.makeText(getActivity(), R.string.change_to_sunday, Toast.LENGTH_SHORT).show();
-                    }
-                    weekManager.setLastDay(year, month, dayOfMonth);
-                    preference.setSummary(weekManager.getShowLastDate());
-                    calendar.setTime(weekManager.getLastDate());
-                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-                dialog.getDatePicker().setFirstDayOfWeek(Calendar.SUNDAY);
-                dialog.show();
-                return true;
-            });
-            firstDayPreference.setSummary(weekManager.getShowFirstDate());
-            lastDayPreference.setSummary(weekManager.getShowLastDate());
-
-            Preference homepagePreference = findPreference("homepage");
-            homepagePreference.setOnPreferenceClickListener(preference -> {
-                openUrl("https://github.com/dujiajun/CourseBlock/");
-                return false;
-            });
-
-            Preference feedbackPreference = findPreference("feedback");
-            feedbackPreference.setOnPreferenceClickListener(preference -> {
-                openUrl("https://github.com/dujiajun/CourseBlock/issues");
-                return false;
-            });
-
-            checkNewVersion();
+            curTermListPreference.entryValues = terms
+            curTermListPreference.summary = summary
+            curTermListPreference.onPreferenceChangeListener = this
+            showTimePreference.onPreferenceChangeListener = this
+            showWeekendPreference.onPreferenceChangeListener = this
+            showNotCurWeekPreference.onPreferenceChangeListener = this
+            val firstDayPreference = findPreference<Preference>(PreferenceKey.FIRST_MONDAY)!!
+            val lastDayPreference = findPreference<Preference>(PreferenceKey.LAST_SUNDAY)!!
+            val calendar = Calendar.getInstance(Locale.CHINA)
+            firstDayPreference.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener { preference: Preference ->
+                    val dialog = DatePickerDialog(
+                        requireContext(),
+                        { _: DatePicker?, year: Int, month: Int, dayOfMonth: Int ->
+                            if (calendar[Calendar.DAY_OF_WEEK] != Calendar.MONDAY) {
+                                Toast.makeText(
+                                    activity,
+                                    R.string.change_to_monday,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            weekManager.setFirstDay(year, month, dayOfMonth)
+                            preference.summary = weekManager.showFirstDate
+                            calendar.time = weekManager.firstDate
+                        },
+                        calendar[Calendar.YEAR],
+                        calendar[Calendar.MONTH],
+                        calendar[Calendar.DAY_OF_MONTH]
+                    )
+                    dialog.datePicker.firstDayOfWeek = Calendar.MONDAY
+                    dialog.show()
+                    true
+                }
+            lastDayPreference.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener { preference: Preference ->
+                    val dialog = DatePickerDialog(
+                        requireContext(),
+                        { _: DatePicker?, year: Int, month: Int, dayOfMonth: Int ->
+                            if (calendar[Calendar.DAY_OF_WEEK] != Calendar.SUNDAY) {
+                                Toast.makeText(
+                                    activity,
+                                    R.string.change_to_sunday,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            weekManager.setLastDay(year, month, dayOfMonth)
+                            preference.summary = weekManager.showLastDate
+                            calendar.time = weekManager.lastDate
+                        },
+                        calendar[Calendar.YEAR],
+                        calendar[Calendar.MONTH],
+                        calendar[Calendar.DAY_OF_MONTH]
+                    )
+                    dialog.datePicker.firstDayOfWeek = Calendar.SUNDAY
+                    dialog.show()
+                    true
+                }
+            firstDayPreference.summary = weekManager.showFirstDate
+            lastDayPreference.summary = weekManager.showLastDate
+            val homepagePreference = findPreference<Preference>("homepage")!!
+            homepagePreference.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener {
+                    openUrl("https://github.com/dujiajun/CourseBlock/")
+                    false
+                }
+            val feedbackPreference = findPreference<Preference>("feedback")!!
+            feedbackPreference.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener {
+                    openUrl("https://github.com/dujiajun/CourseBlock/issues")
+                    false
+                }
+            checkNewVersion()
         }
 
-        private void checkNewVersion() {
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder()
-                    .url("https://api.github.com/repos/dujiajun/CourseBlock/releases/latest")
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-
-                }
-
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    String body = response.body().string();
+        private fun checkNewVersion() {
+            val client = OkHttpClient()
+            val request: Request = Builder()
+                .url("https://api.github.com/repos/dujiajun/CourseBlock/releases/latest")
+                .build()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {}
+                @Throws(IOException::class)
+                override fun onResponse(call: Call, response: Response) {
+                    val body = response.body!!.string()
                     try {
-                        JSONObject json = new JSONObject(body);
-                        String tag = json.getString("tag_name");
-                        JSONObject asset = json.getJSONArray("assets").getJSONObject(0);
-                        String download_url = asset.getString("browser_download_url");
-                        String cur_version = 'v' + APKVersionInfoUtils.getVersionName(getActivity());
-                        if (cur_version.compareTo(tag) < 0) {
-                            getActivity().runOnUiThread(() -> {
-                                Preference homepagePreference = findPreference("homepage");
-                                homepagePreference.setSummary("有新版本，点击下载");
-                                homepagePreference.setOnPreferenceClickListener(preference -> {
-                                    openUrl(download_url);
-                                    return false;
-                                });
-                            });
+                        val json = JSONObject(body)
+                        val tag = json.getString("tag_name")
+                        val asset = json.getJSONArray("assets").getJSONObject(0)
+                        val downloadUrl = asset.getString("browser_download_url")
+                        val curVersion = 'v'.toString() + getVersionName(
+                            requireActivity()
+                        )
+                        if (curVersion < tag) {
+                            activity?.runOnUiThread {
+                                val homepagePreference = findPreference<Preference>("homepage")!!
+                                homepagePreference.summary = "有新版本，点击下载"
+                                homepagePreference.onPreferenceClickListener =
+                                    Preference.OnPreferenceClickListener {
+                                        openUrl(downloadUrl)
+                                        false
+                                    }
+                            }
                         }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
                     }
-
                 }
-            });
+            })
         }
 
-        private void openUrl(String url) {
-            Intent intent = new Intent();
-            intent.setAction("android.intent.action.VIEW");
-            Uri content_url = Uri.parse(url);
-            intent.setData(content_url);
-            startActivity(intent);
+        private fun openUrl(url: String) {
+            val intent = Intent()
+            intent.action = "android.intent.action.VIEW"
+            val contentUrl = Uri.parse(url)
+            intent.data = contentUrl
+            startActivity(intent)
         }
 
-        @Override
-        public boolean onPreferenceTreeClick(Preference preference) {
-            return true;
+        override fun onPreferenceTreeClick(preference: Preference): Boolean {
+            return true
         }
 
+        override fun onPreferenceChange(preference: Preference, newValue: Any): Boolean {
+            when (preference.key) {
+                PreferenceKey.CURRENT_YEAR -> {
+                    if ((newValue as String).toInt() < 2018 && curTermListPreference.entryValues != null && curTermListPreference.entryValues[2] == newValue) {
+                        Toast.makeText(activity, R.string.summer_term, Toast.LENGTH_SHORT).show()
+                        return false
+                    }
+                    curYearListPreference.summary = curYearListPreference.entries[curYearListPreference.findIndexOfValue(newValue)]
+                }
 
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object newValue) {
-            switch (preference.getKey()) {
-                case PreferenceKey.CURRENT_YEAR -> {
-                    if (Integer.parseInt((String) newValue) < 2018
-                            && curTermListPreference.getEntryValues() != null
-                            && curTermListPreference.getEntryValues()[2].equals(newValue)) {
-                        Toast.makeText(getActivity(), R.string.summer_term, Toast.LENGTH_SHORT).show();
-                        return false;
+                PreferenceKey.CURRENT_TERM -> {
+                    if (curYearListPreference.value != null && curYearListPreference.value.toInt() < 2018 && curTermListPreference.entryValues[2] == newValue) {
+                        Toast.makeText(activity, R.string.summer_term, Toast.LENGTH_SHORT).show()
+                        return false
                     }
-                    curYearListPreference.setSummary(curYearListPreference.getEntries()
-                            [curYearListPreference.findIndexOfValue((String) newValue)]);
+                    curTermListPreference.summary = curTermListPreference.entries[curTermListPreference.findIndexOfValue(newValue as String)]
                 }
-                case PreferenceKey.CURRENT_TERM -> {
-                    if (curYearListPreference.getValue() != null
-                            && Integer.parseInt(curYearListPreference.getValue()) < 2018
-                            && curTermListPreference.getEntryValues()[2].equals(newValue)) {
-                        Toast.makeText(getActivity(), R.string.summer_term, Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
-                    curTermListPreference.setSummary(curTermListPreference.getEntries()
-                            [curTermListPreference.findIndexOfValue((String) newValue)]);
-                }
-                case PreferenceKey.STATUS ->
-                        statusPreference.setSummary(statusPreference.getEntries()[statusPreference.findIndexOfValue((String) newValue)]);
-                case PreferenceKey.SHOW_WEEKEND, PreferenceKey.SHOW_COURSE_TIME, PreferenceKey.SHOW_NOT_CUR_WEEK, "use_chi_icon", PreferenceKey.FIRST_MONDAY, PreferenceKey.LAST_SUNDAY ->
-                        Toast.makeText(getActivity(), R.string.change_take_effect, Toast.LENGTH_SHORT).show();
-                default -> {
-                }
+
+                PreferenceKey.STATUS ->
+                    statusPreference.summary = statusPreference.entries[statusPreference.findIndexOfValue(newValue as String)]
+
+                PreferenceKey.SHOW_WEEKEND, PreferenceKey.SHOW_COURSE_TIME, PreferenceKey.SHOW_NOT_CUR_WEEK, "use_chi_icon", PreferenceKey.FIRST_MONDAY, PreferenceKey.LAST_SUNDAY ->
+                    Toast.makeText(activity, R.string.change_take_effect, Toast.LENGTH_SHORT).show()
+
+                else -> {}
             }
-            return true;
+            return true
+        }
+
+        companion object {
+            private const val SHOW_YEARS = 7
         }
     }
 }
