@@ -3,6 +3,7 @@ package com.dujiajun.courseblock.downloader
 import android.content.Context
 import android.os.Handler
 import android.os.Message
+import android.util.Log
 import com.dujiajun.courseblock.model.Course
 import okhttp3.Call
 import okhttp3.Callback
@@ -51,6 +52,7 @@ open class UndergraduateDownloader(context: Context) : CourseDownloader(context)
             override fun onResponse(call: Call, response: Response) {
                 val code = response.code
                 val body = response.body!!.string()
+                Log.i(TAG, "UndergraduateDownloader code: $code, body: $body")
                 val message = Message()
                 if (body.contains("jAccount")) {
                     message.what = UNLOGIN

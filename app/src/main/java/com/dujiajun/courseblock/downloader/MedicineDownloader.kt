@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Message
+import android.util.Log
 import androidx.preference.PreferenceManager
 import com.dujiajun.courseblock.constant.PreferenceKey
 import com.dujiajun.courseblock.helper.WeekManager
@@ -82,6 +83,7 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
             override fun onResponse(call: Call, response: Response) {
                 val code = response.code
                 val body = response.body!!.string()
+                Log.i(TAG, "MedicineDownloader code: $code, body: $body")
                 val message = Message()
                 when (code) {
                     500 -> {
