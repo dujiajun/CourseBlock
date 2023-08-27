@@ -239,11 +239,14 @@ class SettingsActivity : AppCompatActivity() {
                         )]
                 }
 
-                PreferenceKey.STATUS ->
+                PreferenceKey.STATUS -> {
                     statusPreference.summary =
                         statusPreference.entries[statusPreference.findIndexOfValue(newValue as String)]
+                    Toast.makeText(activity, R.string.change_take_effect, Toast.LENGTH_SHORT).show()
+                }
 
-                PreferenceKey.SHOW_WEEKEND, PreferenceKey.SHOW_COURSE_TIME, PreferenceKey.SHOW_NOT_CUR_WEEK, "use_chi_icon", PreferenceKey.FIRST_MONDAY, PreferenceKey.LAST_SUNDAY ->
+                PreferenceKey.SHOW_WEEKEND, PreferenceKey.SHOW_COURSE_TIME, PreferenceKey.SHOW_NOT_CUR_WEEK,
+                PreferenceKey.USE_CHI_ICON, PreferenceKey.FIRST_MONDAY, PreferenceKey.LAST_SUNDAY ->
                     Toast.makeText(activity, R.string.change_take_effect, Toast.LENGTH_SHORT).show()
 
                 else -> {}
