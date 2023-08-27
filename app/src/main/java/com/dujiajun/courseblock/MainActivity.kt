@@ -106,6 +106,8 @@ open class MainActivity : AppCompatActivity() {
         courseManager.updateStatus()
         showWeek = timetableView.curWeek()
         updateView()
+        val showTime = preferences.getBoolean(PreferenceKey.SHOW_COURSE_TIME, true)
+        if (showTime) showTime()
     }
 
     private fun setIcon(useChiIcon: Boolean) {
