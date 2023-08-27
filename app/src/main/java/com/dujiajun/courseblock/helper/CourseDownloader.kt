@@ -1,34 +1,31 @@
-package com.dujiajun.courseblock.helper;
+package com.dujiajun.courseblock.helper
 
-import android.os.Handler;
+import android.os.Handler
+import com.dujiajun.courseblock.model.Course
+import okhttp3.Callback
+import okhttp3.OkHttpClient
 
-import com.dujiajun.courseblock.model.Course;
 
-import java.util.List;
+abstract class CourseDownloader {
+    @JvmField
+    protected val client: OkHttpClient = OkHttpClient.Builder().cookieJar(WebViewCookieHandler()).build()
 
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
+    @JvmField
+    var loginUrl: String = ""
 
-public abstract class CourseDownloader {
-    public static final int DOWNLOADED = 0;
-    public static final int FAILED = 1;
-    public static final int UNLOGIN = 2;
+    @JvmField
+    protected var courseUrl: String = ""
 
-    protected final OkHttpClient client;
-    protected String loginUrl;
-    protected String courseUrl;
-    protected List<Course> courses;
+    @JvmField
+    protected var courses: List<Course> = ArrayList()
 
-    public CourseDownloader() {
-        client = new OkHttpClient.Builder()
-                .cookieJar(new WebViewCookieHandler())
-                .build();
+    abstract fun getCourses(year: String, term: String, handler: Handler)
+    protected abstract fun parseFrom(json: String): List<Course>
+    protected abstract fun download(year: String, term: String, callback: Callback)
+
+    companion object {
+        const val DOWNLOADED = 0
+        const val FAILED = 1
+        const val UNLOGIN = 2
     }
-
-    public abstract void getCourses(String year, String term, Handler handler);
-
-    protected abstract List<Course> parseFrom(String json);
-
-    protected abstract void download(String year, String term, Callback callback);
-
 }

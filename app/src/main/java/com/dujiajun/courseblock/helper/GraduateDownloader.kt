@@ -1,131 +1,115 @@
-package com.dujiajun.courseblock.helper;
+package com.dujiajun.courseblock.helper
 
-import android.os.Handler;
-import android.os.Message;
+import android.os.Handler
+import android.os.Message
+import com.dujiajun.courseblock.model.Course
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.FormBody
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.IOException
+import java.util.Locale
 
-import com.dujiajun.courseblock.model.Course;
-
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.FormBody;
-import okhttp3.Request;
-import okhttp3.Response;
-
-public class GraduateDownloader extends CourseDownloader {
-
-
-    public GraduateDownloader() {
-        super();
-        this.loginUrl = "http://yjs.sjtu.edu.cn/gsapp/sys/wdkbapp/*default/index.do";
-        this.courseUrl = "http://yjs.sjtu.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/xspkjgcx.do";
+open class GraduateDownloader : CourseDownloader() {
+    init {
+        loginUrl = "http://yjs.sjtu.edu.cn/gsapp/sys/wdkbapp/*default/index.do"
+        courseUrl = "http://yjs.sjtu.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/xspkjgcx.do"
     }
 
-    @Override
-    public void getCourses(String year, String term, Handler handler) {
-        download(year, term, new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Message message = new Message();
-                message.what = FAILED;
-                handler.sendMessage(message);
+    override fun getCourses(year: String, term: String, handler: Handler) {
+        download(year, term, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                val message = Message()
+                message.what = FAILED
+                handler.sendMessage(message)
             }
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                int code = response.code();
-                String body = response.body().string();
-                Message message = new Message();
-                if (code == 500) {
-                    message.what = FAILED;
-                } else if (code == 403 || code == 302) {
-                    message.what = UNLOGIN;
-                } else {
-                    courses = parseFrom(body);
-                    message.what = DOWNLOADED;
-                    message.obj = courses;
+            @Throws(IOException::class)
+            override fun onResponse(call: Call, response: Response) {
+                val code = response.code
+                val body = response.body!!.string()
+                val message = Message()
+                when (code) {
+                    500 -> {
+                        message.what = FAILED
+                    }
+                    403, 302 -> {
+                        message.what = UNLOGIN
+                    }
+                    else -> {
+                        courses = parseFrom(body)
+                        message.what = DOWNLOADED
+                        message.obj = courses
+                    }
                 }
-
-                handler.sendMessage(message);
+                handler.sendMessage(message)
             }
-        });
+        })
     }
 
-    @Override
-    protected List<Course> parseFrom(String json) {
+    override fun parseFrom(json: String): List<Course> {
         try {
-            JSONObject jsonObject = new JSONObject(json).getJSONObject("datas").getJSONObject("xspkjgcx");
-            JSONArray courseRows = jsonObject.getJSONArray("rows");
-            HashMap<String, Integer> endTime = new HashMap<>();
-            HashMap<String, Course> map = new HashMap<>();
-            for (int i = 0; i < courseRows.length(); i++) {
-                JSONObject courseRow = courseRows.getJSONObject(i);
-                String classId = courseRow.getString("BJMC");
-                Course course = map.get(classId);
+            val jsonObject = JSONObject(json).getJSONObject("datas").getJSONObject("xspkjgcx")
+            val courseRows = jsonObject.getJSONArray("rows")
+            val endTime = HashMap<String, Int>()
+            val map = HashMap<String, Course>()
+            for (i in 0 until courseRows.length()) {
+                val courseRow = courseRows.getJSONObject(i)
+                val classId = courseRow.getString("BJMC")
+                var course = map[classId]
                 if (course == null) {
-                    course = new Course();
-                    course.setCourseId(courseRow.getString("KCDM"));
-                    course.setClassId(classId);
-                    course.setCourseName(courseRow.getString("KCMC"));
-                    course.setTeacher(courseRow.getString("JSXM"));
-                    course.setDay(courseRow.getInt("XQ"));
-                    course.setNote(courseRow.optString("KBBZ", ""));
-                    course.setLocation(courseRow.getString("JASMC"));
-                    course.setWeekCode(courseRow.getString("ZCBH").substring(0, Course.MAX_WEEKS));
-                    course.setFromServer(true);
-                    map.put(classId, course);
+                    course = Course()
+                    course.courseId = courseRow.getString("KCDM")
+                    course.classId = classId
+                    course.courseName = courseRow.getString("KCMC")
+                    course.teacher = courseRow.getString("JSXM")
+                    course.day = courseRow.getInt("XQ")
+                    course.note = courseRow.optString("KBBZ", "")
+                    course.location = courseRow.getString("JASMC")
+                    course.weekCode = courseRow.getString("ZCBH").substring(0, Course.MAX_WEEKS)
+                    course.isFromServer = true
+                    map[classId] = course
                 }
-                int classTime = courseRow.getInt("KSJCDM");
-                course.setStart(Math.min(classTime, course.getStart()));
-                Integer end = endTime.get(classId);
+                val classTime = courseRow.getInt("KSJCDM")
+                course.start = classTime.coerceAtMost(course.start)
+                val end = endTime[classId]
                 if (end == null || end < classTime) {
-                    endTime.put(classId, classTime);
+                    endTime[classId] = classTime
                 }
             }
-            List<Course> courses = new ArrayList<>(map.values());
-            for (Course c : courses) {
-                Integer end = endTime.get(c.getClassId());
-                if (end == null) end = Course.MAX_STEPS;
-                c.setStep(end - c.getStart() + 1);
+            val courses: List<Course> = map.values.toList()
+            for (c in courses) {
+                var end = endTime[c.classId]
+                if (end == null) end = Course.MAX_STEPS
+                c.step = end - c.start + 1
             }
-            return courses;
-        } catch (JSONException e) {
-            e.printStackTrace();
+            return courses
+        } catch (e: JSONException) {
+            e.printStackTrace()
         }
-        return null;
+        return ArrayList()
     }
 
-    private String convertParams(String year, String term) {
-        if (term.equals("2")) {
-            return String.format(Locale.CHINA, "%d02", Integer.parseInt(year) + 1);
+    private fun convertParams(year: String, term: String): String {
+        return if (term == "2") {
+            String.format(Locale.CHINA, "%d02", year.toInt() + 1)
         } else {
-            return String.format(Locale.CHINA, "%s09", year);
+            String.format(Locale.CHINA, "%s09", year)
         }
-
     }
 
-    @Override
-    protected void download(String year, String term, Callback callback) {
-        FormBody body = new FormBody.Builder()
+    override fun download(year: String, term: String, callback: Callback) {
+        val body: FormBody = FormBody.Builder()
                 .add("XNXQDM", convertParams(year, term))
                 .add("XH", "")
-                .build();
-        Request request = new Request.Builder()
+                .build()
+        val request: Request = Request.Builder()
                 .url(courseUrl)
                 .post(body)
-                .build();
-        client.newCall(request).enqueue(callback);
+                .build()
+        client.newCall(request).enqueue(callback)
     }
-
-
 }

@@ -1,9 +1,9 @@
 package com.dujiajun.courseblock
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -23,8 +23,8 @@ class LoginActivity : AppCompatActivity() {
         settings.userAgentString = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/89.0.4389.72"
         settings.javaScriptEnabled = true
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-                val uri = Uri.parse(url)
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                val uri = request.url
                 try {
                     if ("jaccount" == uri.scheme) {
                         val intent = Intent(Intent.ACTION_VIEW, uri)
@@ -34,8 +34,7 @@ class LoginActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     return true
                 }
-                view.loadUrl(url)
-                return true
+                return false
             }
 
             override fun onLoadResource(view: WebView, url: String) {
@@ -47,7 +46,9 @@ class LoginActivity : AppCompatActivity() {
             }
         }
         val courseManager = CourseManager.getInstance(applicationContext)
-        val loginUrl = courseManager.loginUrl
-        webView.loadUrl(loginUrl)
+        val loginUrl = courseManager?.loginUrl
+        if (loginUrl != null) {
+            webView.loadUrl(loginUrl)
+        }
     }
 }

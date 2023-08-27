@@ -1,135 +1,128 @@
-package com.dujiajun.courseblock.helper;
+package com.dujiajun.courseblock.helper
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import android.content.Context
+import android.content.SharedPreferences
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
+import androidx.preference.PreferenceManager
+import com.dujiajun.courseblock.model.Course
+import org.litepal.LitePal.deleteAll
+import org.litepal.LitePal.findAll
+import org.litepal.LitePal.saveAll
+import java.util.Calendar
+import java.util.Locale
 
-import androidx.annotation.NonNull;
-import androidx.preference.PreferenceManager;
+class CourseManager private constructor(context: Context) {
+    private val preferences: SharedPreferences
+    var courses: List<Course> = ArrayList()
 
-import com.dujiajun.courseblock.model.Course;
+    private var downloader: CourseDownloader = UndergraduateDownloader()
+    private var status: STATUS = STATUS.UNDERGRADUATE
 
-import org.litepal.LitePal;
-
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-
-public class CourseManager {
-    public static final int SUCCEEDED = CourseDownloader.DOWNLOADED;
-    public static final int FAILED = CourseDownloader.FAILED;
-    public static final int UNLOGIN = CourseDownloader.UNLOGIN;
-    private static CourseManager singleton;
-    private final SharedPreferences preferences;
-    private List<Course> courses;
-    private CourseDownloader downloader;
-    private STATUS status;
-
-
-    private CourseManager(Context context) {
-        preferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
-        updateStatus();
+    init {
+        preferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+        updateStatus()
     }
 
-    public static CourseManager getInstance(Context context) {
-        if (singleton == null) {
-            singleton = new CourseManager(context);
-        }
-        return singleton;
-    }
-
-    public static String getDefaultYear() {
-        Calendar calendar = Calendar.getInstance(Locale.CHINA);
-        int curRealMonth = calendar.get(Calendar.MONTH) + 1;
-        int curRealYear = calendar.get(Calendar.YEAR);
-        if (curRealMonth < 9) {
-            curRealYear--; // 9月前为上一学年
-        }
-        return String.valueOf(curRealYear);
-    }
-
-    public static String getDefaultTerm() {
-        Calendar calendar = Calendar.getInstance(Locale.CHINA);
-        int curRealMonth = calendar.get(Calendar.MONTH) + 1;
-        String term;
-        if (curRealMonth >= 9 || curRealMonth < 2) {
-            term = "1"; // 秋季学期
-        } else if (curRealMonth < 7) {
-            term = "2"; // 春季学期
-        } else {
-            term = "3"; //夏季学期
-        }
-        return term;
-    }
-
-    public void updateStatus() {
-        String s = preferences.getString("status", "0");
-        STATUS status = s.equals("1") ? STATUS.GRADUATE : STATUS.UNDERGRADUATE;
+    fun updateStatus() {
+        val s = preferences.getString("status", "0")
+        val status = if (s == "1") STATUS.GRADUATE else STATUS.UNDERGRADUATE
         if (status != this.status) {
-            this.status = status;
-            if (status == STATUS.GRADUATE) {
-                downloader = new GraduateDownloader();
+            this.status = status
+            downloader = if (status == STATUS.GRADUATE) {
+                GraduateDownloader()
             } else {
-                downloader = new UndergraduateDownloader();
+                UndergraduateDownloader()
             }
         }
     }
 
-    public void loadCourses() {
-        courses = LitePal.findAll(Course.class);
+    fun loadCourses() {
+        courses = findAll(Course::class.java)
     }
 
-    public List<Course> getCourses() {
-        return courses;
-    }
-
-    public void updateCourses(Handler uiHandler) {
-        Handler handler = new Handler(Looper.myLooper()) {
-            @Override
-            public void handleMessage(@NonNull Message msg) {
-                super.handleMessage(msg);
-                Message uiMessage = new Message();
+    fun updateCourses(uiHandler: Handler) {
+        val handler: Handler = object : Handler(Looper.myLooper()!!) {
+            override fun handleMessage(msg: Message) {
+                super.handleMessage(msg)
+                val uiMessage = Message()
                 if (msg.what == CourseDownloader.DOWNLOADED) {
-                    List<Course> downloadedCourses = (List<Course>) msg.obj;
-                    updateCourses(downloadedCourses);
-                    uiMessage.what = SUCCEEDED;
-                    uiMessage.obj = msg.obj;
+                    val downloadedCourses = msg.obj as List<Course>
+                    updateCourses(downloadedCourses)
+                    uiMessage.what = SUCCEEDED
+                    uiMessage.obj = msg.obj
                 } else {
-                    uiMessage.what = msg.what;
+                    uiMessage.what = msg.what
                 }
-                uiHandler.sendMessage(uiMessage);
+                uiHandler.sendMessage(uiMessage)
             }
-        };
-
-        String year = preferences.getString("cur_year", getDefaultYear());
-        String term = preferences.getString("cur_term", getDefaultTerm());
-        downloader.getCourses(year, term, handler);
+        }
+        val year = preferences.getString("cur_year", defaultYear)
+        val term = preferences.getString("cur_term", defaultTerm)
+        downloader.getCourses(year!!, term!!, handler)
     }
 
-    private void updateCourses(List<Course> courses) {
+    private fun updateCourses(courses: List<Course>) {
         if (preferences.getBoolean("remove_customized_when_sync", false)) {
-            LitePal.deleteAll(Course.class);
+            deleteAll(Course::class.java)
         } else {
-            LitePal.deleteAll(Course.class, "isFromServer = ?", "1");
+            deleteAll(Course::class.java, "isFromServer = ?", "1")
         }
-        LitePal.saveAll(courses);
+        saveAll(courses)
     }
 
-    public String getLoginUrl() {
-        return downloader.loginUrl;
-    }
+    val loginUrl: String
+        get() = downloader.loginUrl
 
-    public Course findCourseByDayAndStart(int week, int day, int start) {
-        for (Course course : courses) {
-            if (course.getWeekCode().charAt(week - 1) == '1' &&
-                    course.getDay() == day && course.getStart() <= start &&
-                    (course.getStart() + course.getStep() - 1) >= start)
-                return course;
+    fun findCourseByDayAndStart(week: Int, day: Int, start: Int): Course? {
+        for (course in courses) {
+            if (course.weekCode[week - 1] == '1' && course.day == day && course.start <= start && course.start + course.step - 1 >= start) return course
         }
-        return null;
+        return null
     }
 
-    public enum STATUS {UNDERGRADUATE, GRADUATE}
+    enum class STATUS {
+        UNDERGRADUATE, GRADUATE
+    }
+
+    companion object {
+        const val SUCCEEDED = CourseDownloader.DOWNLOADED
+        const val FAILED = CourseDownloader.FAILED
+        const val UNLOGIN = CourseDownloader.UNLOGIN
+        private var singleton: CourseManager? = null
+        @JvmStatic
+        fun getInstance(context: Context): CourseManager? {
+            if (singleton == null) {
+                singleton = CourseManager(context)
+            }
+            return singleton
+        }
+
+        @JvmStatic
+        val defaultYear: String
+            get() {
+                val calendar = Calendar.getInstance(Locale.CHINA)
+                val curRealMonth = calendar[Calendar.MONTH] + 1
+                var curRealYear = calendar[Calendar.YEAR]
+                if (curRealMonth < 9) {
+                    curRealYear-- // 9月前为上一学年
+                }
+                return curRealYear.toString()
+            }
+        @JvmStatic
+        val defaultTerm: String
+            get() {
+                val calendar = Calendar.getInstance(Locale.CHINA)
+                val curRealMonth = calendar[Calendar.MONTH] + 1
+                val term: String = if (curRealMonth >= 9 || curRealMonth < 2) {
+                    "1" // 秋季学期
+                } else if (curRealMonth < 7) {
+                    "2" // 春季学期
+                } else {
+                    "3" //夏季学期
+                }
+                return term
+            }
+    }
 }

@@ -1,163 +1,143 @@
-package com.dujiajun.courseblock.helper;
+package com.dujiajun.courseblock.helper
 
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
+import android.os.Handler
+import android.os.Message
+import com.dujiajun.courseblock.model.Course
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.FormBody
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.IOException
+import java.util.Arrays
 
-import com.dujiajun.courseblock.model.Course;
+open class UndergraduateDownloader : CourseDownloader() {
+    private val JSON: MediaType = "application/json; charset=utf-8".toMediaType()
 
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.FormBody;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.Response;
-
-public class UndergraduateDownloader extends CourseDownloader {
-    private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-
-
-    public UndergraduateDownloader() {
-        super();
-        this.loginUrl = "https://i.sjtu.edu.cn/jaccountlogin";
-        this.courseUrl = "https://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html";
+    init {
+        loginUrl = "https://i.sjtu.edu.cn/jaccountlogin"
+        courseUrl = "https://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html"
     }
 
-    public static String getWeekCode(String week) {
-        String[] items = week.split(",");
-        char[] code = new char[Course.MAX_WEEKS];
-        Arrays.fill(code, '0');
-        for (String item : items) {
-
-            int step = 1;
-            if (item.contains("(单)")) {
-                step = 2;
-                item = item.replace("(单)", "");
-            }
-            if (item.contains("(双)")) {
-                step = 2;
-                item = item.replace("(双)", "");
-            }
-            item = item.replace("周", "");
-
-            String[] weekStartAndEnd;
-            if (item.contains("-")) {
-                weekStartAndEnd = item.split("-");
-            } else {
-                weekStartAndEnd = new String[]{item, item};
-            }
-            for (int i = Integer.parseInt(weekStartAndEnd[0]); i <= Integer.parseInt(weekStartAndEnd[1]); i = i + step) {
-                code[i - 1] = '1';
-            }
-        }
-        return new String(code);
-    }
-
-    protected static List<Integer> getStartAndStep(String jcor) {
-        List<Integer> startAndStep = new ArrayList<>();
-        String[] jc = jcor.split("-");
-        startAndStep.add(Integer.valueOf(jc[0]));
-        startAndStep.add(Integer.parseInt(jc[1]) - Integer.parseInt(jc[0]) + 1);
-        return startAndStep;
-    }
-
-    private static String convertParams(String term) {
-        switch (term) {
-            case "2":
-                return "12";
-            case "3":
-                return "16";
-            default:
-                return "3";
-        }
-    }
-
-    @Override
-    public void getCourses(String year, String term, Handler handler) {
-        download(year, term, new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Message message = new Message();
-                message.what = FAILED;
-                handler.sendMessage(message);
+    override fun getCourses(year: String, term: String, handler: Handler) {
+        download(year, term, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                val message = Message()
+                message.what = FAILED
+                handler.sendMessage(message)
             }
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                int code = response.code();
-                String body = response.body().string();
-                Log.d("DEBUG", code + "\n" + body);
-                Message message = new Message();
+            @Throws(IOException::class)
+            override fun onResponse(call: Call, response: Response) {
+                val code = response.code
+                val body = response.body!!.string()
+                val message = Message()
                 if (body.contains("jAccount")) {
-                    message.what = UNLOGIN;
+                    message.what = UNLOGIN
                 } else {
-                    courses = parseFrom(body);
-                    if (courses != null) {
-                        message.what = DOWNLOADED;
-                        message.obj = courses;
+                    courses = parseFrom(body)
+                    if (courses.isEmpty()) {
+                        message.what = DOWNLOADED
+                        message.obj = courses
                     } else {
-                        message.what = FAILED;
+                        message.what = FAILED
                     }
                 }
-
-                handler.sendMessage(message);
+                handler.sendMessage(message)
             }
-        });
+        })
     }
 
-    @Override
-    protected List<Course> parseFrom(String json) {
-        Log.d("DEBUG", json);
-        List<Course> courses = new ArrayList<>();
+    override fun parseFrom(json: String): List<Course> {
+        val courses: MutableList<Course> = ArrayList()
         try {
-
-            JSONObject jsonObject = new JSONObject(json);
-            JSONArray jsonArrayKb = jsonObject.getJSONArray("kbList");
-
-            for (int i = 0; i < jsonArrayKb.length(); i++) {
-                JSONObject jsonCourse = jsonArrayKb.getJSONObject(i);
-                Course course = new Course();
-                course.setCourseId(jsonCourse.getString("kch_id"));
-                course.setClassId(jsonCourse.getString("jxbmc"));
-                course.setCourseName(jsonCourse.getString("kcmc"));
-                course.setLocation(jsonCourse.getString("cdmc"));
-                course.setDay(jsonCourse.getInt("xqj"));
-                List<Integer> startAndStep = getStartAndStep(jsonCourse.getString("jcs"));
-                course.setStart(startAndStep.get(0));
-                course.setStep(startAndStep.get(1));
-                course.setTeacher(jsonCourse.getString("xm"));
-                course.setWeekCode(getWeekCode(jsonCourse.getString("zcd")));
-                course.setNote(jsonCourse.getString("xkbz"));
-                course.setFromServer(true);
-                courses.add(course);
+            val jsonObject = JSONObject(json)
+            val jsonArrayKb = jsonObject.getJSONArray("kbList")
+            for (i in 0 until jsonArrayKb.length()) {
+                val jsonCourse = jsonArrayKb.getJSONObject(i)
+                val course = Course()
+                course.courseId = jsonCourse.getString("kch_id")
+                course.classId = jsonCourse.getString("jxbmc")
+                course.courseName = jsonCourse.getString("kcmc")
+                course.location = jsonCourse.getString("cdmc")
+                course.day = jsonCourse.getInt("xqj")
+                val startAndStep = getStartAndStep(jsonCourse.getString("jcs"))
+                course.start = startAndStep[0]
+                course.step = startAndStep[1]
+                course.teacher = jsonCourse.getString("xm")
+                course.weekCode = getWeekCode(jsonCourse.getString("zcd"))
+                course.note = jsonCourse.getString("xkbz")
+                course.isFromServer = true
+                courses.add(course)
             }
-            return courses;
-        } catch (JSONException e) {
-            e.printStackTrace();
+            return courses
+        } catch (e: JSONException) {
+            e.printStackTrace()
         }
-        return null;
+        return ArrayList()
     }
 
-    @Override
-    protected void download(String year, String term, Callback callback) {
-        FormBody body = new FormBody.Builder()
+    override fun download(year: String, term: String, callback: Callback) {
+        val body: FormBody = FormBody.Builder()
                 .add("xnm", year)
                 .add("xqm", convertParams(term))
-                .build();
-        Request request = new Request.Builder()
+                .build()
+        val request: Request = Request.Builder()
                 .url(courseUrl)
                 .post(body)
-                .build();
-        client.newCall(request).enqueue(callback);
+                .build()
+        client.newCall(request).enqueue(callback)
+    }
+
+    companion object {
+        fun getWeekCode(week: String): String {
+            val items = week.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val code = CharArray(Course.MAX_WEEKS)
+            Arrays.fill(code, '0')
+            for (rawitem in items) {
+                var step = 1
+                var item = rawitem
+                if (item.contains("(单)")) {
+                    step = 2
+                    item = item.replace("(单)", "")
+                }
+                if (item.contains("(双)")) {
+                    step = 2
+                    item = item.replace("(双)", "")
+                }
+                item = item.replace("周", "")
+                val weekStartAndEnd: Array<String> = if (item.contains("-")) {
+                    item.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                } else {
+                    arrayOf(item, item)
+                }
+                var i = weekStartAndEnd[0].toInt()
+                while (i <= weekStartAndEnd[1].toInt()) {
+                    code[i - 1] = '1'
+                    i += step
+                }
+            }
+            return code.toString()
+        }
+
+        protected fun getStartAndStep(jcor: String): List<Int> {
+            val startAndStep: MutableList<Int> = ArrayList()
+            val jc = jcor.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            startAndStep.add(Integer.valueOf(jc[0]))
+            startAndStep.add(jc[1].toInt() - jc[0].toInt() + 1)
+            return startAndStep
+        }
+
+        private fun convertParams(term: String?): String {
+            return when (term) {
+                "2" -> "12"
+                "3" -> "16"
+                else -> "3"
+            }
+        }
     }
 }
