@@ -1,68 +1,56 @@
-package com.zhuangfei.timetable.view;
+package com.zhuangfei.timetable.view
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import com.zhuangfei.android_timetableview.sample.R;
-import com.zhuangfei.timetable.listener.IWeekView;
-import com.zhuangfei.timetable.listener.OnWeekItemClickedAdapter;
-import com.zhuangfei.timetable.listener.OnWeekLeftClickedAdapter;
-import com.zhuangfei.timetable.model.Schedule;
-import com.zhuangfei.timetable.model.ScheduleEnable;
-import com.zhuangfei.timetable.model.ScheduleSupport;
-import com.zhuangfei.timetable.model.WeekViewEnable;
-
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Context
+import android.util.AttributeSet
+import android.view.LayoutInflater
+import android.widget.LinearLayout
+import android.widget.TextView
+import com.zhuangfei.android_timetableview.sample.R
+import com.zhuangfei.timetable.listener.IWeekView.OnWeekItemClickedListener
+import com.zhuangfei.timetable.listener.IWeekView.OnWeekLeftClickedListener
+import com.zhuangfei.timetable.listener.OnWeekItemClickedAdapter
+import com.zhuangfei.timetable.listener.OnWeekLeftClickedAdapter
+import com.zhuangfei.timetable.model.Schedule
+import com.zhuangfei.timetable.model.ScheduleEnable
+import com.zhuangfei.timetable.model.ScheduleSupport
+import com.zhuangfei.timetable.model.WeekViewEnable
 
 /**
  * 周次选择栏自定义View.
- * 每一项均为PerWeekView<br/>
+ * 每一项均为PerWeekView<br></br>
  */
-
-public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
-
-    private static final String TAG = "WeekView";
-    LayoutInflater mInflate;
+class WeekView constructor(context: Context, attrs: AttributeSet) :
+    LinearLayout(context, attrs), WeekViewEnable<WeekView?> {
+    var mInflate: LayoutInflater
 
     //周次的容器
-    LinearLayout container;
+    lateinit var container: LinearLayout
 
     //跟布局
-    LinearLayout root;
+    lateinit var root: LinearLayout
 
     //左侧按钮
-    LinearLayout leftlayout;
+    lateinit var leftlayout: LinearLayout
 
     //数据
-    private List<Schedule> dataSource;
+    private var dataSource: List<Schedule> = ArrayList()
 
     //布局保存
-    private List<LinearLayout> layouts;
-    private List<TextView> textViews;
+    private var layouts: MutableList<LinearLayout> = ArrayList()
+    private var textViews: MutableList<TextView> = ArrayList()
 
     //当前周
-    private int curWeek = 1;
-    private int preIndex = 1;
+    private var curWeek = 1
+    private var preIndex = 1
 
     //多少项
-    private int itemCount = 20;
+    private var itemCount = 20
+    private var onWeekItemClickedListener: OnWeekItemClickedListener = OnWeekItemClickedAdapter()
+    private var onWeekLeftClickedListener: OnWeekLeftClickedListener = OnWeekLeftClickedAdapter()
 
-    private IWeekView.OnWeekItemClickedListener onWeekItemClickedListener;
-    private IWeekView.OnWeekLeftClickedListener onWeekLeftClickedListener;
-
-    public WeekView(Context context) {
-        this(context, null);
-    }
-
-    public WeekView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        mInflate = LayoutInflater.from(context);
-        initView();
+    init {
+        mInflate = LayoutInflater.from(context)
+        initView()
     }
 
     /**
@@ -70,10 +58,8 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      *
      * @return
      */
-    public IWeekView.OnWeekItemClickedListener onWeekItemClickedListener() {
-        if (onWeekItemClickedListener == null)
-            onWeekItemClickedListener = new OnWeekItemClickedAdapter();
-        return onWeekItemClickedListener;
+    fun onWeekItemClickedListener(): OnWeekItemClickedListener {
+        return onWeekItemClickedListener
     }
 
     /**
@@ -82,9 +68,9 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      * @param onWeekItemClickedListener
      * @return
      */
-    public WeekView callback(IWeekView.OnWeekItemClickedListener onWeekItemClickedListener) {
-        this.onWeekItemClickedListener = onWeekItemClickedListener;
-        return this;
+    fun callback(onWeekItemClickedListener: OnWeekItemClickedListener): WeekView {
+        this.onWeekItemClickedListener = onWeekItemClickedListener
+        return this
     }
 
     /**
@@ -92,10 +78,8 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      *
      * @return
      */
-    public IWeekView.OnWeekLeftClickedListener onWeekLeftClickedListener() {
-        if (onWeekLeftClickedListener == null)
-            onWeekLeftClickedListener = new OnWeekLeftClickedAdapter();
-        return onWeekLeftClickedListener;
+    fun onWeekLeftClickedListener(): OnWeekLeftClickedListener {
+        return onWeekLeftClickedListener
     }
 
     /**
@@ -104,9 +88,9 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      * @param onWeekLeftClickedListener
      * @return
      */
-    public WeekView callback(IWeekView.OnWeekLeftClickedListener onWeekLeftClickedListener) {
-        this.onWeekLeftClickedListener = onWeekLeftClickedListener;
-        return this;
+    fun callback(onWeekLeftClickedListener: OnWeekLeftClickedListener): WeekView {
+        this.onWeekLeftClickedListener = onWeekLeftClickedListener
+        return this
     }
 
     /**
@@ -115,11 +99,11 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      * @param curWeek
      * @return
      */
-    @Override
-    public WeekView curWeek(int curWeek) {
-        if (curWeek < 1) curWeek = 1;
-        this.curWeek = curWeek;
-        return this;
+    override fun curWeek(curWeek: Int): WeekView {
+        var curWeek = curWeek
+        if (curWeek < 1) curWeek = 1
+        this.curWeek = curWeek
+        return this
     }
 
     /**
@@ -128,16 +112,14 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      * @param count
      * @return
      */
-    @Override
-    public WeekView itemCount(int count) {
-        if (count <= 0) return this;
-        this.itemCount = count;
-        return this;
+    override fun itemCount(count: Int): WeekView {
+        if (count <= 0) return this
+        itemCount = count
+        return this
     }
 
-    @Override
-    public int itemCount() {
-        return itemCount;
+    override fun itemCount(): Int {
+        return itemCount
     }
 
     /**
@@ -146,10 +128,9 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      * @param list
      * @return
      */
-    @Override
-    public WeekView source(List<? extends ScheduleEnable> list) {
-        data(ScheduleSupport.transform(list));
-        return this;
+    override fun source(list: List<ScheduleEnable>): WeekView {
+        data(ScheduleSupport.transform(list))
+        return this
     }
 
     /**
@@ -158,11 +139,9 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      * @param scheduleList
      * @return
      */
-    @Override
-    public WeekView data(List<Schedule> scheduleList) {
-        if (scheduleList == null) return null;
-        this.dataSource = scheduleList;
-        return this;
+    override fun data(scheduleList: List<Schedule>): WeekView {
+        dataSource = scheduleList
+        return this
     }
 
     /**
@@ -170,67 +149,54 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      *
      * @return
      */
-    @Override
-    public List<Schedule> dataSource() {
-        if (dataSource == null) dataSource = new ArrayList<>();
-        return dataSource;
+    override fun dataSource(): List<Schedule> {
+        return dataSource
     }
 
-    private void initView() {
-        mInflate.inflate(R.layout.view_weekview, this);
-        container = findViewById(R.id.id_weekview_container);
-        root = findViewById(R.id.id_root);
-        leftlayout = findViewById(R.id.id_weekview_leftlayout);
+    private fun initView() {
+        mInflate.inflate(R.layout.view_weekview, this)
+        container = findViewById(R.id.id_weekview_container)
+        root = findViewById(R.id.id_root)
+        leftlayout = findViewById(R.id.id_weekview_leftlayout)
     }
 
     /**
      * 初次构建时调用，显示周次选择布局
      */
-    @Override
-    public WeekView showView() {
-        if (curWeek < 1) curWeek(1);
-        if (curWeek > itemCount()) curWeek = itemCount;
-
-        container.removeAllViews();
-        layouts = new ArrayList<>();
-        textViews = new ArrayList<>();
-
-        leftlayout.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onWeekLeftClickedListener().onWeekLeftClicked();
+    override fun showView(): WeekView {
+        if (curWeek < 1) curWeek(1)
+        if (curWeek > itemCount()) curWeek = itemCount
+        container.removeAllViews()
+        layouts = ArrayList()
+        textViews = ArrayList()
+        leftlayout.setOnClickListener { onWeekLeftClickedListener().onWeekLeftClicked() }
+        for (i in 1..itemCount) {
+            val view = mInflate.inflate(R.layout.item_weekview, null)
+            val perLayout = view.findViewById<LinearLayout>(R.id.id_perweekview_layout)
+            val weekText = view.findViewById<TextView>(R.id.id_weektext)
+            val bottomText = view.findViewById<TextView>(R.id.id_weektext_bottom)
+            weekText.text = "第" + i + "周"
+            if (i == curWeek) bottomText.text = "(本周)"
+            val perWeekView = view.findViewById<PerWeekView>(R.id.id_perweekview)
+            perWeekView.setData(dataSource(), i)
+            perLayout.setOnClickListener {
+                resetBackground()
+                preIndex = i
+                perLayout.background = context.resources.getDrawable(
+                    R.drawable.weekview_white,
+                    null
+                )
+                onWeekItemClickedListener().onWeekClicked(i)
             }
-        });
-
-        for (int i = 1; i <= itemCount; i++) {
-            final int tmp = i;
-            View view = mInflate.inflate(R.layout.item_weekview, null);
-            final LinearLayout perLayout = view.findViewById(R.id.id_perweekview_layout);
-            TextView weekText = view.findViewById(R.id.id_weektext);
-            TextView bottomText = view.findViewById(R.id.id_weektext_bottom);
-
-            weekText.setText("第" + i + "周");
-            if (i == curWeek) bottomText.setText("(本周)");
-            PerWeekView perWeekView = view.findViewById(R.id.id_perweekview);
-            perWeekView.setData(dataSource(), i);
-            perLayout.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    resetBackground();
-                    preIndex = tmp;
-                    perLayout.setBackground(getContext().getResources().getDrawable(R.drawable.weekview_white, null));
-                    onWeekItemClickedListener().onWeekClicked(tmp);
-                }
-            });
-
-            layouts.add(perLayout);
-            textViews.add(bottomText);
-            container.addView(view);
+            layouts.add(perLayout)
+            textViews.add(bottomText)
+            container.addView(view)
         }
-        if (curWeek > 0 && curWeek <= layouts.size()) {
-            layouts.get(curWeek - 1).setBackground(getContext().getResources().getDrawable(R.drawable.weekview_thisweek, null));
+        if (curWeek > 0 && curWeek <= (layouts as ArrayList<LinearLayout>).size) {
+            layouts[curWeek - 1].background =
+                context.resources.getDrawable(R.drawable.weekview_thisweek, null)
         }
-        return this;
+        return this
     }
 
     /**
@@ -238,40 +204,51 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      *
      * @return
      */
-    @Override
-    public WeekView updateView() {
-        if (layouts == null || layouts.size() == 0) return this;
-        if (textViews == null || textViews.size() == 0) return this;
-
-        for (int i = 0; i < layouts.size(); i++) {
+    override fun updateView(): WeekView {
+        if (layouts.size == 0) return this
+        if (textViews.size == 0) return this
+        for (i in layouts.indices) {
             if (curWeek - 1 == i) {
-                textViews.get(i).setText("(本周)");
+                textViews[i].text = "(本周)"
             } else {
-                textViews.get(i).setText("");
+                textViews[i].text = ""
             }
-            layouts.get(i).setBackgroundColor(getContext().getResources().getColor(R.color.app_course_chooseweek_bg, null));
+            layouts[i].setBackgroundColor(
+                context.resources.getColor(
+                    R.color.app_course_chooseweek_bg,
+                    null
+                )
+            )
         }
-
-        if (curWeek > 0 && curWeek <= layouts.size()) {
-            layouts.get(curWeek - 1).setBackground(getContext().getResources().getDrawable(R.drawable.weekview_thisweek, null));
+        if (curWeek > 0 && curWeek <= layouts.size) {
+            layouts[curWeek - 1].background = context.resources.getDrawable(
+                R.drawable.weekview_thisweek,
+                null
+            )
         }
-        return this;
+        return this
     }
 
     /**
      * 重置背景色
      */
-    public void resetBackground() {
-        layouts.get(preIndex - 1).setBackgroundColor(getContext().getResources().getColor(R.color.app_course_chooseweek_bg, null));
-        layouts.get(curWeek - 1).setBackground(getContext().getResources().getDrawable(R.drawable.weekview_thisweek, null));
+    fun resetBackground() {
+        layouts[preIndex - 1].setBackgroundColor(
+            context.resources.getColor(
+                R.color.app_course_chooseweek_bg,
+                null
+            )
+        )
+        layouts[curWeek - 1].background =
+            context.resources.getDrawable(R.drawable.weekview_thisweek, null)
     }
 
     /**
      * 隐藏左侧设置当前周的控件
      */
-    public WeekView hideLeftLayout() {
-        leftlayout.setVisibility(View.GONE);
-        return this;
+    fun hideLeftLayout(): WeekView {
+        leftlayout.visibility = GONE
+        return this
     }
 
     /**
@@ -279,14 +256,13 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      *
      * @param isShow true:显示，false:隐藏
      */
-    @Override
-    public WeekView isShow(boolean isShow) {
+    override fun isShow(isShow: Boolean): WeekView {
         if (isShow) {
-            root.setVisibility(VISIBLE);
+            root.visibility = VISIBLE
         } else {
-            root.setVisibility(GONE);
+            root.visibility = GONE
         }
-        return this;
+        return this
     }
 
     /**
@@ -294,8 +270,11 @@ public class WeekView extends LinearLayout implements WeekViewEnable<WeekView> {
      *
      * @return
      */
-    @Override
-    public boolean isShowing() {
-        return root.getVisibility() != GONE;
+    override fun isShowing(): Boolean {
+        return root.visibility != GONE
+    }
+
+    companion object {
+        private const val TAG = "WeekView"
     }
 }
