@@ -23,7 +23,7 @@ import com.zhuangfei.timetable.utils.ScreenUtils.dip2px
  *
  * 有课的地方用亮色的圆点，没课的地方用暗色的圆点
  */
-class PerWeekView @JvmOverloads constructor(context: Context?, attrs: AttributeSet? = null) :
+class PerWeekView constructor(context: Context, attrs: AttributeSet) :
     View(context, attrs) {
     //控件宽度
     private var width = 0
@@ -99,8 +99,7 @@ class PerWeekView @JvmOverloads constructor(context: Context?, attrs: AttributeS
      * @param curWeek
      * @return
      */
-    fun setSource(list: List<ScheduleEnable?>?, curWeek: Int): PerWeekView {
-        if (list == null) return this
+    fun setSource(list: List<ScheduleEnable>, curWeek: Int): PerWeekView {
         setData(ScheduleSupport.transform(list), curWeek)
         return this
     }
@@ -112,8 +111,7 @@ class PerWeekView @JvmOverloads constructor(context: Context?, attrs: AttributeS
      * @param curWeek
      * @return
      */
-    fun setData(list: List<Schedule>?, curWeek: Int): PerWeekView {
-        if (list == null) return this
+    fun setData(list: List<Schedule>, curWeek: Int): PerWeekView {
         dataSource.clear()
         for (i in list.indices) {
             val schedule = list[i]
@@ -151,7 +149,7 @@ class PerWeekView @JvmOverloads constructor(context: Context?, attrs: AttributeS
         return this
     }
 
-    private fun initAttr(attrs: AttributeSet?) {
+    private fun initAttr(attrs: AttributeSet) {
         val defRadius = dip2px(context, 2f)
         val ta = context.obtainStyledAttributes(attrs, R.styleable.PerWeekView)
         grayColor = ta.getColor(R.styleable.PerWeekView_gray_color, Color.rgb(207, 219, 219))
