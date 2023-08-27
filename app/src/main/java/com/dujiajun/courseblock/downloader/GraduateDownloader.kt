@@ -1,4 +1,4 @@
-package com.dujiajun.courseblock.helper
+package com.dujiajun.courseblock.downloader
 
 import android.content.Context
 import android.os.Handler

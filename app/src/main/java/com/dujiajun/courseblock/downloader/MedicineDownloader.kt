@@ -1,4 +1,4 @@
-package com.dujiajun.courseblock.helper
+package com.dujiajun.courseblock.downloader
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Message
 import androidx.preference.PreferenceManager
 import com.dujiajun.courseblock.constant.PreferenceKey
+import com.dujiajun.courseblock.helper.WeekManager
 import com.dujiajun.courseblock.model.Course
 import okhttp3.Call
 import okhttp3.Callback

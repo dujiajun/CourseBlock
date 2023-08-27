@@ -7,6 +7,10 @@ import android.os.Looper
 import android.os.Message
 import androidx.preference.PreferenceManager
 import com.dujiajun.courseblock.constant.PreferenceKey
+import com.dujiajun.courseblock.downloader.CourseDownloader
+import com.dujiajun.courseblock.downloader.GraduateDownloader
+import com.dujiajun.courseblock.downloader.MedicineDownloader
+import com.dujiajun.courseblock.downloader.UndergraduateDownloader
 import com.dujiajun.courseblock.model.Course
 import org.litepal.LitePal.deleteAll
 import org.litepal.LitePal.findAll

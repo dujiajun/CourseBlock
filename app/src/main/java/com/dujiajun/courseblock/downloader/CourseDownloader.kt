@@ -1,7 +1,8 @@
-package com.dujiajun.courseblock.helper
+package com.dujiajun.courseblock.downloader
 
 import android.content.Context
 import android.os.Handler
+import com.dujiajun.courseblock.helper.WebViewCookieHandler
 import com.dujiajun.courseblock.model.Course
 import okhttp3.Callback
 import okhttp3.OkHttpClient
