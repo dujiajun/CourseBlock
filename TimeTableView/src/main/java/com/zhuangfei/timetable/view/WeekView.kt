@@ -122,6 +122,7 @@ class WeekView constructor(context: Context, attrs: AttributeSet) :
         return itemCount
     }
 
+
     /**
      * 设置数据源
      *
@@ -270,9 +271,10 @@ class WeekView constructor(context: Context, attrs: AttributeSet) :
      *
      * @return
      */
-    override fun isShowing(): Boolean {
-        return root.visibility != GONE
-    }
+    override val isShowing: Boolean
+        get() {
+            return root.visibility != GONE
+        }
 
     companion object {
         private const val TAG = "WeekView"
