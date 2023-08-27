@@ -48,6 +48,6 @@ abstract class CourseDownloader constructor(context: Context) {
         const val DOWNLOADED = 0
         const val FAILED = 1
         const val UNLOGIN = 2
-        const val TAG = "MedicineDownloader"
+        const val TAG = "CourseDownloader"
     }
 }
