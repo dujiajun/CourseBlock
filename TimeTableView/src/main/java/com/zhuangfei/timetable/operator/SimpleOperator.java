@@ -208,7 +208,7 @@ public class SimpleOperator extends AbsOperator {
         } else {
             textView.setTextColor(mView.itemTextColorWithNotThis());
             Map<String, Integer> colorMap = mView.colorPool().getColorMap();
-            if (!colorMap.isEmpty() && mView.colorPool().isIgnoreUserlessColor() && colorMap.containsKey(subject.getName())) {
+            if (!colorMap.isEmpty() && mView.colorPool().isIgnoreUselessColor() && colorMap.containsKey(subject.getName())) {
                 gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.getName()), mView.itemAlpha()));
             } else {
                 gd.setColor(mView.colorPool().getUselessColorWithAlpha(mView.itemAlpha()));

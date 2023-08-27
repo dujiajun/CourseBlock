@@ -27,13 +27,13 @@ public class ScheduleColorPool {
 
     //false：非本周课程使用uselessColor渲染
     //true：非本周课程使用colorMap渲染
-    private boolean ignoreUserlessColor = false;
+    private boolean ignoreUselessColor = false;
     //使用集合维护颜色池
     private List<Integer> colorPool;
 
     public ScheduleColorPool(Context context) {
         this.context = context;
-        setUselessColor(context.getResources().getColor(R.color.useless));
+        setUselessColor(context.getResources().getColor(R.color.useless, null));
         colorMap = new HashMap<>();
         reset();
     }
@@ -64,8 +64,8 @@ public class ScheduleColorPool {
      *
      * @return boolean
      */
-    public boolean isIgnoreUserlessColor() {
-        return ignoreUserlessColor;
+    public boolean isIgnoreUselessColor() {
+        return ignoreUselessColor;
     }
 
     /**
@@ -76,7 +76,7 @@ public class ScheduleColorPool {
      * @return ScheduleColorPool
      */
     public ScheduleColorPool setIgnoreUselessColor(boolean ignoreUserlessColor) {
-        this.ignoreUserlessColor = ignoreUserlessColor;
+        this.ignoreUselessColor = ignoreUserlessColor;
         return this;
     }
 
