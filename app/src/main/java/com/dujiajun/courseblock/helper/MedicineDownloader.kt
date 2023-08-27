@@ -119,7 +119,7 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
     }
 
     private fun makeUniqueKey(course: Course): String {
-        return "${course.courseId}-${course.day}-${course.start}"
+        return "${course.courseId}-${course.day}-${course.start}-${course.step}"
     }
 
     override fun parseFrom(json: String): List<Course> {
