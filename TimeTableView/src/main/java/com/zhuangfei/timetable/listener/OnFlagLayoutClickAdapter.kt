@@ -1,12 +1,10 @@
-package com.zhuangfei.timetable.listener;
+package com.zhuangfei.timetable.listener
+
+import com.zhuangfei.timetable.listener.ISchedule.OnFlagLayoutClickListener
 
 /**
  * Created by Liu ZhuangFei on 2018/8/3.
  */
-
-public class OnFlagLayoutClickAdapter implements ISchedule.OnFlagLayoutClickListener {
-    @Override
-    public void onFlagLayoutClick(int day, int start) {
-
-    }
+class OnFlagLayoutClickAdapter : OnFlagLayoutClickListener {
+    override fun onFlagLayoutClick(day: Int, start: Int) {}
 }

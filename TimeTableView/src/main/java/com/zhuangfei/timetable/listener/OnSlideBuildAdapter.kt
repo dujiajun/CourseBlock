@@ -1,49 +1,43 @@
-package com.zhuangfei.timetable.listener;
+package com.zhuangfei.timetable.listener
 
-import android.graphics.Color;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import com.zhuangfei.android_timetableview.sample.R;
-import com.zhuangfei.timetable.utils.ColorUtils;
+import android.graphics.Color
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
+import com.zhuangfei.android_timetableview.sample.R
+import com.zhuangfei.timetable.listener.ISchedule.OnSlideBuildListener
+import com.zhuangfei.timetable.utils.ColorUtils.alphaColor
 
 /**
  * 控件实现的一个可以显示时间的侧边栏适配器
  * Created by Liu ZhuangFei on 2018/6/18.
  */
-
-public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
-
-    //时刻，每个元素保存每节课的开始时间
-    protected String[] times;
-
-    //节次文本的颜色、字号
-    protected int textColor = Color.BLACK;
-    protected float textSize = 14;
-
-    //时刻文本的颜色、字号
-    protected float timeTextSize = 12;
-    protected int timeTextColor = Color.GRAY;
-
-    //侧边栏背景色
-    protected int background = Color.WHITE;
-    protected float alpha = 1;
-
-    public OnSlideBuildAdapter setBackground(int backgroundColor) {
-        this.background = backgroundColor;
-        return this;
-    }
-
+open class OnSlideBuildAdapter : OnSlideBuildListener {
     /**
      * 获取时刻数组
      *
      * @return
      */
-    public String[] getTimes() {
-        return times;
+    //时刻，每个元素保存每节课的开始时间
+    var times: Array<String>? = null
+        protected set
+
+    //节次文本的颜色、字号
+    private var textColor = Color.BLACK
+    private var textSize = 14f
+
+    //时刻文本的颜色、字号
+    private var timeTextSize = 12f
+    private var timeTextColor = Color.GRAY
+
+    //侧边栏背景色
+    private var background = Color.WHITE
+    private var alpha = 1f
+    fun setBackground(backgroundColor: Int): OnSlideBuildAdapter {
+        background = backgroundColor
+        return this
     }
 
     /**
@@ -52,9 +46,9 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
      * @param times
      * @return
      */
-    public OnSlideBuildAdapter setTimes(String[] times) {
-        this.times = times;
-        return this;
+    fun setTimes(times: Array<String>?): OnSlideBuildAdapter {
+        this.times = times
+        return this
     }
 
     /**
@@ -63,9 +57,9 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
      * @param textColor 指定颜色
      * @return
      */
-    public OnSlideBuildAdapter setTextColor(int textColor) {
-        this.textColor = textColor;
-        return this;
+    fun setTextColor(textColor: Int): OnSlideBuildAdapter {
+        this.textColor = textColor
+        return this
     }
 
     /**
@@ -74,9 +68,9 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
      * @param textSize 指定字号
      * @return
      */
-    public OnSlideBuildAdapter setTextSize(float textSize) {
-        this.textSize = textSize;
-        return this;
+    fun setTextSize(textSize: Float): OnSlideBuildAdapter {
+        this.textSize = textSize
+        return this
     }
 
     /**
@@ -85,9 +79,9 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
      * @param timeTextColor 颜色
      * @return
      */
-    public OnSlideBuildAdapter setTimeTextColor(int timeTextColor) {
-        this.timeTextColor = timeTextColor;
-        return this;
+    fun setTimeTextColor(timeTextColor: Int): OnSlideBuildAdapter {
+        this.timeTextColor = timeTextColor
+        return this
     }
 
     /**
@@ -96,38 +90,34 @@ public class OnSlideBuildAdapter implements ISchedule.OnSlideBuildListener {
      * @param timeTextSize 字号
      * @return
      */
-    public OnSlideBuildAdapter setTimeTextSize(float timeTextSize) {
-        this.timeTextSize = timeTextSize;
-        return this;
+    fun setTimeTextSize(timeTextSize: Float): OnSlideBuildAdapter {
+        this.timeTextSize = timeTextSize
+        return this
     }
 
-    @Override
-    public View getView(int pos, LayoutInflater inflater, int itemHeight, int marTop) {
-        View view = inflater.inflate(R.layout.item_slide_time, null, false);
-        TextView numberTextView = view.findViewById(R.id.item_slide_number);
-        TextView timeTextView = view.findViewById(R.id.item_slide_time);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                itemHeight);
-        lp.setMargins(0, marTop, 0, 0);
-        view.setLayoutParams(lp);
-
-        numberTextView.setText((pos + 1) + "");
-        numberTextView.setTextSize(textSize);
-        numberTextView.setTextColor(textColor);
-
-        if (times == null) timeTextView.setText("");
-        if (times != null && pos >= 0 && pos < times.length) {
-            timeTextView.setText(times[pos]);
-            timeTextView.setTextColor(timeTextColor);
-            timeTextView.setTextSize(timeTextSize);
+    override fun getView(pos: Int, inflater: LayoutInflater, itemHeight: Int, marTop: Int): View {
+        val view = inflater.inflate(R.layout.item_slide_time, null, false)
+        val numberTextView = view.findViewById<TextView>(R.id.item_slide_number)
+        val timeTextView = view.findViewById<TextView>(R.id.item_slide_time)
+        val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                itemHeight)
+        lp.setMargins(0, marTop, 0, 0)
+        view.layoutParams = lp
+        numberTextView.text = (pos + 1).toString() + ""
+        numberTextView.textSize = textSize
+        numberTextView.setTextColor(textColor)
+        if (times == null) timeTextView.text = ""
+        if (times != null && pos >= 0 && pos < times!!.size) {
+            timeTextView.text = times!![pos]
+            timeTextView.setTextColor(timeTextColor)
+            timeTextView.textSize = timeTextSize
         }
-        return view;
+        return view
     }
 
-    @Override
-    public void onInit(LinearLayout layout, float alpha) {
-        this.alpha = alpha;
-        int alphaColor = ColorUtils.alphaColor(background, alpha);
-        if (layout != null) layout.setBackgroundColor(alphaColor);
+    override fun onInit(layout: LinearLayout, alpha: Float) {
+        this.alpha = alpha
+        val alphaColor = alphaColor(background, alpha)
+        layout.setBackgroundColor(alphaColor)
     }
 }

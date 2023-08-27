@@ -75,7 +75,7 @@ public class ScheduleColorPool {
      *
      * @return ScheduleColorPool
      */
-    public ScheduleColorPool setIgnoreUserlessColor(boolean ignoreUserlessColor) {
+    public ScheduleColorPool setIgnoreUselessColor(boolean ignoreUserlessColor) {
         this.ignoreUserlessColor = ignoreUserlessColor;
         return this;
     }
@@ -194,8 +194,8 @@ public class ScheduleColorPool {
      */
     public ScheduleColorPool add(int... colorIds) {
         if (colorIds != null) {
-            for (int i = 0; i < colorIds.length; i++) {
-                colorPool.add(colorIds[i]);
+            for (int colorId : colorIds) {
+                colorPool.add(colorId);
             }
         }
         return this;
@@ -216,8 +216,8 @@ public class ScheduleColorPool {
 
         clear();
 
-        for (int i = 0; i < colors.length; i++) {
-            add(context.getResources().getColor(colors[i]));
+        for (int color : colors) {
+            add(context.getResources().getColor(color, null));
         }
         return this;
     }

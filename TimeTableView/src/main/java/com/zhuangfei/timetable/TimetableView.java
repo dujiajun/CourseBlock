@@ -514,7 +514,7 @@ public class TimetableView extends LinearLayout {
      * @return
      */
     public TimetableView curWeek(String startTime) {
-        int week = ScheduleSupport.timeTransfrom(startTime);
+        int week = ScheduleSupport.timeTransform(startTime);
         if (week == -1)
             curWeek(1);
         else

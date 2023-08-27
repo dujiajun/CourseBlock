@@ -250,7 +250,7 @@ public class SimpleOperator extends AbsOperator {
         layout.removeAllViews();
 
         //遍历
-        List<Schedule> filter = ScheduleSupport.fliterSchedule(data, curWeek, mView.isShowNotCurWeek());
+        List<Schedule> filter = ScheduleSupport.filterSchedule(data, curWeek, mView.isShowNotCurWeek());
         Schedule pre = null;
         if (filter.size() > 0) {
             pre = filter.get(0);

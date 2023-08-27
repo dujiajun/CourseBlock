@@ -118,7 +118,7 @@ public class ScheduleSupport {
      * @param startTime 满足"yyyy-MM-dd HH:mm:ss"模式的字符串
      * @return
      */
-    public static int timeTransfrom(String startTime) {
+    public static int timeTransform(String startTime) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
             long start = sdf.parse(startTime).getTime();
@@ -312,7 +312,7 @@ public class ScheduleSupport {
      * @param curWeek
      * @return
      */
-    public static List<Schedule> fliterSchedule(List<Schedule> data, int curWeek, boolean isShowNotCurWeek) {
+    public static List<Schedule> filterSchedule(List<Schedule> data, int curWeek, boolean isShowNotCurWeek) {
         if (data == null) return new ArrayList<>();
         Set<Schedule> result = new HashSet<>();
 
