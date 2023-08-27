@@ -97,6 +97,8 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
                     else -> {
                         if (body.contains("访问出错")) {
                             message.what = FAILED
+                        } else if (body.contains("上海交通大学医学院用户认证中心")) {
+                            message.what = UNLOGIN
                         } else {
                             courses = parseFrom(body)
                             message.what = DOWNLOADED
@@ -110,7 +112,11 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
         })
     }
 
-    fun dealWeekCodeWithMultiple(weekCodeMap: HashMap<String, CharArray>, course: Course, week: Int) {
+    fun dealWeekCodeWithMultiple(
+        weekCodeMap: HashMap<String, CharArray>,
+        course: Course,
+        week: Int
+    ) {
         val key = makeUniqueKey(course)
         if (!weekCodeMap.contains(key)) {
             val weekcode = CharArray(Course.MAX_WEEKS)
