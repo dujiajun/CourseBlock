@@ -133,7 +133,7 @@ public class SettingsActivity extends AppCompatActivity {
             lastDayPreference.setOnPreferenceClickListener(preference -> {
                 DatePickerDialog dialog = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
                     if (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY) {
-                        Toast.makeText(getActivity(), R.string.change_to_monday, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), R.string.change_to_sunday, Toast.LENGTH_SHORT).show();
                     }
                     weekManager.setLastDay(year, month, dayOfMonth);
                     preference.setSummary(weekManager.getShowLastDate());
@@ -217,7 +217,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             switch (preference.getKey()) {
-                case "cur_year":
+                case "cur_year" -> {
                     if (Integer.parseInt((String) newValue) < 2018
                             && curTermListPreference.getEntryValues() != null
                             && curTermListPreference.getEntryValues()[2].equals(newValue)) {
@@ -226,9 +226,8 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                     curYearListPreference.setSummary(curYearListPreference.getEntries()
                             [curYearListPreference.findIndexOfValue((String) newValue)]);
-                    break;
-                case "cur_term":
-
+                }
+                case "cur_term" -> {
                     if (curYearListPreference.getValue() != null
                             && Integer.parseInt(curYearListPreference.getValue()) < 2018
                             && curTermListPreference.getEntryValues()[2].equals(newValue)) {
@@ -237,19 +236,13 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                     curTermListPreference.setSummary(curTermListPreference.getEntries()
                             [curTermListPreference.findIndexOfValue((String) newValue)]);
-                    break;
-                case "status":
-                    statusPreference.setSummary(statusPreference.getEntries()[statusPreference.findIndexOfValue((String) newValue)]);
-                    break;
-                case "show_weekend":
-                case "show_not_cur_week":
-                case "show_course_time":
-                case "use_chi_icon":
-                case "first_monday":
-                    Toast.makeText(getActivity(), R.string.change_take_effect, Toast.LENGTH_SHORT).show();
-                    break;
-                default:
-                    break;
+                }
+                case "status" ->
+                        statusPreference.setSummary(statusPreference.getEntries()[statusPreference.findIndexOfValue((String) newValue)]);
+                case "show_weekend", "show_not_cur_week", "show_course_time", "use_chi_icon", "first_monday" ->
+                        Toast.makeText(getActivity(), R.string.change_take_effect, Toast.LENGTH_SHORT).show();
+                default -> {
+                }
             }
             return true;
         }

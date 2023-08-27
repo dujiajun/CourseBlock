@@ -11,7 +11,7 @@ import java.util.Locale
 
 class WeekManager private constructor(context: Context) {
     private val preferences: SharedPreferences
-    private var simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
+    private var simpleDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.CHINA)
     private var curWeek = 0
     lateinit var firstDate: Date
     lateinit var lastDate: Date
@@ -71,7 +71,7 @@ class WeekManager private constructor(context: Context) {
     }
 
     fun loadLastDay(): Date {
-        preferences.getString("first_sunday", LAST_DATE)?.let { s ->
+        preferences.getString("last_sunday", LAST_DATE)?.let { s ->
             simpleDateFormat.parse(s)?.let {
                 lastDate = it
             }
@@ -91,8 +91,8 @@ class WeekManager private constructor(context: Context) {
     }
 
     companion object {
-        const val FIRST_DATE = "2021-09-13 00:00:00"
-        const val LAST_DATE = "2021-09-13 00:00:00"
+        const val FIRST_DATE = "2021-09-13"
+        const val LAST_DATE = "2021-09-13"
         private var singleton: WeekManager? = null
 
         @JvmStatic

@@ -144,8 +144,8 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
     }
 
     override fun download(year: String, term: String, callback: Callback) {
-        val start = preferences.getString("first_monday", WeekManager.FIRST_DATE)?.split(" ")?.get(0)
-        val end = preferences.getString("last_sunday", WeekManager.LAST_DATE)?.split(" ")?.get(0)
+        val start = WeekManager.getInstance(context).showFirstDate
+        val end = WeekManager.getInstance(context).showLastDate
         val url = "$courseUrl?Start=$start&End=$end"
         val request: Request = Request.Builder()
                 .url(url)
