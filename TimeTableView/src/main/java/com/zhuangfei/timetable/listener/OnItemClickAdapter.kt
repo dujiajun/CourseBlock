@@ -1,18 +1,15 @@
-package com.zhuangfei.timetable.listener;
+package com.zhuangfei.timetable.listener
 
-import android.view.View;
-
-import com.zhuangfei.timetable.model.Schedule;
-
-import java.util.List;
+import android.view.View
+import com.zhuangfei.timetable.model.Schedule
 
 /**
  * Item点击的默认实现.
  */
+class OnItemClickAdapter : ISchedule.OnItemClickListener {
+    override fun onItemClick(v: View, scheduleList: List<Schedule>) {}
 
-public class OnItemClickAdapter implements ISchedule.OnItemClickListener {
-    private static final String TAG = "OnItemClickAdapter";
-    @Override
-    public void onItemClick(View v, List<Schedule> scheduleList) {
+    companion object {
+        private const val TAG = "OnItemClickAdapter"
     }
 }

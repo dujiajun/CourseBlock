@@ -1,12 +1,10 @@
-package com.zhuangfei.timetable.listener;
+package com.zhuangfei.timetable.listener
+
+import com.zhuangfei.timetable.listener.IWeekView.OnWeekItemClickedListener
 
 /**
  * WeekView的Item点击监听默认实现
  */
-
-public class OnWeekItemClickedAdapter implements IWeekView.OnWeekItemClickedListener {
-    @Override
-    public void onWeekClicked(int curWeek) {
-
-    }
+class OnWeekItemClickedAdapter : OnWeekItemClickedListener {
+    override fun onWeekClicked(week: Int) {}
 }

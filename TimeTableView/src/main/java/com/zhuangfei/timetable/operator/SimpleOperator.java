@@ -1,4 +1,4 @@
-package com.zhuangfei.timetable.operater;
+package com.zhuangfei.timetable.operator;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -30,15 +30,15 @@ import java.util.Map;
  * 课表业务操作者，TimetableView中只涉及属性的设置，方法的具体实现在这里.
  * 常用的方法也就四个，如下
  *
- * @see SimpleOperater#changeWeek(int, boolean)
- * @see SimpleOperater#showView()
- * @see SimpleOperater#updateDateView()
- * @see SimpleOperater#updateSlideView()
+ * @see SimpleOperator#changeWeek(int, boolean)
+ * @see SimpleOperator#showView()
+ * @see SimpleOperator#updateDateView()
+ * @see SimpleOperator#updateSlideView()
  *
  * Created by Liu ZhuangFei on 2018/9/1.
  */
-public class SimpleOperater extends AbsOperater{
-    private static final String TAG = "SimpleOperater";
+public class SimpleOperator extends AbsOperator {
+    private static final String TAG = "SimpleOperator";
 
     protected TimetableView mView;
     protected Context context;
@@ -298,7 +298,7 @@ public class SimpleOperater extends AbsOperater{
         flagLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mView.onFlaglayoutClickListener().onFlaglayoutClick(finalDay,start);
+                mView.onFlaglayoutClickListener().onFlagLayoutClick(finalDay,start);
             }
         });
     }

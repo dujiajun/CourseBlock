@@ -72,14 +72,14 @@ public interface ISchedule {
     /**
      * 旗标布局点击监听器
      */
-    interface OnFlaglayoutClickListener {
+    interface OnFlagLayoutClickListener {
         /**
          * 当旗标布局被点击时回调
          *
          * @param day 表示周几，0：周一，6：周日
          * @param start 表示点击空白格子的节次，1：第一节
          */
-        void onFlaglayoutClick(int day,int start);
+        void onFlagLayoutClick(int day, int start);
     }
 
     /**

@@ -1,12 +1,10 @@
-package com.zhuangfei.timetable.listener;
+package com.zhuangfei.timetable.listener
+
+import com.zhuangfei.timetable.listener.ISchedule.OnWeekChangedListener
 
 /**
  *
  */
-
-public class OnWeekChangedAdapter implements ISchedule.OnWeekChangedListener {
-    @Override
-    public void onWeekChanged(int curWeek) {
-
-    }
+class OnWeekChangedAdapter : OnWeekChangedListener {
+    override fun onWeekChanged(curWeek: Int) {}
 }

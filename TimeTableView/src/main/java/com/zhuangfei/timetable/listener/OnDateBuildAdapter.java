@@ -18,9 +18,9 @@ import java.util.List;
  * 日期栏的构建过程.
  */
 
-public class OnDateBuildAapter implements ISchedule.OnDateBuildListener {
+public class OnDateBuildAdapter implements ISchedule.OnDateBuildListener {
 
-    private static final String TAG = "OnDateBuildAapter";
+    private static final String TAG = "OnDateBuildAdapter";
 
     //第一个：月份，之后7个表示周一至周日
     protected TextView[] textViews = new TextView[8];
@@ -33,7 +33,7 @@ public class OnDateBuildAapter implements ISchedule.OnDateBuildListener {
     protected List<String> weekDates;
     protected LinearLayout layout;
 
-    public OnDateBuildAapter setBackground(int background) {
+    public OnDateBuildAdapter setBackground(int background) {
         this.background = background;
         return this;
     }

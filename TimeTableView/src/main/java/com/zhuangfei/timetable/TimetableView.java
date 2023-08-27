@@ -8,8 +8,8 @@ import android.widget.LinearLayout;
 
 import com.zhuangfei.timetable.listener.ISchedule;
 import com.zhuangfei.timetable.listener.OnConfigHandleAdapter;
-import com.zhuangfei.timetable.listener.OnDateBuildAapter;
-import com.zhuangfei.timetable.listener.OnFlaglayoutClickAdapter;
+import com.zhuangfei.timetable.listener.OnDateBuildAdapter;
+import com.zhuangfei.timetable.listener.OnFlagLayoutClickAdapter;
 import com.zhuangfei.timetable.listener.OnItemBuildAdapter;
 import com.zhuangfei.timetable.listener.OnItemClickAdapter;
 import com.zhuangfei.timetable.listener.OnItemLongClickAdapter;
@@ -21,15 +21,15 @@ import com.zhuangfei.timetable.model.Schedule;
 import com.zhuangfei.timetable.model.ScheduleColorPool;
 import com.zhuangfei.timetable.model.ScheduleEnable;
 import com.zhuangfei.timetable.model.ScheduleSupport;
-import com.zhuangfei.timetable.operater.AbsOperater;
-import com.zhuangfei.timetable.operater.SimpleOperater;
+import com.zhuangfei.timetable.operator.AbsOperator;
+import com.zhuangfei.timetable.operator.SimpleOperator;
 import com.zhuangfei.timetable.utils.ScreenUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 课程表控件，该类主要负责属性的设置，业务逻辑由{@link SimpleOperater}处理
+ * 课程表控件，该类主要负责属性的设置，业务逻辑由{@link SimpleOperator}处理
  * 虽然这个类代码很多，但是都是属性设置，除了属性设置的方法：
  * {@link #showView()}
  * {@link #changeWeek(int, boolean)}
@@ -42,15 +42,15 @@ import java.util.List;
  *
  * 文档参考 https://github.com/zfman/TimetableView/wiki/%E6%9C%80%E6%96%B0%E6%96%87%E6%A1%A3
  * @author Administrator
- * @see AbsOperater
- * @see SimpleOperater
+ * @see AbsOperator
+ * @see SimpleOperator
  */
 public class TimetableView extends LinearLayout {
 
     protected static final String TAG = "TimetableView";
 
     //业务逻辑
-    private AbsOperater operater;
+    private AbsOperator operater;
     private Context context;
     protected AttributeSet attrs;
 
@@ -103,7 +103,7 @@ public class TimetableView extends LinearLayout {
     private ISchedule.OnItemBuildListener onItemBuildListener;//课程表item构建监听
     private ISchedule.OnSlideBuildListener onSlideBuildListener;//侧边栏构建监听
     private ISchedule.OnSpaceItemClickListener onSpaceItemClickListener;//空白格子点击监听
-    private ISchedule.OnFlaglayoutClickListener onFlaglayoutClickListener;//旗标布局点击监听
+    private ISchedule.OnFlagLayoutClickListener onFlaglayoutClickListener;//旗标布局点击监听
     private ISchedule.OnConfigHandleListener onConfigHandleListener;
 
 
@@ -131,12 +131,12 @@ public class TimetableView extends LinearLayout {
         return isShowWeekends;
     }
 
-    public AbsOperater operater(){
-        if(operater==null) operater=new SimpleOperater();
+    public AbsOperator operater(){
+        if(operater==null) operater=new SimpleOperator();
         return operater;
     }
 
-    public TimetableView operater(AbsOperater operater) {
+    public TimetableView operater(AbsOperator operater) {
         operater.init(context,attrs,this);
         this.operater = operater;
         return this;
@@ -356,7 +356,7 @@ public class TimetableView extends LinearLayout {
      * @return
      */
     public ISchedule.OnDateBuildListener onDateBuildListener() {
-        if (onDateBuildListener == null) onDateBuildListener = new OnDateBuildAapter();
+        if (onDateBuildListener == null) onDateBuildListener = new OnDateBuildAdapter();
         return onDateBuildListener;
     }
 
@@ -475,7 +475,7 @@ public class TimetableView extends LinearLayout {
      * @param onFlaglayoutClickListener
      * @return
      */
-    public TimetableView callback(ISchedule.OnFlaglayoutClickListener onFlaglayoutClickListener) {
+    public TimetableView callback(ISchedule.OnFlagLayoutClickListener onFlaglayoutClickListener) {
         this.onFlaglayoutClickListener = onFlaglayoutClickListener;
         return this;
     }
@@ -485,9 +485,9 @@ public class TimetableView extends LinearLayout {
      *
      * @return
      */
-    public ISchedule.OnFlaglayoutClickListener onFlaglayoutClickListener() {
+    public ISchedule.OnFlagLayoutClickListener onFlaglayoutClickListener() {
         if (onFlaglayoutClickListener == null)
-            onFlaglayoutClickListener = new OnFlaglayoutClickAdapter();
+            onFlaglayoutClickListener = new OnFlagLayoutClickAdapter();
         return onFlaglayoutClickListener;
     }
 

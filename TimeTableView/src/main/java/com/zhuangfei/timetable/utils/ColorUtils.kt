@@ -1,13 +1,9 @@
-package com.zhuangfei.timetable.utils;
-
-import android.graphics.Color;
+package com.zhuangfei.timetable.utils
 
 /**
  * Created by Liu ZhuangFei on 2018/7/25.
  */
-
-public class ColorUtils {
-
+object ColorUtils {
     /**
      * 合成指定颜色、指定不透明度的颜色，
      * 0:完全透明，1：不透明
@@ -15,9 +11,10 @@ public class ColorUtils {
      * @param alpha 0:完全透明，1：不透明
      * @return
      */
-    public static int alphaColor(int color,float alpha){
-        int a = Math.min(255, Math.max(0, (int) (alpha * 255))) << 24;
-        int rgb = 0x00ffffff & color;
-        return a + rgb;
+    @JvmStatic
+    fun alphaColor(color: Int, alpha: Float): Int {
+        val a = 255.coerceAtMost(0.coerceAtLeast((alpha * 255).toInt())) shl 24
+        val rgb = 0x00ffffff and color
+        return a + rgb
     }
 }
