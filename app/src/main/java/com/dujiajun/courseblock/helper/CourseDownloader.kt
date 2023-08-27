@@ -5,12 +5,17 @@ import android.os.Handler
 import com.dujiajun.courseblock.model.Course
 import okhttp3.Callback
 import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 
 
 abstract class CourseDownloader constructor(context: Context) {
     @JvmField
     protected val client: OkHttpClient =
-        OkHttpClient.Builder().cookieJar(WebViewCookieHandler()).build()
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .callTimeout(30, TimeUnit.SECONDS)
+            .cookieJar(WebViewCookieHandler()).build()
 
     @JvmField
     var loginUrl: String = ""
