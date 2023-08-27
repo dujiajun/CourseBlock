@@ -107,14 +107,19 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
         })
     }
 
-    fun dealWeekCodeWithMultiple(weekCodeMap: HashMap<String, CharArray>, code: String, week: Int) {
-        if (!weekCodeMap.contains(code)) {
+    fun dealWeekCodeWithMultiple(weekCodeMap: HashMap<String, CharArray>, course: Course, week: Int) {
+        val key = makeUniqueKey(course)
+        if (!weekCodeMap.contains(key)) {
             val weekcode = CharArray(Course.MAX_WEEKS)
             Arrays.fill(weekcode, '0')
-            weekCodeMap[code] = weekcode
+            weekCodeMap[key] = weekcode
         }
 
-        weekCodeMap[code]?.set(week - 1, '1')
+        weekCodeMap[key]?.set(week - 1, '1')
+    }
+
+    private fun makeUniqueKey(course: Course): String {
+        return "${course.courseId}-${course.day}-${course.start}"
     }
 
     override fun parseFrom(json: String): List<Course> {
@@ -133,7 +138,7 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
                 val (date, start) = jsonObj.getString("Start").split("T")
                 course.day = getDayInWeek(date)
                 course.start = timeMap[start.substring(0, start.length - 3)] ?: 0
-                dealWeekCodeWithMultiple(weekCodeMap, course.courseId, getCourseWeek(date))
+                dealWeekCodeWithMultiple(weekCodeMap, course, getCourseWeek(date))
                 course.isFromServer = true
                 courses.add(course)
             }
@@ -144,12 +149,13 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
         val finalCourses = ArrayList<Course>()
         val addedMap = HashSet<String>()
         for (course in courses) {
-            if (addedMap.contains(course.courseId))
+            val key = makeUniqueKey(course)
+            if (addedMap.contains(key))
                 continue
-            if (!weekCodeMap.contains(course.courseId)) continue
-            weekCodeMap[course.courseId]?.let { course.weekCode = String(it) }
+            if (!weekCodeMap.contains(key)) continue
+            weekCodeMap[key]?.let { course.weekCode = String(it) }
             finalCourses.add(course)
-            addedMap.add(course.courseId)
+            addedMap.add(key)
         }
         return finalCourses
     }
