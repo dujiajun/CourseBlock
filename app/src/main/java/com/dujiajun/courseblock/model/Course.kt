@@ -29,21 +29,23 @@ class Course : LitePalSupport(), ScheduleEnable {
     var weekCode: String = ""
 
     var isFromServer = false
-    override fun getSchedule(): Schedule {
-        val s = Schedule()
-        s.name = courseName
-        s.room = location
-        s.day = day
-        s.start = start
-        s.step = step
-        s.teacher = teacher
-        val weekList: MutableList<Int> = ArrayList()
-        for (j in 0 until MAX_WEEKS) {
-            if (weekCode[j] == '1') weekList.add(j + 1)
+
+    override val schedule: Schedule
+        get() {
+            val s = Schedule()
+            s.name = courseName
+            s.room = location
+            s.day = day
+            s.start = start
+            s.step = step
+            s.teacher = teacher
+            val weekList: MutableList<Int> = ArrayList()
+            for (j in 0 until MAX_WEEKS) {
+                if (weekCode[j] == '1') weekList.add(j + 1)
+            }
+            s.weekList = weekList
+            return s
         }
-        s.weekList = weekList
-        return s
-    }
 
     companion object {
         const val MAX_STEPS = 14
