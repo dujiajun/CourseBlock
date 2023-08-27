@@ -18,7 +18,8 @@ class WebViewCookieHandler : CookieJar {
         val urlString = url.toString()
         val cookiesString = mCookieManager.getCookie(urlString)
         if (cookiesString != null && !cookiesString.isEmpty()) {
-            val cookieHeaders = cookiesString.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val cookieHeaders =
+                cookiesString.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             val cookies: MutableList<Cookie> = ArrayList(cookieHeaders.size)
             for (header in cookieHeaders) {
                 Cookie.parse(url, header)?.let { cookies.add(it) }

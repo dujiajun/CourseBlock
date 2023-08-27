@@ -3,6 +3,7 @@ package com.dujiajun.courseblock.helper
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
+import com.dujiajun.courseblock.constant.PreferenceKey
 import com.dujiajun.courseblock.model.Course
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -29,9 +30,9 @@ class WeekManager private constructor(context: Context) {
         if (curWeek > Course.MAX_WEEKS) curWeek = Course.MAX_WEEKS
     }
 
-    fun setFirstDay(year: Int, month: Int, day_of_month: Int) {
+    fun setFirstDay(year: Int, month: Int, dayOfMonth: Int) {
         val calendar = Calendar.getInstance(Locale.CHINA)
-        calendar[year, month, day_of_month, 0, 0] = 0
+        calendar[year, month, dayOfMonth, 0, 0] = 0
         var dayOfWeek = calendar[Calendar.DAY_OF_WEEK]
         if (dayOfWeek == 1) dayOfWeek = 8
         calendar.add(Calendar.DATE, 2 - dayOfWeek)
@@ -39,9 +40,9 @@ class WeekManager private constructor(context: Context) {
         saveFirstDay()
     }
 
-    fun setLastDay(year: Int, month: Int, day_of_month: Int) {
+    fun setLastDay(year: Int, month: Int, dayOfMonth: Int) {
         val calendar = Calendar.getInstance(Locale.CHINA)
-        calendar[year, month, day_of_month, 0, 0] = 0
+        calendar[year, month, dayOfMonth, 0, 0] = 0
         var dayOfWeek = calendar[Calendar.DAY_OF_WEEK]
         if (dayOfWeek == 1) dayOfWeek = 8
         calendar.add(Calendar.DATE, 8 - dayOfWeek)
@@ -51,18 +52,18 @@ class WeekManager private constructor(context: Context) {
 
     private fun saveFirstDay() {
         val editor = preferences.edit()
-        editor.putString("first_monday", showFirstDate)
+        editor.putString(PreferenceKey.FIRST_MONDAY, showFirstDate)
         editor.apply()
     }
 
     private fun saveLastDay() {
         val editor = preferences.edit()
-        editor.putString("last_sunday", showLastDate)
+        editor.putString(PreferenceKey.LAST_SUNDAY, showLastDate)
         editor.apply()
     }
 
     fun loadFirstDay(): Date {
-        preferences.getString("first_monday", FIRST_DATE)?.let { s ->
+        preferences.getString(PreferenceKey.FIRST_MONDAY, FIRST_DATE)?.let { s ->
             simpleDateFormat.parse(s)?.let {
                 firstDate = it
             }
@@ -71,7 +72,7 @@ class WeekManager private constructor(context: Context) {
     }
 
     fun loadLastDay(): Date {
-        preferences.getString("last_sunday", LAST_DATE)?.let { s ->
+        preferences.getString(PreferenceKey.LAST_SUNDAY, LAST_DATE)?.let { s ->
             simpleDateFormat.parse(s)?.let {
                 lastDate = it
             }

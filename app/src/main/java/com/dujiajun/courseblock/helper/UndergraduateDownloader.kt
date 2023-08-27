@@ -19,10 +19,24 @@ import java.util.Arrays
 open class UndergraduateDownloader(context: Context) : CourseDownloader(context) {
     private val JSON: MediaType = "application/json; charset=utf-8".toMediaType()
 
+
     init {
         loginUrl = "https://i.sjtu.edu.cn/jaccountlogin"
         courseUrl = "https://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html"
         afterLoginPattern = "index_initMenu.html"
+
+        START_TIMES = arrayOf(
+            "8:00", "8:55", "10:00", "10:55",
+            "12:00", "12:55", "14:00", "14:55",
+            "16:00", "16:55", "18:00", "18:55",
+            "20:00", "20:55"
+        )
+        END_TIMES = arrayOf(
+            "8:45", "9:40", "10:45", "11:40",
+            "12:45", "13:40", "14:45", "15:40",
+            "16:45", "17:40", "18:45", "19:40",
+            "20:45", "21:40"
+        )
     }
 
     override fun getCourses(year: String, term: String, handler: Handler) {
@@ -85,61 +99,60 @@ open class UndergraduateDownloader(context: Context) : CourseDownloader(context)
 
     override fun download(year: String, term: String, callback: Callback) {
         val body: FormBody = FormBody.Builder()
-                .add("xnm", year)
-                .add("xqm", convertParams(term))
-                .build()
+            .add("xnm", year)
+            .add("xqm", convertParams(term))
+            .build()
         val request: Request = Request.Builder()
-                .url(courseUrl)
-                .post(body)
-                .build()
+            .url(courseUrl)
+            .post(body)
+            .build()
         client.newCall(request).enqueue(callback)
     }
 
-    companion object {
-        fun getWeekCode(week: String): String {
-            val items = week.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            val code = CharArray(Course.MAX_WEEKS)
-            Arrays.fill(code, '0')
-            for (rawitem in items) {
-                var step = 1
-                var item = rawitem
-                if (item.contains("(单)")) {
-                    step = 2
-                    item = item.replace("(单)", "")
-                }
-                if (item.contains("(双)")) {
-                    step = 2
-                    item = item.replace("(双)", "")
-                }
-                item = item.replace("周", "")
-                val weekStartAndEnd: Array<String> = if (item.contains("-")) {
-                    item.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                } else {
-                    arrayOf(item, item)
-                }
-                var i = weekStartAndEnd[0].toInt()
-                while (i <= weekStartAndEnd[1].toInt()) {
-                    code[i - 1] = '1'
-                    i += step
-                }
+    private fun getWeekCode(week: String): String {
+        val items = week.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val code = CharArray(Course.MAX_WEEKS)
+        Arrays.fill(code, '0')
+        for (rawitem in items) {
+            var step = 1
+            var item = rawitem
+            if (item.contains("(单)")) {
+                step = 2
+                item = item.replace("(单)", "")
             }
-            return String(code)
-        }
-
-        protected fun getStartAndStep(jcor: String): List<Int> {
-            val startAndStep: MutableList<Int> = ArrayList()
-            val jc = jcor.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            startAndStep.add(Integer.valueOf(jc[0]))
-            startAndStep.add(jc[1].toInt() - jc[0].toInt() + 1)
-            return startAndStep
-        }
-
-        private fun convertParams(term: String?): String {
-            return when (term) {
-                "2" -> "12"
-                "3" -> "16"
-                else -> "3"
+            if (item.contains("(双)")) {
+                step = 2
+                item = item.replace("(双)", "")
             }
+            item = item.replace("周", "")
+            val weekStartAndEnd: Array<String> = if (item.contains("-")) {
+                item.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            } else {
+                arrayOf(item, item)
+            }
+            var i = weekStartAndEnd[0].toInt()
+            while (i <= weekStartAndEnd[1].toInt()) {
+                code[i - 1] = '1'
+                i += step
+            }
+        }
+        return String(code)
+    }
+
+    private fun getStartAndStep(jcor: String): List<Int> {
+        val startAndStep: MutableList<Int> = ArrayList()
+        val jc = jcor.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        startAndStep.add(Integer.valueOf(jc[0]))
+        startAndStep.add(jc[1].toInt() - jc[0].toInt() + 1)
+        return startAndStep
+    }
+
+    private fun convertParams(term: String?): String {
+        return when (term) {
+            "2" -> "12"
+            "3" -> "16"
+            else -> "3"
         }
     }
+
 }

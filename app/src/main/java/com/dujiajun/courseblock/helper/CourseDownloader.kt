@@ -9,7 +9,8 @@ import okhttp3.OkHttpClient
 
 abstract class CourseDownloader constructor(context: Context) {
     @JvmField
-    protected val client: OkHttpClient = OkHttpClient.Builder().cookieJar(WebViewCookieHandler()).build()
+    protected val client: OkHttpClient =
+        OkHttpClient.Builder().cookieJar(WebViewCookieHandler()).build()
 
     @JvmField
     var loginUrl: String = ""
@@ -24,7 +25,14 @@ abstract class CourseDownloader constructor(context: Context) {
     protected var courses: List<Course> = ArrayList()
 
     @JvmField
-    var referer : String = ""
+    var referer: String = ""
+
+    @JvmField
+    var START_TIMES: Array<String> = arrayOf()
+
+    @JvmField
+    var END_TIMES: Array<String> = arrayOf()
+
 
     abstract fun getCourses(year: String, term: String, handler: Handler)
     protected abstract fun parseFrom(json: String): List<Course>

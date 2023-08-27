@@ -18,6 +18,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreference;
 
+import com.dujiajun.courseblock.constant.PreferenceKey;
 import com.dujiajun.courseblock.helper.APKVersionInfoUtils;
 import com.dujiajun.courseblock.helper.CourseManager;
 import com.dujiajun.courseblock.helper.WeekManager;
@@ -52,9 +53,9 @@ public class SettingsActivity extends AppCompatActivity {
 
     public static class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
 
+        private static final int SHOW_YEARS = 7;
         private ListPreference curYearListPreference;
         private ListPreference curTermListPreference;
-        private static final int SHOW_YEARS = 7;
         private DropDownPreference statusPreference;
         private WeekManager weekManager;
 
@@ -63,7 +64,7 @@ public class SettingsActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.pref_settings, rootKey);
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
             weekManager = WeekManager.getInstance(getContext());
-            curYearListPreference = findPreference("cur_year");
+            curYearListPreference = findPreference(PreferenceKey.CURRENT_YEAR);
 
             int curRealMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
             int curRealYear = Calendar.getInstance().get(Calendar.YEAR);
@@ -73,7 +74,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             String[] years = new String[SHOW_YEARS];
             String[] year_values = new String[SHOW_YEARS];
-            String pref_values = preferences.getString("cur_year", CourseManager.getDefaultYear());
+            String pref_values = preferences.getString(PreferenceKey.CURRENT_YEAR, CourseManager.getDefaultYear());
             String summary = "";
             for (int i = 0; i < SHOW_YEARS; i++) {
                 year_values[i] = String.valueOf(i + curRealYear - SHOW_YEARS + 1);
@@ -89,16 +90,16 @@ public class SettingsActivity extends AppCompatActivity {
             curYearListPreference.setOnPreferenceChangeListener(this);
 
 
-            statusPreference = findPreference("status");
+            statusPreference = findPreference(PreferenceKey.STATUS);
             statusPreference.setSummary(statusPreference.getEntry());
             statusPreference.setOnPreferenceChangeListener(this);
 
-            SwitchPreference showNotCurWeekPreference = findPreference("show_not_cur_week");
-            SwitchPreference showWeekendPreference = findPreference("show_weekend");
-            SwitchPreference showTimePreference = findPreference("show_course_time");
+            SwitchPreference showNotCurWeekPreference = findPreference(PreferenceKey.SHOW_NOT_CUR_WEEK);
+            SwitchPreference showWeekendPreference = findPreference(PreferenceKey.SHOW_WEEKEND);
+            SwitchPreference showTimePreference = findPreference(PreferenceKey.SHOW_COURSE_TIME);
 
-            curTermListPreference = findPreference("cur_term");
-            pref_values = preferences.getString("cur_term", CourseManager.getDefaultTerm());
+            curTermListPreference = findPreference(PreferenceKey.CURRENT_TERM);
+            pref_values = preferences.getString(PreferenceKey.CURRENT_TERM, CourseManager.getDefaultTerm());
             String[] terms = new String[]{"1", "2", "3"};
             for (int i = 0; i < terms.length; i++) {
                 if (pref_values.equals(terms[i]))
@@ -114,8 +115,8 @@ public class SettingsActivity extends AppCompatActivity {
             showWeekendPreference.setOnPreferenceChangeListener(this);
             showNotCurWeekPreference.setOnPreferenceChangeListener(this);
 
-            Preference firstDayPreference = findPreference("first_monday");
-            Preference lastDayPreference = findPreference("last_sunday");
+            Preference firstDayPreference = findPreference(PreferenceKey.FIRST_MONDAY);
+            Preference lastDayPreference = findPreference(PreferenceKey.LAST_SUNDAY);
             Calendar calendar = Calendar.getInstance(Locale.CHINA);
             firstDayPreference.setOnPreferenceClickListener(preference -> {
                 DatePickerDialog dialog = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
@@ -217,7 +218,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             switch (preference.getKey()) {
-                case "cur_year" -> {
+                case PreferenceKey.CURRENT_YEAR -> {
                     if (Integer.parseInt((String) newValue) < 2018
                             && curTermListPreference.getEntryValues() != null
                             && curTermListPreference.getEntryValues()[2].equals(newValue)) {
@@ -227,7 +228,7 @@ public class SettingsActivity extends AppCompatActivity {
                     curYearListPreference.setSummary(curYearListPreference.getEntries()
                             [curYearListPreference.findIndexOfValue((String) newValue)]);
                 }
-                case "cur_term" -> {
+                case PreferenceKey.CURRENT_TERM -> {
                     if (curYearListPreference.getValue() != null
                             && Integer.parseInt(curYearListPreference.getValue()) < 2018
                             && curTermListPreference.getEntryValues()[2].equals(newValue)) {
@@ -237,9 +238,9 @@ public class SettingsActivity extends AppCompatActivity {
                     curTermListPreference.setSummary(curTermListPreference.getEntries()
                             [curTermListPreference.findIndexOfValue((String) newValue)]);
                 }
-                case "status" ->
+                case PreferenceKey.STATUS ->
                         statusPreference.setSummary(statusPreference.getEntries()[statusPreference.findIndexOfValue((String) newValue)]);
-                case "show_weekend", "show_not_cur_week", "show_course_time", "use_chi_icon", "first_monday" ->
+                case PreferenceKey.SHOW_WEEKEND, PreferenceKey.SHOW_COURSE_TIME, PreferenceKey.SHOW_NOT_CUR_WEEK, "use_chi_icon", PreferenceKey.FIRST_MONDAY, PreferenceKey.LAST_SUNDAY ->
                         Toast.makeText(getActivity(), R.string.change_take_effect, Toast.LENGTH_SHORT).show();
                 default -> {
                 }

@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.PreferenceManager;
 
+import com.dujiajun.courseblock.constant.PreferenceKey;
 import com.dujiajun.courseblock.helper.CourseManager;
 import com.dujiajun.courseblock.helper.WeekManager;
 import com.dujiajun.courseblock.model.Course;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         weekManager = WeekManager.getInstance(this);
+        courseManager = CourseManager.getInstance(getApplicationContext());
 
         timetableView = findViewById(R.id.id_timetableView);
         weekView = findViewById(R.id.id_weekview);
@@ -60,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
                 .itemCount(Course.MAX_WEEKS)
                 .isShow(false).showView();
 
-        boolean show_weekend = preferences.getBoolean("show_weekend", true);
-        boolean show_not_cur_week = preferences.getBoolean("show_not_cur_week", true);
-        boolean show_time = preferences.getBoolean("show_course_time", true);
+        boolean show_weekend = preferences.getBoolean(PreferenceKey.SHOW_WEEKEND, true);
+        boolean show_not_cur_week = preferences.getBoolean(PreferenceKey.SHOW_NOT_CUR_WEEK, true);
+        boolean show_time = preferences.getBoolean(PreferenceKey.SHOW_COURSE_TIME, true);
 
         timetableView.curWeek(weekManager.getCurWeek())
                 .isShowNotCurWeek(show_not_cur_week)
@@ -90,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 });
         if (show_time)
             showTime();
-        courseManager = CourseManager.getInstance(getApplicationContext());
+
         updateView();
         updateWeek();
     }
@@ -99,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         OnSlideBuildAdapter listener = (OnSlideBuildAdapter) timetableView.onSlideBuildListener();
         String[] showTimes = new String[Course.MAX_STEPS];
         for (int i = 0; i < Course.MAX_STEPS; i++) {
-            showTimes[i] = Course.START_TIMES[i] + "\n" + Course.END_TIMES[i];
+            showTimes[i] = courseManager.getStartTimes()[i] + "\n" + courseManager.getEndTimes()[i];
         }
         listener.setTimes(showTimes)
                 .setTimeTextColor(Color.BLACK);

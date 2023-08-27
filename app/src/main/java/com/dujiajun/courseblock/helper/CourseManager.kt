@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import androidx.preference.PreferenceManager
+import com.dujiajun.courseblock.constant.PreferenceKey
 import com.dujiajun.courseblock.model.Course
 import org.litepal.LitePal.deleteAll
 import org.litepal.LitePal.findAll
@@ -14,7 +15,8 @@ import java.util.Calendar
 import java.util.Locale
 
 class CourseManager private constructor(private val context: Context) {
-    private val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+    private val preferences: SharedPreferences =
+        PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
     var courses: List<Course> = ArrayList()
 
     private var downloader: CourseDownloader = UndergraduateDownloader(context)
@@ -25,7 +27,7 @@ class CourseManager private constructor(private val context: Context) {
     }
 
     fun updateStatus() {
-        val status = when (preferences.getString("status", "0")) {
+        val status = when (preferences.getString(PreferenceKey.STATUS, "0")) {
             "1" -> STATUS.GRADUATE
             "2" -> STATUS.MEDICINE
             else -> STATUS.UNDERGRADUATE
@@ -80,9 +82,15 @@ class CourseManager private constructor(private val context: Context) {
     val afterLoginPattern: String
         get() = downloader.afterLoginPattern
 
+    val startTimes: Array<String>
+        get() = downloader.START_TIMES
+
+    val endTimes: Array<String>
+        get() = downloader.END_TIMES
+
     fun setReferer(referer: String) {
         downloader.referer = referer
-        preferences.edit().putString("referer", referer).apply()
+        preferences.edit().putString(PreferenceKey.REFERER, referer).apply()
     }
 
     fun findCourseByDayAndStart(week: Int, day: Int, start: Int): Course? {
@@ -103,11 +111,11 @@ class CourseManager private constructor(private val context: Context) {
         private var singleton: CourseManager? = null
 
         @JvmStatic
-        fun getInstance(context: Context): CourseManager? {
+        fun getInstance(context: Context): CourseManager {
             if (singleton == null) {
                 singleton = CourseManager(context)
             }
-            return singleton
+            return singleton!!
         }
 
         @JvmStatic
@@ -127,7 +135,7 @@ class CourseManager private constructor(private val context: Context) {
             get() {
                 val calendar = Calendar.getInstance(Locale.CHINA)
                 val curRealMonth = calendar[Calendar.MONTH] + 1
-                val term: String = if (curRealMonth >= 9 || curRealMonth < 2) {
+                val term: String = if (curRealMonth >= 8 || curRealMonth < 2) {
                     "1" // 秋季学期
                 } else if (curRealMonth < 7) {
                     "2" // 春季学期

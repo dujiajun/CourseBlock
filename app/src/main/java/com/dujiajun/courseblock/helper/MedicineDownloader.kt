@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Message
 import androidx.preference.PreferenceManager
+import com.dujiajun.courseblock.constant.PreferenceKey
 import com.dujiajun.courseblock.model.Course
 import okhttp3.Call
 import okhttp3.Callback
@@ -16,28 +17,38 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Arrays
 import java.util.Calendar
-import java.util.HashSet
 import java.util.Locale
 
 class MedicineDownloader(private val context: Context) : CourseDownloader(context) {
-    private val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+    private val preferences: SharedPreferences =
+        PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
 
     init {
         loginUrl = "https://jwstu.shsmu.edu.cn"
         courseUrl = "https://webvpn2.shsmu.edu.cn/Home/GetCurriculumTable"
         afterLoginPattern = "/Home/Index"
-        referer = preferences.getString("referer", "").toString()
-    }
+        referer = preferences.getString(PreferenceKey.REFERER, "").toString()
 
-    companion object {
-        val START_TIME = arrayOf("08:00", "08:50", "09:40", "10:30", "11:20", "13:30", "14:20", "15:10", "16:00", "16:50", "17:40", "18:30", "19:20")
+        START_TIMES = arrayOf(
+            "08:00", "08:50", "09:40", "10:30",
+            "11:20", "13:30", "14:20", "15:10",
+            "16:00", "16:50", "17:40", "18:30",
+            "19:20", "20:10"
+        )
+
+        END_TIMES = arrayOf(
+            "08:40", "09:30", "10:20", "11:10",
+            "12:00", "14:10", "15:00", "15:50",
+            "16:40", "17:30", "18:20", "19:10",
+            "20:00", "20:50"
+        )
     }
 
 
     private fun getDayInWeek(date: String): Int {
         val cal = Calendar.getInstance(Locale.CHINA)
         cal.time = SimpleDateFormat("yyyy-MM-dd").parse(date)
-        var w = cal[Calendar.DAY_OF_WEEK] - 1;
+        var w = cal[Calendar.DAY_OF_WEEK] - 1
         if (w == 0) {
             w = 7
         }
@@ -96,19 +107,19 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
         })
     }
 
-    fun dealWeekCodeWithMultiple(weekCodeMap :HashMap<String, CharArray>,code:String,  week :Int){
-        if (!weekCodeMap.contains(code)){
+    fun dealWeekCodeWithMultiple(weekCodeMap: HashMap<String, CharArray>, code: String, week: Int) {
+        if (!weekCodeMap.contains(code)) {
             val weekcode = CharArray(Course.MAX_WEEKS)
             Arrays.fill(weekcode, '0')
             weekCodeMap[code] = weekcode
         }
 
-        weekCodeMap[code]?.set(week-1, '1')
+        weekCodeMap[code]?.set(week - 1, '1')
     }
 
     override fun parseFrom(json: String): List<Course> {
         val courses: MutableList<Course> = ArrayList()
-        val timeMap = START_TIME.mapIndexed { index, it -> it to index+1 }.toMap()
+        val timeMap = START_TIMES.mapIndexed { index, it -> it to index + 1 }.toMap()
         val weekCodeMap = HashMap<String, CharArray>()
         try {
             val jsonList = JSONObject(json).getJSONArray("List")
@@ -132,8 +143,8 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
 
         val finalCourses = ArrayList<Course>()
         val addedMap = HashSet<String>()
-        for (course in courses){
-            if(addedMap.contains(course.courseId))
+        for (course in courses) {
+            if (addedMap.contains(course.courseId))
                 continue
             if (!weekCodeMap.contains(course.courseId)) continue
             weekCodeMap[course.courseId]?.let { course.weekCode = String(it) }
@@ -148,10 +159,10 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
         val end = WeekManager.getInstance(context).showLastDate
         val url = "$courseUrl?Start=$start&End=$end"
         val request: Request = Request.Builder()
-                .url(url)
-                .addHeader("Referer", referer)
-                .get()
-                .build()
+            .url(url)
+            .addHeader("Referer", referer)
+            .get()
+            .build()
         client.newCall(request).enqueue(callback)
     }
 }

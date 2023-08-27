@@ -17,7 +17,8 @@ object APKVersionInfoUtils {
         var versionCode = 0
         try {
             //获取软件版本号，对应AndroidManifest.xml下android:versionCode
-            versionCode = mContext.packageManager.getPackageInfo(mContext.packageName, 0).versionCode
+            versionCode =
+                mContext.packageManager.getPackageInfo(mContext.packageName, 0).versionCode
         } catch (e: PackageManager.NameNotFoundException) {
             e.printStackTrace()
         }

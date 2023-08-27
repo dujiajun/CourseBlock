@@ -47,20 +47,6 @@ class Course : LitePalSupport(), ScheduleEnable {
 
     companion object {
         const val MAX_STEPS = 14
-        @JvmField
-        val START_TIMES = arrayOf(
-                "8:00", "8:55", "10:00", "10:55",
-                "12:00", "12:55", "14:00", "14:55",
-                "16:00", "16:55", "18:00", "18:55",
-                "20:00", "20:55"
-        )
-        @JvmField
-        val END_TIMES = arrayOf(
-                "8:45", "9:40", "10:45", "11:40",
-                "12:45", "13:40", "14:45", "15:40",
-                "16:45", "17:40", "18:45", "19:40",
-                "20:45", "21:40"
-        )
         const val MAX_WEEKS = 22
     }
 }
