@@ -115,6 +115,7 @@ public class SettingsActivity extends AppCompatActivity {
             showNotCurWeekPreference.setOnPreferenceChangeListener(this);
 
             Preference firstDayPreference = findPreference("first_monday");
+            Preference lastDayPreference = findPreference("last_sunday");
             Calendar calendar = Calendar.getInstance(Locale.CHINA);
             firstDayPreference.setOnPreferenceClickListener(preference -> {
                 DatePickerDialog dialog = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
@@ -122,14 +123,28 @@ public class SettingsActivity extends AppCompatActivity {
                         Toast.makeText(getActivity(), R.string.change_to_monday, Toast.LENGTH_SHORT).show();
                     }
                     weekManager.setFirstDay(year, month, dayOfMonth);
-                    preference.setSummary(weekManager.getShowDate());
+                    preference.setSummary(weekManager.getShowFirstDate());
                     calendar.setTime(weekManager.getFirstDate());
                 }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
                 dialog.getDatePicker().setFirstDayOfWeek(Calendar.MONDAY);
                 dialog.show();
                 return true;
             });
-            firstDayPreference.setSummary(weekManager.getShowDate());
+            lastDayPreference.setOnPreferenceClickListener(preference -> {
+                DatePickerDialog dialog = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
+                    if (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY) {
+                        Toast.makeText(getActivity(), R.string.change_to_monday, Toast.LENGTH_SHORT).show();
+                    }
+                    weekManager.setLastDay(year, month, dayOfMonth);
+                    preference.setSummary(weekManager.getShowLastDate());
+                    calendar.setTime(weekManager.getLastDate());
+                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+                dialog.getDatePicker().setFirstDayOfWeek(Calendar.SUNDAY);
+                dialog.show();
+                return true;
+            });
+            firstDayPreference.setSummary(weekManager.getShowFirstDate());
+            lastDayPreference.setSummary(weekManager.getShowLastDate());
 
             Preference homepagePreference = findPreference("homepage");
             homepagePreference.setOnPreferenceClickListener(preference -> {

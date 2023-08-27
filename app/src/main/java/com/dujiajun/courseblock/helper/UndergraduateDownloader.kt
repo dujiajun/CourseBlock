@@ -1,5 +1,6 @@
 package com.dujiajun.courseblock.helper
 
+import android.content.Context
 import android.os.Handler
 import android.os.Message
 import com.dujiajun.courseblock.model.Course
@@ -15,12 +16,13 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.Arrays
 
-open class UndergraduateDownloader : CourseDownloader() {
+open class UndergraduateDownloader(context: Context) : CourseDownloader(context) {
     private val JSON: MediaType = "application/json; charset=utf-8".toMediaType()
 
     init {
         loginUrl = "https://i.sjtu.edu.cn/jaccountlogin"
         courseUrl = "https://i.sjtu.edu.cn/kbcx/xskbcx_cxXsKb.html"
+        afterLoginPattern = "index_initMenu.html"
     }
 
     override fun getCourses(year: String, term: String, handler: Handler) {
@@ -121,7 +123,7 @@ open class UndergraduateDownloader : CourseDownloader() {
                     i += step
                 }
             }
-            return code.toString()
+            return String(code)
         }
 
         protected fun getStartAndStep(jcor: String): List<Int> {

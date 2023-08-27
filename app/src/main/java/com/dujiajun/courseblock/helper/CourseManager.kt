@@ -13,27 +13,30 @@ import org.litepal.LitePal.saveAll
 import java.util.Calendar
 import java.util.Locale
 
-class CourseManager private constructor(context: Context) {
-    private val preferences: SharedPreferences
+class CourseManager private constructor(private val context: Context) {
+    private val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
     var courses: List<Course> = ArrayList()
 
-    private var downloader: CourseDownloader = UndergraduateDownloader()
+    private var downloader: CourseDownloader = UndergraduateDownloader(context)
     private var status: STATUS = STATUS.UNDERGRADUATE
 
     init {
-        preferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
         updateStatus()
     }
 
     fun updateStatus() {
-        val s = preferences.getString("status", "0")
-        val status = if (s == "1") STATUS.GRADUATE else STATUS.UNDERGRADUATE
+        val status = when (preferences.getString("status", "0")) {
+            "1" -> STATUS.GRADUATE
+            "2" -> STATUS.MEDICINE
+            else -> STATUS.UNDERGRADUATE
+        }
+
         if (status != this.status) {
             this.status = status
-            downloader = if (status == STATUS.GRADUATE) {
-                GraduateDownloader()
-            } else {
-                UndergraduateDownloader()
+            downloader = when (status) {
+                STATUS.GRADUATE -> GraduateDownloader(this.context)
+                STATUS.MEDICINE -> MedicineDownloader(this.context)
+                else -> UndergraduateDownloader(this.context)
             }
         }
     }
@@ -74,6 +77,13 @@ class CourseManager private constructor(context: Context) {
 
     val loginUrl: String
         get() = downloader.loginUrl
+    val afterLoginPattern: String
+        get() = downloader.afterLoginPattern
+
+    fun setReferer(referer: String) {
+        downloader.referer = referer
+        preferences.edit().putString("referer", referer).apply()
+    }
 
     fun findCourseByDayAndStart(week: Int, day: Int, start: Int): Course? {
         for (course in courses) {
@@ -83,7 +93,7 @@ class CourseManager private constructor(context: Context) {
     }
 
     enum class STATUS {
-        UNDERGRADUATE, GRADUATE
+        UNDERGRADUATE, GRADUATE, MEDICINE
     }
 
     companion object {
@@ -91,6 +101,7 @@ class CourseManager private constructor(context: Context) {
         const val FAILED = CourseDownloader.FAILED
         const val UNLOGIN = CourseDownloader.UNLOGIN
         private var singleton: CourseManager? = null
+
         @JvmStatic
         fun getInstance(context: Context): CourseManager? {
             if (singleton == null) {
@@ -110,6 +121,7 @@ class CourseManager private constructor(context: Context) {
                 }
                 return curRealYear.toString()
             }
+
         @JvmStatic
         val defaultTerm: String
             get() {

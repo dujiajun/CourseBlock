@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -22,7 +23,17 @@ class LoginActivity : AppCompatActivity() {
         val settings = webView.settings
         settings.userAgentString = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/89.0.4389.72"
         settings.javaScriptEnabled = true
+        val courseManager = CourseManager.getInstance(applicationContext)
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                val headers = request.requestHeaders
+                headers["Referer"]?.let {
+                    if (it != "")
+                        courseManager?.setReferer(it)
+                }
+                return super.shouldInterceptRequest(view, request)
+            }
+
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val uri = request.url
                 try {
@@ -37,15 +48,17 @@ class LoginActivity : AppCompatActivity() {
                 return false
             }
 
-            override fun onLoadResource(view: WebView, url: String) {
-                super.onLoadResource(view, url)
-                if (url.contains("index_initMenu.html") || url.contains("http://yjs.sjtu.edu.cn:81")) {
-                    Toast.makeText(this@LoginActivity, R.string.already_logged_in, Toast.LENGTH_SHORT).show()
-                    finish()
+            override fun onPageFinished(view: WebView, url: String) {
+                super.onPageFinished(view, url)
+                if (courseManager != null) {
+                    if (url.contains(courseManager.afterLoginPattern)) {
+                        Toast.makeText(this@LoginActivity, R.string.already_logged_in, Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
                 }
             }
         }
-        val courseManager = CourseManager.getInstance(applicationContext)
+
         val loginUrl = courseManager?.loginUrl
         if (loginUrl != null) {
             webView.loadUrl(loginUrl)

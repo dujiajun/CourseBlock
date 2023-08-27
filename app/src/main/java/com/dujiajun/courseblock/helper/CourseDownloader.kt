@@ -1,12 +1,13 @@
 package com.dujiajun.courseblock.helper
 
+import android.content.Context
 import android.os.Handler
 import com.dujiajun.courseblock.model.Course
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 
 
-abstract class CourseDownloader {
+abstract class CourseDownloader constructor(context: Context) {
     @JvmField
     protected val client: OkHttpClient = OkHttpClient.Builder().cookieJar(WebViewCookieHandler()).build()
 
@@ -17,7 +18,13 @@ abstract class CourseDownloader {
     protected var courseUrl: String = ""
 
     @JvmField
+    var afterLoginPattern: String = ""
+
+    @JvmField
     protected var courses: List<Course> = ArrayList()
+
+    @JvmField
+    var referer : String = ""
 
     abstract fun getCourses(year: String, term: String, handler: Handler)
     protected abstract fun parseFrom(json: String): List<Course>

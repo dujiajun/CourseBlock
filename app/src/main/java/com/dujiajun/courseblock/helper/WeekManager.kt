@@ -14,6 +14,7 @@ class WeekManager private constructor(context: Context) {
     private var simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
     private var curWeek = 0
     lateinit var firstDate: Date
+    lateinit var lastDate: Date
 
     init {
         preferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -21,6 +22,7 @@ class WeekManager private constructor(context: Context) {
 
     fun updateCurWeek() {
         loadFirstDay()
+        loadLastDay()
         val diff = Date().time - firstDate.time
         curWeek = (diff / 1000 / 60 / 60 / 24 / 7 + 1).toInt()
         if (curWeek < 1) curWeek = 1
@@ -37,22 +39,51 @@ class WeekManager private constructor(context: Context) {
         saveFirstDay()
     }
 
+    fun setLastDay(year: Int, month: Int, day_of_month: Int) {
+        val calendar = Calendar.getInstance(Locale.CHINA)
+        calendar[year, month, day_of_month, 0, 0] = 0
+        var dayOfWeek = calendar[Calendar.DAY_OF_WEEK]
+        if (dayOfWeek == 1) dayOfWeek = 8
+        calendar.add(Calendar.DATE, 8 - dayOfWeek)
+        lastDate = calendar.time
+        saveLastDay()
+    }
+
     private fun saveFirstDay() {
         val editor = preferences.edit()
-        editor.putString("first_monday", showDate)
+        editor.putString("first_monday", showFirstDate)
         editor.apply()
     }
 
-    private fun loadFirstDay() {
+    private fun saveLastDay() {
+        val editor = preferences.edit()
+        editor.putString("last_sunday", showLastDate)
+        editor.apply()
+    }
+
+    fun loadFirstDay(): Date {
         preferences.getString("first_monday", FIRST_DATE)?.let { s ->
             simpleDateFormat.parse(s)?.let {
                 firstDate = it
             }
         }
+        return firstDate
     }
 
-    val showDate: String
+    fun loadLastDay(): Date {
+        preferences.getString("first_sunday", LAST_DATE)?.let { s ->
+            simpleDateFormat.parse(s)?.let {
+                lastDate = it
+            }
+        }
+        return lastDate
+    }
+
+    val showFirstDate: String
         get() = simpleDateFormat.format(firstDate)
+
+    val showLastDate: String
+        get() = simpleDateFormat.format(lastDate)
 
     fun getCurWeek(): Int {
         updateCurWeek()
@@ -60,7 +91,8 @@ class WeekManager private constructor(context: Context) {
     }
 
     companion object {
-        private const val FIRST_DATE = "2021-09-13 00:00:00"
+        const val FIRST_DATE = "2021-09-13 00:00:00"
+        const val LAST_DATE = "2021-09-13 00:00:00"
         private var singleton: WeekManager? = null
 
         @JvmStatic

@@ -1,5 +1,6 @@
 package com.dujiajun.courseblock.helper
 
+import android.content.Context
 import android.os.Handler
 import android.os.Message
 import com.dujiajun.courseblock.model.Course
@@ -13,10 +14,11 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.Locale
 
-open class GraduateDownloader : CourseDownloader() {
+open class GraduateDownloader(context: Context) : CourseDownloader(context) {
     init {
         loginUrl = "http://yjs.sjtu.edu.cn/gsapp/sys/wdkbapp/*default/index.do"
         courseUrl = "http://yjs.sjtu.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/xspkjgcx.do"
+        afterLoginPattern = "http://yjs.sjtu.edu.cn:81"
     }
 
     override fun getCourses(year: String, term: String, handler: Handler) {

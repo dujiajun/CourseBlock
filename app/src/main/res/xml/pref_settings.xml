@@ -16,6 +16,9 @@
         <Preference
             android:key="first_monday"
             android:title="@string/pref_first_monday" />
+        <Preference
+            android:key="last_sunday"
+            android:title="@string/pref_last_sunday" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/action_sync">
         <SwitchPreference
