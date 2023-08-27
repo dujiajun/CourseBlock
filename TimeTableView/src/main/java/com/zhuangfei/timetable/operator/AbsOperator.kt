@@ -1,40 +1,24 @@
-package com.zhuangfei.timetable.operator;
+package com.zhuangfei.timetable.operator
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.widget.LinearLayout;
-
-import com.zhuangfei.timetable.TimetableView;
+import android.content.Context
+import android.util.AttributeSet
+import android.widget.LinearLayout
+import com.zhuangfei.timetable.TimetableView
 
 /**
  * 抽象的业务逻辑
  * Created by Liu ZhuangFei on 2018/9/2.
  */
-public abstract class AbsOperator {
-    public void init(Context context, AttributeSet attrs, TimetableView view) {
-    }
+abstract class AbsOperator {
+    open fun init(context: Context?, attrs: AttributeSet?, view: TimetableView?) {}
+    open fun showView() {}
+    open fun updateDateView() {}
+    open fun updateSlideView() {}
+    open fun changeWeek(week: Int, isCurWeek: Boolean) {}
+    open val flagLayout: LinearLayout?
+        get() = null
+    open val dateLayout: LinearLayout?
+        get() = null
 
-    public void showView() {
-    }
-
-    public void updateDateView() {
-    }
-
-    public void updateSlideView() {
-    }
-
-    public void changeWeek(int week, boolean isCurWeek) {
-    }
-
-    public LinearLayout getFlagLayout() {
-        return null;
-    }
-
-    public LinearLayout getDateLayout() {
-        return null;
-    }
-
-    public void setWeekendsVisiable(boolean isShow) {
-    }
-
+    open fun setWeekendsVisible(isShow: Boolean) {}
 }

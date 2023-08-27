@@ -419,7 +419,7 @@ public class SimpleOperator extends AbsOperator {
      * 设置宽度
      */
     public void applyWidthConfig() {
-        setWeekendsVisiable(mView.isShowWeekends());
+        setWeekendsVisible(mView.isShowWeekends());
     }
 
     /**
@@ -513,7 +513,7 @@ public class SimpleOperator extends AbsOperator {
     /**
      * 设置周末的可见性
      */
-    public void setWeekendsVisiable(boolean isShow) {
+    public void setWeekendsVisible(boolean isShow) {
         if (isShow) {
             if (panels != null && panels.length > 6) {
                 panels[5].setVisibility(View.VISIBLE);

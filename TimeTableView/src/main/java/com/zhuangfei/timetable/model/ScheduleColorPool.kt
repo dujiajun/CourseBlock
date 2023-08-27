@@ -1,71 +1,60 @@
-package com.zhuangfei.timetable.model;
+package com.zhuangfei.timetable.model
 
-import android.content.Context;
-import android.graphics.Color;
-
-import com.zhuangfei.android_timetableview.sample.R;
-import com.zhuangfei.timetable.utils.ColorUtils;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import android.content.Context
+import android.graphics.Color
+import com.zhuangfei.android_timetableview.sample.R
+import com.zhuangfei.timetable.utils.ColorUtils.alphaColor
 
 /**
  * 颜色池，管理课程项可挑选的颜色
  */
-
-public class ScheduleColorPool {
-
-    Context context;
-
+class ScheduleColorPool(var context: Context) {
+    /**
+     * 获取非本周课程颜色
+     *
+     * @return
+     */
     //课程不在本周时的背景色
-    private int uselessColor;
-
-    private Map<String, Integer> colorMap;
-
-    //false：非本周课程使用uselessColor渲染
-    //true：非本周课程使用colorMap渲染
-    private boolean ignoreUselessColor = false;
-    //使用集合维护颜色池
-    private List<Integer> colorPool;
-
-    public ScheduleColorPool(Context context) {
-        this.context = context;
-        setUselessColor(context.getResources().getColor(R.color.useless, null));
-        colorMap = new HashMap<>();
-        reset();
-    }
-
-    /**
-     * 获取颜色的映射Map
-     *
-     * @return Map<String, Integer>
-     */
-    public Map<String, Integer> getColorMap() {
-        if (colorMap == null) return new HashMap<>();
-        return colorMap;
-    }
-
-    /**
-     * 设置colorMap
-     *
-     * @param colorMap Map<String, Integer>
-     * @return ScheduleColorPool
-     */
-    public ScheduleColorPool setColorMap(Map<String, Integer> colorMap) {
-        this.colorMap = colorMap;
-        return this;
-    }
+    private var uselessColor = 0
+    private var colorMap: Map<String, Int> = HashMap()
 
     /**
      * 获取渲染时是否忽略非本周颜色
      *
      * @return boolean
      */
-    public boolean isIgnoreUselessColor() {
-        return ignoreUselessColor;
+    //false：非本周课程使用uselessColor渲染
+    //true：非本周课程使用colorMap渲染
+    var isIgnoreUselessColor = false
+        private set
+
+    //使用集合维护颜色池
+    private var colorPool: MutableList<Int> = ArrayList()
+
+    init {
+        setUselessColor(context.resources.getColor(R.color.useless, null))
+        colorMap = HashMap()
+        reset()
+    }
+
+    /**
+     * 获取颜色的映射Map
+     *
+     * @return Map<String></String>, Integer>
+     */
+    fun getColorMap(): Map<String, Int> {
+        return colorMap
+    }
+
+    /**
+     * 设置colorMap
+     *
+     * @param colorMap Map<String></String>, Integer>
+     * @return ScheduleColorPool
+     */
+    fun setColorMap(colorMap: Map<String, Int>): ScheduleColorPool {
+        this.colorMap = colorMap
+        return this
     }
 
     /**
@@ -75,18 +64,9 @@ public class ScheduleColorPool {
      *
      * @return ScheduleColorPool
      */
-    public ScheduleColorPool setIgnoreUselessColor(boolean ignoreUserlessColor) {
-        this.ignoreUselessColor = ignoreUserlessColor;
-        return this;
-    }
-
-    /**
-     * 获取非本周课程颜色
-     *
-     * @return
-     */
-    public int getUselessColor() {
-        return uselessColor;
+    fun setIgnoreUselessColor(ignoreUselessColor: Boolean): ScheduleColorPool {
+        isIgnoreUselessColor = ignoreUselessColor
+        return this
     }
 
     /**
@@ -95,9 +75,9 @@ public class ScheduleColorPool {
      * @param uselessColor 非本周课程的颜色
      * @return ScheduleColorPool
      */
-    public ScheduleColorPool setUselessColor(int uselessColor) {
-        this.uselessColor = uselessColor;
-        return this;
+    fun setUselessColor(uselessColor: Int): ScheduleColorPool {
+        this.uselessColor = uselessColor
+        return this
     }
 
     /**
@@ -105,19 +85,19 @@ public class ScheduleColorPool {
      *
      * @return int
      */
-    public int getUselessColorWithAlpha(float alpha) {
-        return ColorUtils.alphaColor(uselessColor, alpha);
+    fun getUselessColorWithAlpha(alpha: Float): Int {
+        return alphaColor(uselessColor, alpha)
     }
 
-    /**
-     * 得到颜色池的实例，即List集合
-     *
-     * @return List<Integer>
-     */
-    public List<Integer> getPoolInstance() {
-        if (colorPool == null) colorPool = new ArrayList<>();
-        return colorPool;
-    }
+    private val poolInstance: MutableList<Int>
+        /**
+         * 得到颜色池的实例，即List集合
+         *
+         * @return List<Integer>
+        </Integer> */
+        get() {
+            return colorPool
+        }
 
     /**
      * 从颜色池中取指定透明度的颜色
@@ -126,9 +106,8 @@ public class ScheduleColorPool {
      * @param alpha
      * @return int
      */
-    public int getColorAutoWithAlpha(int random, float alpha) {
-        if (random < 0) return getColorAuto(-random);
-        return ColorUtils.alphaColor(getColor(random % size()), alpha);
+    fun getColorAutoWithAlpha(random: Int, alpha: Float): Int {
+        return if (random < 0) getColorAuto(-random) else alphaColor(getColor(random % size()), alpha)
     }
 
     /**
@@ -137,9 +116,8 @@ public class ScheduleColorPool {
      * @param i 索引
      * @return int
      */
-    public int getColor(int i) {
-        if (i < 0 || i >= size()) return Color.GRAY;
-        return colorPool.get(i);
+    fun getColor(i: Int): Int {
+        return if (i < 0 || i >= size()) Color.GRAY else colorPool[i]
     }
 
     /**
@@ -150,9 +128,8 @@ public class ScheduleColorPool {
      * @param i 索引
      * @return int颜色
      */
-    public int getColorAuto(int i) {
-        if (i < 0) return getColorAuto(-i);
-        return getColor(i % size());
+    fun getColorAuto(i: Int): Int {
+        return if (i < 0) getColorAuto(-i) else getColor(i % size())
     }
 
     /**
@@ -161,9 +138,9 @@ public class ScheduleColorPool {
      * @param ownColorPool 集合
      * @return ScheduleColorPool
      */
-    public ScheduleColorPool addAll(Collection<? extends Integer> ownColorPool) {
-        getPoolInstance().addAll(ownColorPool);
-        return this;
+    fun addAll(ownColorPool: Collection<Int>?): ScheduleColorPool {
+        poolInstance.addAll(ownColorPool!!)
+        return this
     }
 
     /**
@@ -171,9 +148,8 @@ public class ScheduleColorPool {
      *
      * @return int
      */
-    public int size() {
-        if (getPoolInstance() == null) return 0;
-        return getPoolInstance().size();
+    fun size(): Int {
+        return poolInstance.size
     }
 
     /**
@@ -181,9 +157,9 @@ public class ScheduleColorPool {
      *
      * @return ScheduleColorPool
      */
-    public ScheduleColorPool clear() {
-        getPoolInstance().clear();
-        return this;
+    fun clear(): ScheduleColorPool {
+        poolInstance.clear()
+        return this
     }
 
     /**
@@ -192,13 +168,11 @@ public class ScheduleColorPool {
      * @param colorIds 多个颜色
      * @return ScheduleColorPool
      */
-    public ScheduleColorPool add(int... colorIds) {
-        if (colorIds != null) {
-            for (int colorId : colorIds) {
-                colorPool.add(colorId);
-            }
+    fun add(vararg colorIds: Int): ScheduleColorPool {
+        for (colorId in colorIds) {
+            colorPool.add(colorId)
         }
-        return this;
+        return this
     }
 
     /**
@@ -206,19 +180,17 @@ public class ScheduleColorPool {
      *
      * @return ScheduleColorPool
      */
-    public ScheduleColorPool reset() {
-        int[] colors = new int[]{
+    fun reset(): ScheduleColorPool {
+        val colors = intArrayOf(
                 R.color.color_1, R.color.color_2, R.color.color_3, R.color.color_4,
                 R.color.color_5, R.color.color_6, R.color.color_7, R.color.color_8,
                 R.color.color_9, R.color.color_10, R.color.color_11, R.color.color_31,
                 R.color.color_32, R.color.color_33, R.color.color_34, R.color.color_35
-        };
-
-        clear();
-
-        for (int color : colors) {
-            add(context.getResources().getColor(color, null));
+        )
+        clear()
+        for (color in colors) {
+            add(context.resources.getColor(color, null))
         }
-        return this;
+        return this
     }
 }
