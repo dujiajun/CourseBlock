@@ -151,11 +151,11 @@ public class SimpleOperator extends AbsOperator {
     private View newItemView(final List<Schedule> originData, final List<Schedule> data, final Schedule subject, Schedule pre, int i, int curWeek) {
         //宽高
         int width = LinearLayout.LayoutParams.MATCH_PARENT;
-        int height = mView.itemHeight() * subject.getStep() + mView.marTop() * (subject.getStep() - 1);
+        int height = mView.itemHeight() * subject.step + mView.marTop() * (subject.step - 1);
 
         //边距
         int left = mView.marLeft() / 2, right = mView.marLeft() / 2;
-        int top = (subject.getStart() - (pre.getStart() + pre.getStep()))
+        int top = (subject.start - (pre.start + pre.step))
                 * (mView.itemHeight() + mView.marTop()) + mView.marTop();
 
         if (i != 0 && top < 0) return null;
@@ -165,7 +165,7 @@ public class SimpleOperator extends AbsOperator {
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(width, height);
         if (i == 0) {
-            top = (subject.getStart() - 1) * (mView.itemHeight() + mView.marTop()) + mView.marTop();
+            top = (subject.start - 1) * (mView.itemHeight() + mView.marTop()) + mView.marTop();
         }
         lp.setMargins(left, top, right, 0);
 
@@ -186,10 +186,10 @@ public class SimpleOperator extends AbsOperator {
         if (isThisWeek) {
             textView.setTextColor(mView.itemTextColorWithThisWeek());
             Map<String, Integer> colorMap = mView.colorPool().getColorMap();
-            if (!colorMap.isEmpty() && colorMap.containsKey(subject.getName())) {
-                gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.getName()), mView.itemAlpha()));
+            if (!colorMap.isEmpty() && colorMap.containsKey(subject.name)) {
+                gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.name), mView.itemAlpha()));
             } else {
-                gd.setColor(mView.colorPool().getColorAutoWithAlpha(subject.getColorRandom(), mView.itemAlpha()));
+                gd.setColor(mView.colorPool().getColorAutoWithAlpha(subject.colorRandom, mView.itemAlpha()));
             }
             gd.setCornerRadius(mView.corner(true));
 
@@ -208,8 +208,8 @@ public class SimpleOperator extends AbsOperator {
         } else {
             textView.setTextColor(mView.itemTextColorWithNotThis());
             Map<String, Integer> colorMap = mView.colorPool().getColorMap();
-            if (!colorMap.isEmpty() && mView.colorPool().isIgnoreUselessColor() && colorMap.containsKey(subject.getName())) {
-                gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.getName()), mView.itemAlpha()));
+            if (!colorMap.isEmpty() && mView.colorPool().isIgnoreUselessColor() && colorMap.containsKey(subject.name)) {
+                gd.setColor(ColorUtils.alphaColor(colorMap.get(subject.name), mView.itemAlpha()));
             } else {
                 gd.setColor(mView.colorPool().getUselessColorWithAlpha(mView.itemAlpha()));
             }
@@ -230,7 +230,7 @@ public class SimpleOperator extends AbsOperator {
         textView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                mView.onItemLongClickListener().onLongClick(view, subject.getDay(), subject.getStart());
+                mView.onItemLongClickListener().onLongClick(view, subject.day, subject.start);
                 return true;
             }
         });
@@ -320,7 +320,7 @@ public class SimpleOperator extends AbsOperator {
         }
         boolean isHave = false;
         for (Schedule item : list) {
-            if (start == item.getStart() || (start >= item.getStart() && start <= (item.getStart() + item.getStep() - 1))) {
+            if (start == item.start || (start >= item.start && start <= (item.start + item.step - 1))) {
                 isHave = true;
                 break;
             }
@@ -403,8 +403,8 @@ public class SimpleOperator extends AbsOperator {
         List<Schedule> source = mView.dataSource();
         for (int i = 0; i < source.size(); i++) {
             Schedule bean = source.get(i);
-            if (bean.getDay() != -1)
-                data[bean.getDay() - 1].add(bean);
+            if (bean.day != -1)
+                data[bean.day - 1].add(bean);
         }
 
         //排序、填充课程

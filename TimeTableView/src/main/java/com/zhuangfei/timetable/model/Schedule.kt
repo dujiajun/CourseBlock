@@ -1,166 +1,93 @@
-package com.zhuangfei.timetable.model;
+package com.zhuangfei.timetable.model
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable
 
 /**
- * 课程实体类<br/>
- * 1.增加了extras,可以保存一些自己需要的东西<br/>
+ * 课程实体类<br></br>
+ * 1.增加了extras,可以保存一些自己需要的东西<br></br>
  *
  * @author Administrator 刘壮飞
  */
-public class Schedule implements Serializable, Comparable<Schedule> {
-
+class Schedule : Serializable, Comparable<Schedule> {
     /**
      * 课程名
      */
-    private String name = "";
+    @JvmField
+    var name = ""
 
     /**
      * 教室
      */
-    private String room = "";
+    var room = ""
 
     /**
      * 教师
      */
-    private String teacher = "";
+    var teacher = ""
 
     /**
      * 第几周至第几周上
      */
-    private List<Integer> weekList = new ArrayList<>();
+    @JvmField
+    var weekList: List<Int> = ArrayList()
 
     /**
      * 开始上课的节次
      */
-    private int start = 0;
+    @JvmField
+    var start = 0
 
     /**
      * 上课节数
      */
-    private int step = 0;
+    @JvmField
+    var step = 0
 
     /**
      * 周几上
      */
-    private int day = 0;
+    @JvmField
+    var day = 0
 
     /**
      * 一个随机数，用于对应课程的颜色
      */
-    private int colorRandom = 0;
+    @JvmField
+    var colorRandom = 0
 
     /**
      * 额外信息
      */
-    private Map<String, Object> extras = new HashMap<>();
+    var extras: MutableMap<String, Any> = HashMap()
 
-    public Schedule(String name, String room, String teacher,
-                    List<Integer> weekList, int start, int step, int day,
-                    int colorRandom) {
-        super();
-        this.name = name;
-        this.room = room;
-        this.teacher = teacher;
-        this.weekList = weekList;
-        this.start = start;
-        this.step = step;
-        this.day = day;
-        this.colorRandom = colorRandom;
+    constructor(
+        name: String, room: String, teacher: String,
+        weekList: List<Int>, start: Int, step: Int, day: Int,
+        colorRandom: Int
+    ) : super() {
+        this.name = name
+        this.room = room
+        this.teacher = teacher
+        this.weekList = weekList
+        this.start = start
+        this.step = step
+        this.day = day
+        this.colorRandom = colorRandom
     }
 
-    public Schedule() {
-        super();
+    constructor() : super()
+
+    fun putExtras(key: String, `val`: Any) {
+        extras[key] = `val`
     }
 
-    public Map<String, Object> getExtras() {
-        return extras;
-    }
-
-    public void setExtras(Map<String, Object> map) {
-        this.extras = map;
-    }
-
-    public void putExtras(String key, Object val) {
-        getExtras().put(key, val);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getRoom() {
-        return room;
-    }
-
-    public void setRoom(String room) {
-        this.room = room;
-    }
-
-    public String getTeacher() {
-        return teacher;
-    }
-
-    public void setTeacher(String teacher) {
-        this.teacher = teacher;
-    }
-
-    public List<Integer> getWeekList() {
-        return weekList;
-    }
-
-    public void setWeekList(List<Integer> weekList) {
-        this.weekList = weekList;
-    }
-
-    public int getStart() {
-        return start;
-    }
-
-    public void setStart(int start) {
-        this.start = start;
-    }
-
-    public int getStep() {
-        return step;
-    }
-
-    public void setStep(int step) {
-        this.step = step;
-    }
-
-    public int getDay() {
-        return day;
-    }
-
-    public void setDay(int day) {
-        this.day = day;
-    }
-
-    public int getColorRandom() {
-        return colorRandom;
-    }
-
-    public void setColorRandom(int colorRandom) {
-        this.colorRandom = colorRandom;
-    }
-
-    @Override
-    public int compareTo(Schedule o) {
-        if (getStart() < o.getStart()) {
-            return -1;
-        } else if (getStart() == o.getStart()) {
-            return 0;
+    override fun compareTo(other: Schedule): Int {
+        return if (start < other.start) {
+            -1
+        } else if (start == other.start) {
+            0
         } else {
-            return 1;
+            1
         }
     }
 }

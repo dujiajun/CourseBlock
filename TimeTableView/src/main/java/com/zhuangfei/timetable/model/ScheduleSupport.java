@@ -155,14 +155,14 @@ public class ScheduleSupport {
             Schedule mySubject = schedules.get(i);
             //计算课程颜色
             int color;
-            if (colorMap.containsKey(mySubject.getName())) {
-                color = colorMap.get(mySubject.getName());
+            if (colorMap.containsKey(mySubject.name)) {
+                color = colorMap.get(mySubject.name);
             } else {
-                colorMap.put(mySubject.getName(), colorCount);
+                colorMap.put(mySubject.name, colorCount);
                 color = colorCount;
                 colorCount++;
             }
-            mySubject.setColorRandom(color);
+            mySubject.colorRandom = color;
         }
 
         return schedules;
@@ -208,8 +208,8 @@ public class ScheduleSupport {
         }
         for (int i = 0; i < dataSource.size(); i++) {
             Schedule bean = dataSource.get(i);
-            if (bean.getDay() != -1)
-                data[bean.getDay() - 1].add(bean);
+            if (bean.day != -1)
+                data[bean.day - 1].add(bean);
         }
         sortList(data);
         return data;
@@ -262,7 +262,7 @@ public class ScheduleSupport {
         if (subject == null || data == null) return result;
         for (int i = 0; i < data.size(); i++) {
             Schedule bean = data.get(i);
-            if (bean.getStart() >= subject.getStart() && bean.getStart() < (subject.getStart() + subject.getStep()))
+            if (bean.start >= subject.start && bean.start < (subject.start + subject.step))
                 result.add(data.get(i));
         }
         return result;
@@ -284,7 +284,7 @@ public class ScheduleSupport {
         for (int m = 0; m < data.size() - 1; m++) {
             min = m;
             for (int k = m + 1; k < data.size(); k++) {
-                if (data.get(min).getStart() > data.get(k).getStart()) {
+                if (data.get(min).start > data.get(k).start) {
                     min = k;
                 }
             }
@@ -301,7 +301,7 @@ public class ScheduleSupport {
      * @return
      */
     public static boolean isThisWeek(Schedule subject, int cur_week) {
-        List<Integer> weekList = subject.getWeekList();
+        List<Integer> weekList = subject.weekList;
         return weekList.contains(cur_week);
     }
 
@@ -332,7 +332,7 @@ public class ScheduleSupport {
             boolean is = true;
             for (int j = 0; j < i; j++) {
                 Schedule s2 = data.get(j);
-                if (s.getStart() >= s2.getStart() && s.getStart() <= (s2.getStart() + s2.getStep() - 1)) {
+                if (s.start >= s2.start && s.start <= (s2.start + s2.step - 1)) {
                     is = false;
                     if (isThisWeek(s2, curWeek)) {
                         break;
