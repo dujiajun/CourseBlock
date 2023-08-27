@@ -123,7 +123,7 @@ public class CourseManager {
 
     public Course findCourseByDayAndStart(int week, int day, int start) {
         for (Course course : courses) {
-            if (course.getWeekCode().charAt(week) == '1' &&
+            if (course.getWeekCode().charAt(week - 1) == '1' &&
                     course.getDay() == day && course.getStart() <= start &&
                     (course.getStart() + course.getStep() - 1) >= start)
                 return course;

@@ -3,6 +3,7 @@ package com.dujiajun.courseblock.helper
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
+import com.dujiajun.courseblock.model.Course
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -23,6 +24,7 @@ class WeekManager private constructor(context: Context) {
         val diff = Date().time - firstDate.time
         curWeek = (diff / 1000 / 60 / 60 / 24 / 7 + 1).toInt()
         if (curWeek < 1) curWeek = 1
+        if (curWeek > Course.MAX_WEEKS) curWeek = Course.MAX_WEEKS
     }
 
     fun setFirstDay(year: Int, month: Int, day_of_month: Int) {
