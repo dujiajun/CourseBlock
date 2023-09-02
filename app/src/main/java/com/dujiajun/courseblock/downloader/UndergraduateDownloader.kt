@@ -58,7 +58,7 @@ open class UndergraduateDownloader(context: Context) : CourseDownloader(context)
                     message.what = UNLOGIN
                 } else {
                     courses = parseFrom(body)
-                    if (courses.isEmpty()) {
+                    if (courses.isNotEmpty()) {
                         message.what = DOWNLOADED
                         message.obj = courses
                     } else {
