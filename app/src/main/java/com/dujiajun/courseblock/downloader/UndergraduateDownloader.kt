@@ -88,7 +88,7 @@ open class UndergraduateDownloader(context: Context) : CourseDownloader(context)
                 course.step = startAndStep[1]
                 course.teacher = jsonCourse.getString("xm")
                 course.weekCode = getWeekCode(jsonCourse.getString("zcd"))
-                course.note = jsonCourse.getString("xkbz")
+                course.note = jsonCourse.optString("xkbz", "")
                 course.isFromServer = true
                 courses.add(course)
             }
