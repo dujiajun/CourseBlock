@@ -82,8 +82,8 @@ open class MainActivity : AppCompatActivity() {
                 }
             }
         if (showTime) showTime()
-        updateView()
         updateWeek()
+        updateView()
     }
 
     private fun showTime() {
@@ -104,7 +104,7 @@ open class MainActivity : AppCompatActivity() {
         val useChiIcon = preferences.getBoolean(PreferenceKey.USE_CHI_ICON, false)
         setIcon(useChiIcon)
         courseManager.updateStatus()
-        showWeek = timetableView.curWeek()
+        updateWeek()
         updateView()
         val showTime = preferences.getBoolean(PreferenceKey.SHOW_COURSE_TIME, true)
         if (showTime) showTime()
@@ -190,8 +190,9 @@ open class MainActivity : AppCompatActivity() {
     }
 
     private fun updateWeek() {
-        weekManager.updateCurWeek()
-        timetableView.curWeek(weekManager.getCurWeek())
-        weekView.curWeek(weekManager.getCurWeek())
+        val currentWeek = weekManager.getCurWeek()
+        showWeek = currentWeek
+        timetableView.curWeek(currentWeek)
+        weekView.curWeek(currentWeek)
     }
 }
