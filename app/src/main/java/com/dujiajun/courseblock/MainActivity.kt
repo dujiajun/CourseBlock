@@ -6,15 +6,14 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.dujiajun.courseblock.constant.PreferenceKey
 import com.dujiajun.courseblock.helper.CourseManager
@@ -33,6 +32,15 @@ open class MainActivity : AppCompatActivity() {
     private lateinit var weekView: WeekView
     private lateinit var weekManager: WeekManager
     private var showWeek = 1
+    private val courseSync by lazy { ViewModelProvider(this)[CourseSyncViewModel::class.java] }
+    private val loginForSync =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            courseSync.waitingForLogin = false
+            if (result.resultCode == RESULT_OK) {
+                courseSync.start(courseManager, allowLogin = false)
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -84,6 +92,12 @@ open class MainActivity : AppCompatActivity() {
         if (showTime) showTime()
         updateWeek()
         updateView()
+        courseSync.outcome.observe(this) { outcome ->
+            if (outcome != null && !isFinishing) {
+                courseSync.clearOutcome()
+                handleSyncOutcome(outcome)
+            }
+        }
     }
 
     private fun showTime() {
@@ -132,7 +146,9 @@ open class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_login -> {
-                startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                if (!courseSync.isBusy) {
+                    startActivity(Intent(this, LoginActivity::class.java))
+                }
             }
 
             R.id.action_settings -> {
@@ -140,37 +156,7 @@ open class MainActivity : AppCompatActivity() {
             }
 
             R.id.action_sync -> {
-                courseManager.updateCourses(object : Handler(Looper.getMainLooper()) {
-                    override fun handleMessage(msg: Message) {
-                        super.handleMessage(msg)
-                        when (msg.what) {
-                            CourseManager.SUCCEEDED -> {
-                                updateView()
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    R.string.succeed_in_sync,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-
-                            CourseManager.UNLOGIN -> {
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    R.string.please_log_in,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-
-                            CourseManager.FAILED -> {
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    R.string.failed,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    }
-                })
+                courseSync.start(courseManager, allowLogin = true)
             }
 
             R.id.action_expand -> {
@@ -181,6 +167,25 @@ open class MainActivity : AppCompatActivity() {
             }
         }
         return true
+    }
+
+    private fun handleSyncOutcome(outcome: CourseSyncViewModel.Outcome) {
+        val feedback = when (outcome) {
+            CourseSyncViewModel.Outcome.SYNCED -> {
+                updateView()
+                R.string.succeed_in_sync
+            }
+
+            CourseSyncViewModel.Outcome.NEEDS_LOGIN -> {
+                courseSync.waitingForLogin = true
+                loginForSync.launch(Intent(this, LoginActivity::class.java))
+                return
+            }
+
+            CourseSyncViewModel.Outcome.STILL_UNAUTHENTICATED -> R.string.please_log_in
+            CourseSyncViewModel.Outcome.FAILED -> R.string.failed
+        }
+        Toast.makeText(this, feedback, Toast.LENGTH_SHORT).show()
     }
 
     private fun updateView() {
