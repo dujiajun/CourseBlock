@@ -3,23 +3,22 @@ package com.dujiajun.courseblock.downloader
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Handler
-import android.os.Message
-import android.util.Log
 import androidx.preference.PreferenceManager
 import com.dujiajun.courseblock.constant.PreferenceKey
-import com.dujiajun.courseblock.helper.WeekManager
+import com.dujiajun.courseblock.calendar.AcademicCalendar
+import com.dujiajun.courseblock.calendar.AcademicTerm
+import com.dujiajun.courseblock.calendar.OfficialCalendars
+import com.dujiajun.courseblock.calendar.School
 import com.dujiajun.courseblock.model.Course
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.Response
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Arrays
-import java.util.Calendar
-import java.util.Locale
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 class MedicineDownloader(private val context: Context) : CourseDownloader(context) {
     private val preferences: SharedPreferences =
@@ -47,137 +46,76 @@ class MedicineDownloader(private val context: Context) : CourseDownloader(contex
     }
 
 
-    private fun getDayInWeek(date: String): Int {
-        val cal = Calendar.getInstance(Locale.CHINA)
-        cal.time = SimpleDateFormat("yyyy-MM-dd").parse(date)
-        var w = cal[Calendar.DAY_OF_WEEK] - 1
-        if (w == 0) {
-            w = 7
-        }
-        return w
-    }
-
-    private fun getCourseWeek(date: String): Int {
-        val firstDate = WeekManager.getInstance(this.context).loadFirstDay()
-        val thisDate = SimpleDateFormat("yyyy-MM-dd").parse(date)
-        return ((thisDate.time - firstDate.time) / 1000 / 3600 / 24 / 7).toInt() + 1
-    }
-
-    fun getWeekCode(curWeek: Int): String {
-        val code = CharArray(Course.MAX_WEEKS)
-        Arrays.fill(code, '0')
-        code[curWeek - 1] = '1'
-        return String(code)
-    }
-
-
     override fun getCourses(year: String, term: String, handler: Handler) {
-        download(year, term, object : Callback {
+        val calendar = OfficialCalendars.find(AcademicTerm(year.toInt(), term.toInt()), School.MEDICINE)
+        if (calendar == null) {
+            handler.sendEmptyMessage(FAILED)
+            return
+        }
+        val url = courseUrl.toHttpUrl().newBuilder()
+            .addQueryParameter("Start", calendar.firstMonday.toString())
+            .addQueryParameter("End", calendar.lastDay.plusDays(1).toString())
+            .build()
+        val request = Request.Builder().url(url).header("Referer", referer).build()
+        client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                val message = Message()
-                message.what = FAILED
-                handler.sendMessage(message)
+                handler.sendEmptyMessage(FAILED)
             }
 
-            @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
-                val code = response.code
-                val body = response.body!!.string()
-                Log.i(TAG, "MedicineDownloader code: $code, body: $body")
-                val message = Message()
-                when (code) {
-                    500 -> {
-                        message.what = FAILED
-                    }
-
-                    403, 302 -> {
-                        message.what = UNLOGIN
-                    }
-
-                    else -> {
-                        if (body.contains("访问出错")) {
-                            message.what = FAILED
-                        } else if (body.contains("上海交通大学医学院用户认证中心")) {
-                            message.what = UNLOGIN
-                        } else {
-                            courses = parseFrom(body)
-                            message.what = DOWNLOADED
-                            message.obj = courses
+                response.use {
+                    try {
+                        val body = response.body?.string().orEmpty()
+                        when {
+                            response.code in listOf(302, 401, 403) -> handler.sendEmptyMessage(UNLOGIN)
+                            !response.isSuccessful || body.contains("访问出错") -> handler.sendEmptyMessage(FAILED)
+                            body.contains("上海交通大学医学院用户认证中心") -> handler.sendEmptyMessage(UNLOGIN)
+                            else -> handler.obtainMessage(DOWNLOADED, parseFrom(body, calendar)).sendToTarget()
                         }
-
+                    } catch (e: Exception) {
+                        handler.sendEmptyMessage(FAILED)
                     }
                 }
-                handler.sendMessage(message)
             }
         })
     }
 
-    fun dealWeekCodeWithMultiple(
-        weekCodeMap: HashMap<String, CharArray>,
-        course: Course,
-        week: Int
-    ) {
-        val key = makeUniqueKey(course)
-        if (!weekCodeMap.contains(key)) {
-            val weekcode = CharArray(Course.MAX_WEEKS)
-            Arrays.fill(weekcode, '0')
-            weekCodeMap[key] = weekcode
-        }
-
-        weekCodeMap[key]?.set(week - 1, '1')
-    }
-
-    private fun makeUniqueKey(course: Course): String {
-        return "${course.courseId}-${course.day}-${course.start}-${course.step}"
-    }
-
-    override fun parseFrom(json: String): List<Course> {
-        val courses: MutableList<Course> = ArrayList()
-        val timeMap = START_TIMES.mapIndexed { index, it -> it to index + 1 }.toMap()
-        val weekCodeMap = HashMap<String, CharArray>()
-        try {
-            val jsonList = JSONObject(json).getJSONArray("List")
-            for (i in 0 until jsonList.length()) {
-                val jsonObj = jsonList.getJSONObject(i)
-                val course = Course()
-                course.courseName = jsonObj.getString("Curriculum")
-                course.courseId = jsonObj.getString("CourseCode")
-                course.location = jsonObj.getString("Classroom")
-                course.step = jsonObj.getInt("CourseCount")
-                val (date, start) = jsonObj.getString("Start").split("T")
-                course.day = getDayInWeek(date)
-                course.start = timeMap[start.substring(0, start.length - 3)] ?: 0
-                dealWeekCodeWithMultiple(weekCodeMap, course, getCourseWeek(date))
-                course.isFromServer = true
-                courses.add(course)
+    internal fun parseFrom(json: String, calendar: AcademicCalendar): List<Course> {
+        val source = JSONObject(json).getJSONArray("List")
+        val sectionTimes = START_TIMES.map(LocalTime::parse)
+        val courses = linkedMapOf<List<Any>, Pair<Course, MutableMap<LocalDateTime, LocalDateTime?>>>()
+        for (index in 0 until source.length()) {
+            val row = source.getJSONObject(index)
+            val startAt = LocalDateTime.parse(row.getString("Start"))
+            val endAt = row.optString("End").takeIf { it.isNotBlank() && it != "null" }
+                ?.let { raw ->
+                    runCatching { LocalDateTime.parse(raw) }.getOrNull()
+                        ?: runCatching { startAt.toLocalDate().atTime(LocalTime.parse(raw)) }.getOrNull()
+                }
+                ?.takeIf { it > startAt }
+            val date = startAt.toLocalDate()
+            calendar.weekOf(date) ?: continue
+            val course = Course().apply {
+                courseName = row.getString("Curriculum")
+                courseId = row.getString("CourseCode")
+                location = row.getString("Classroom")
+                day = date.dayOfWeek.value
+                start = (sectionTimes.indexOfLast { it <= startAt.toLocalTime() } + 1).coerceAtLeast(1)
+                step = row.getInt("CourseCount")
+                isFromServer = true
             }
-        } catch (e: JSONException) {
-            e.printStackTrace()
+            require(course.start in 1..Course.MAX_STEPS && course.step in 1..(Course.MAX_STEPS + 1 - course.start))
+            val key = listOf(course.courseId, course.courseName, course.location, course.day, course.start, course.step)
+            courses.getOrPut(key) { course to sortedMapOf() }.second[startAt] = endAt
         }
-
-        val finalCourses = ArrayList<Course>()
-        val addedMap = HashSet<String>()
-        for (course in courses) {
-            val key = makeUniqueKey(course)
-            if (addedMap.contains(key))
-                continue
-            if (!weekCodeMap.contains(key)) continue
-            weekCodeMap[key]?.let { course.weekCode = String(it) }
-            finalCourses.add(course)
-            addedMap.add(key)
+        return courses.values.map { (course, sessions) ->
+            val weeks = CharArray(Course.MAX_WEEKS) { '0' }
+            sessions.keys.forEach { weeks[requireNotNull(calendar.weekOf(it.toLocalDate())) - 1] = '1' }
+            course.weekCode = String(weeks)
+            course.actualSessions = sessions.entries.joinToString(",") { (start, end) ->
+                if (end == null) start.toString() else "$start/$end"
+            }
+            course
         }
-        return finalCourses
-    }
-
-    override fun download(year: String, term: String, callback: Callback) {
-        val start = WeekManager.getInstance(context).showFirstDate
-        val end = WeekManager.getInstance(context).showLastDate
-        val url = "$courseUrl?Start=$start&End=$end"
-        val request: Request = Request.Builder()
-            .url(url)
-            .addHeader("Referer", referer)
-            .get()
-            .build()
-        client.newCall(request).enqueue(callback)
     }
 }

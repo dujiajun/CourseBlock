@@ -14,15 +14,12 @@
             android:key="cur_term"
             android:title="@string/pref_cur_term" />
         <Preference
-            android:key="first_monday"
-            android:title="@string/pref_first_monday" />
-        <Preference
-            android:key="last_sunday"
-            android:title="@string/pref_last_sunday" />
+            android:key="follow_current_term"
+            android:title="@string/term_use_automatic" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/action_sync">
         <SwitchPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="remove_customized_when_sync"
             android:title="@string/pref_remove_customized" />
     </PreferenceCategory>

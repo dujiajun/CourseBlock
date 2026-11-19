@@ -3,14 +3,12 @@ package com.dujiajun.courseblock.downloader
 import android.content.Context
 import android.os.Handler
 import android.os.Message
-import android.util.Log
 import com.dujiajun.courseblock.model.Course
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
 import okhttp3.Request
 import okhttp3.Response
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.util.Locale
@@ -46,82 +44,69 @@ open class GraduateDownloader(context: Context) : CourseDownloader(context) {
 
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
-                val code = response.code
-                val body = response.body!!.string()
-                Log.i(TAG, "GraduateDownloader code: $code, body: $body")
-                val message = Message()
-                when (code) {
-                    500 -> {
-                        message.what = FAILED
-                    }
-
-                    403, 302 -> {
-                        message.what = UNLOGIN
-                    }
-
-                    else -> {
-                        courses = parseFrom(body)
-                        message.what = DOWNLOADED
-                        message.obj = courses
+                response.use {
+                    try {
+                        when (response.code) {
+                            302, 401, 403 -> handler.sendEmptyMessage(UNLOGIN)
+                            200 -> handler.obtainMessage(
+                                DOWNLOADED, parseFrom(response.body?.string().orEmpty()),
+                            ).sendToTarget()
+                            else -> handler.sendEmptyMessage(FAILED)
+                        }
+                    } catch (e: Exception) {
+                        handler.sendEmptyMessage(FAILED)
                     }
                 }
-                handler.sendMessage(message)
             }
         })
     }
 
-    override fun parseFrom(json: String): List<Course> {
-        try {
-            val jsonObject = JSONObject(json).getJSONObject("datas").getJSONObject("xspkjgcx")
-            val courseRows = jsonObject.getJSONArray("rows")
-            val endTime = HashMap<String, Int>()
-            val map = HashMap<String, Course>()
-            for (i in 0 until courseRows.length()) {
-                val courseRow = courseRows.getJSONObject(i)
-                val classId = courseRow.getString("BJMC")
-                var course = map[classId]
-                if (course == null) {
-                    course = Course()
-                    course.courseId = courseRow.getString("KCDM")
-                    course.classId = classId
-                    course.courseName = courseRow.getString("KCMC")
-                    course.teacher = courseRow.getString("JSXM")
-                    course.day = courseRow.getInt("XQ")
-                    course.note = courseRow.optString("KBBZ", "")
-                    course.location = courseRow.getString("JASMC")
-                    course.weekCode = courseRow.getString("ZCBH").substring(0, Course.MAX_WEEKS)
-                    course.isFromServer = true
-                    map[classId] = course
-                }
-                val classTime = courseRow.getInt("KSJCDM")
-                course.start = classTime.coerceAtMost(course.start)
-                val end = endTime[classId]
-                if (end == null || end < classTime) {
-                    endTime[classId] = classTime
-                }
-            }
-            val courses: List<Course> = map.values.toList()
-            for (c in courses) {
-                var end = endTime[c.classId]
-                if (end == null) end = Course.MAX_STEPS
-                c.step = end - c.start + 1
-            }
-            return courses
-        } catch (e: JSONException) {
-            e.printStackTrace()
+    internal fun parseFrom(json: String): List<Course> {
+        val rows = JSONObject(json).getJSONObject("datas").getJSONObject("xspkjgcx").getJSONArray("rows")
+        val bySlot = (0 until rows.length()).map { rows.getJSONObject(it) }.groupBy {
+            listOf(it.getString("KCDM"), it.getString("BJMC"), it.getInt("XQ"),
+                it.getString("ZCBH"), it.getString("JASMC"), it.getString("JSXM"))
         }
-        return ArrayList()
+        return bySlot.values.flatMap { sections ->
+            val sample = sections.first()
+            val periods = sections.map { it.getInt("KSJCDM") }.distinct().sorted()
+            val blocks = mutableListOf<IntRange>()
+            periods.forEach { period ->
+                require(period in 1..Course.MAX_STEPS)
+                val previous = blocks.lastOrNull()
+                if (previous != null && previous.last + 1 == period) {
+                    blocks[blocks.lastIndex] = previous.first..period
+                } else {
+                    blocks.add(period..period)
+                }
+            }
+            blocks.map { block ->
+                Course().apply {
+                    courseId = sample.getString("KCDM")
+                    classId = sample.getString("BJMC")
+                    courseName = sample.getString("KCMC")
+                    teacher = sample.getString("JSXM")
+                    day = sample.getInt("XQ")
+                    note = sample.optString("KBBZ", "")
+                    location = sample.getString("JASMC")
+                    weekCode = sample.getString("ZCBH").take(Course.MAX_WEEKS).padEnd(Course.MAX_WEEKS, '0')
+                    start = block.first
+                    step = block.last - block.first + 1
+                    isFromServer = true
+                }
+            }
+        }
     }
 
     private fun convertParams(year: String, term: String): String {
-        return if (term == "2") {
-            String.format(Locale.CHINA, "%d02", year.toInt() + 1)
-        } else {
-            String.format(Locale.CHINA, "%s09", year)
+        return when (term) {
+            "1" -> String.format(Locale.CHINA, "%s09", year)
+            "2" -> String.format(Locale.CHINA, "%d02", year.toInt() + 1)
+            else -> error("Unsupported graduate term: $term")
         }
     }
 
-    override fun download(year: String, term: String, callback: Callback) {
+    private fun download(year: String, term: String, callback: Callback) {
         val body: FormBody = FormBody.Builder()
             .add("XNXQDM", convertParams(year, term))
             .add("XH", "")

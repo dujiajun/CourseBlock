@@ -100,9 +100,12 @@ class WeekView constructor(context: Context, attrs: AttributeSet) :
      * @return
      */
     override fun curWeek(curWeek: Int): WeekView {
-        var curWeek = curWeek
-        if (curWeek < 1) curWeek = 1
-        this.curWeek = curWeek
+        this.curWeek = curWeek.coerceAtLeast(0)
+        return this
+    }
+
+    fun selectedWeek(week: Int): WeekView {
+        preIndex = week
         return this
     }
 
@@ -165,8 +168,7 @@ class WeekView constructor(context: Context, attrs: AttributeSet) :
      * 初次构建时调用，显示周次选择布局
      */
     override fun showView(): WeekView {
-        if (curWeek < 1) curWeek(1)
-        if (curWeek > itemCount()) curWeek = itemCount
+        preIndex = preIndex.coerceIn(1, itemCount)
         container.removeAllViews()
         layouts = ArrayList()
         textViews = ArrayList()
@@ -193,10 +195,7 @@ class WeekView constructor(context: Context, attrs: AttributeSet) :
             textViews.add(bottomText)
             container.addView(view)
         }
-        if (curWeek > 0 && curWeek <= (layouts as ArrayList<LinearLayout>).size) {
-            layouts[curWeek - 1].background =
-                context.resources.getDrawable(R.drawable.weekview_thisweek, null)
-        }
+        applyWeekBackgrounds()
         return this
     }
 
@@ -221,12 +220,7 @@ class WeekView constructor(context: Context, attrs: AttributeSet) :
                 )
             )
         }
-        if (curWeek > 0 && curWeek <= layouts.size) {
-            layouts[curWeek - 1].background = context.resources.getDrawable(
-                R.drawable.weekview_thisweek,
-                null
-            )
-        }
+        applyWeekBackgrounds()
         return this
     }
 
@@ -234,14 +228,23 @@ class WeekView constructor(context: Context, attrs: AttributeSet) :
      * 重置背景色
      */
     fun resetBackground() {
-        layouts[preIndex - 1].setBackgroundColor(
+        layouts.getOrNull(preIndex - 1)?.setBackgroundColor(
             context.resources.getColor(
                 R.color.app_course_chooseweek_bg,
                 null
             )
         )
-        layouts[curWeek - 1].background =
+        layouts.getOrNull(curWeek - 1)?.background =
             context.resources.getDrawable(R.drawable.weekview_thisweek, null)
+    }
+
+    private fun applyWeekBackgrounds() {
+        layouts.getOrNull(curWeek - 1)?.background =
+            context.resources.getDrawable(R.drawable.weekview_thisweek, null)
+        if (preIndex != curWeek) {
+            layouts.getOrNull(preIndex - 1)?.background =
+                context.resources.getDrawable(R.drawable.weekview_white, null)
+        }
     }
 
     /**

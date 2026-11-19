@@ -15,18 +15,24 @@ internal class CourseSyncViewModel(private val savedState: SavedStateHandle) : V
     private val pendingOutcome = MutableLiveData<Outcome?>()
     val outcome: LiveData<Outcome?> = pendingOutcome
     private var downloading = false
+    var lastAutomaticTerm: String? = null
 
     var waitingForLogin: Boolean
         get() = savedState["waiting_for_sync_login"] ?: false
         set(value) { savedState["waiting_for_sync_login"] = value }
 
+    var replaceCustomOnRetry: Boolean
+        get() = savedState["replace_custom_on_retry"] ?: false
+        set(value) { savedState["replace_custom_on_retry"] = value }
+
     val isBusy: Boolean
         get() = downloading || waitingForLogin || pendingOutcome.value != null
 
-    fun start(courseManager: CourseManager, allowLogin: Boolean) {
+    fun start(courseManager: CourseManager, allowLogin: Boolean, replaceCustom: Boolean = false) {
         if (isBusy) return
         downloading = true
-        courseManager.updateCourses(object : Handler(Looper.getMainLooper()) {
+        replaceCustomOnRetry = replaceCustom
+        courseManager.updateCourses(replaceCustom, object : Handler(Looper.getMainLooper()) {
             override fun handleMessage(msg: Message) {
                 downloading = false
                 pendingOutcome.value = when (msg.what) {

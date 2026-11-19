@@ -79,26 +79,29 @@
     <string name="class_id">Class</string>
     <string name="succeed_in_sync">Succeed in Sync</string>
     <string name="not_filled_required">Not filled (Required)</string>
-    <string name="pref_first_monday">First Monday</string>
-    <string name="change_to_monday">Change to Monday. Restart to take effect.</string>
-    <string name="change_to_sunday">Change to Sunday. Restart to take effect.</string>
     <string name="about">About</string>
     <string name="homepage">Homepage</string>
     <string name="no_course">No course</string>
     <string name="following_courses">Courses</string>
     <string name="refresh">refresh</string>
     <string name="widget_update">Widget updated</string>
-    <string name="pref_last_sunday">Last Sunday</string>
 
     <string-array name="pref_status_entries">
         <item>Undergraduate</item>
-        <item>Graduate</item>
+        <item>Full-time graduate</item>
         <item>Medicine</item>
+        <item>Part-time graduate</item>
     </string-array>
 
     <string-array name="pref_status_entry_values">
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </string-array>
+    <string name="display_term">%1$d–%2$d · %3$s</string>
+    <string name="academic_calendar_unavailable">The official dates for this term are unavailable.</string>
+    <string name="graduate_summer_unavailable">The graduate teaching system has no confirmed summer term option.</string>
+    <string name="display_term_no_dates">%1$s · dates unavailable</string>
+    <string name="term_use_automatic">Use automatic selection</string>
 </resources>
