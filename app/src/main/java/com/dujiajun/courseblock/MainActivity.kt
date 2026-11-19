@@ -43,6 +43,7 @@ import java.time.LocalDate
 open class MainActivity : AppCompatActivity() {
     private lateinit var preferences: SharedPreferences
     private lateinit var courseManager: CourseManager
+    private lateinit var toolbar: Toolbar
     private lateinit var timetableView: TimetableView
     private lateinit var weekView: WeekView
     private var displayedCourses = emptyList<DisplayedCourse>()
@@ -71,8 +72,15 @@ open class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+        toolbar.isFocusable = true
+        toolbar.setOnClickListener {
+            if (!courseSync.isBusy && !exporting) TermPickerDialog.show(supportFragmentManager)
+        }
+        supportFragmentManager.setFragmentResultListener(TermPickerDialog.RESULT_KEY, this) { _, _ ->
+            refreshSelectedTerm()
+        }
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         courseManager = CourseManager.getInstance(applicationContext)
         shownTerm = savedInstanceState?.getString(STATE_SHOWN_TERM)
@@ -261,12 +269,11 @@ open class MainActivity : AppCompatActivity() {
         val latestCourseWeek = displayedCourses.maxOfOrNull { it.course.weekCode.lastIndexOf('1') + 1 } ?: 0
         weekView.itemCount(maxOf(calendarWeeks, latestCourseWeek).coerceAtMost(Course.MAX_WEEKS))
             .source(displayedCourses).showView()
-        val term = courseManager.term
-        val termName = resources.getStringArray(R.array.pref_term_entries)[term.number - 1]
-        val termLabel = getString(R.string.display_term, term.year, term.year + 1, termName)
+        val termLabel = TermPickerDialog.label(this, courseManager.term)
         val label = if (courseManager.academicCalendar != null) termLabel
         else getString(R.string.display_term_no_dates, termLabel)
-        supportActionBar?.subtitle = label
+        supportActionBar?.subtitle = getString(R.string.edit_term_label, label)
+        toolbar.contentDescription = getString(R.string.edit_term_description, label)
     }
 
     private fun currentTeachingWeek() =

@@ -112,5 +112,10 @@
     <string name="calendar_invalid_timing">Check the class periods for %1$s before exporting.</string>
     <string name="calendar_open_settings">Open settings</string>
     <string name="calendar_hidden">Show the %1$s calendar in your calendar app and try again.</string>
+    <string name="term_picker_title">Academic year and term</string>
     <string name="term_use_automatic">Use automatic selection</string>
+    <string name="term_automatic_summary">Automatic · %1$s</string>
+    <string name="academic_year_label">%1$d–%2$d</string>
+    <string name="edit_term_label">%1$s ▾</string>
+    <string name="edit_term_description">%1$s. Edit academic year and term.</string>
 </resources>

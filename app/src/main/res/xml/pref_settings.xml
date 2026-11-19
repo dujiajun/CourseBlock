@@ -6,16 +6,9 @@
             android:entryValues="@array/pref_status_entry_values"
             android:key="status"
             android:title="@string/pref_status" />
-        <ListPreference
-            android:key="cur_year"
-            android:title="@string/pref_cur_year" />
-        <ListPreference
-            android:entries="@array/pref_term_entries"
-            android:key="cur_term"
-            android:title="@string/pref_cur_term" />
         <Preference
-            android:key="follow_current_term"
-            android:title="@string/term_use_automatic" />
+            android:key="study_term"
+            android:title="@string/term_picker_title" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/action_sync">
         <SwitchPreference
