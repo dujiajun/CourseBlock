@@ -30,6 +30,13 @@ class Course : LitePalSupport(), ScheduleEnable {
 
     var isFromServer = false
 
+    var termKey: String? = null
+
+    var followsAcademicCalendar = false
+
+    // Date and time per session, when the teaching system supplies them.
+    var actualSessions: String? = null
+
     override val schedule: Schedule
         get() {
             val s = Schedule()
@@ -41,7 +48,7 @@ class Course : LitePalSupport(), ScheduleEnable {
             s.teacher = teacher
             val weekList: MutableList<Int> = ArrayList()
             for (j in 0 until MAX_WEEKS) {
-                if (weekCode[j] == '1') weekList.add(j + 1)
+                if (weekCode.getOrNull(j) == '1') weekList.add(j + 1)
             }
             s.weekList = weekList
             return s

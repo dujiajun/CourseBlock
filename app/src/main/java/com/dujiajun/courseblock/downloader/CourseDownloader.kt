@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Handler
 import com.dujiajun.courseblock.helper.WebViewCookieHandler
 import com.dujiajun.courseblock.model.Course
-import okhttp3.Callback
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
@@ -41,8 +40,6 @@ abstract class CourseDownloader constructor(context: Context) {
 
 
     abstract fun getCourses(year: String, term: String, handler: Handler)
-    protected abstract fun parseFrom(json: String): List<Course>
-    protected abstract fun download(year: String, term: String, callback: Callback)
 
     companion object {
         const val DOWNLOADED = 0

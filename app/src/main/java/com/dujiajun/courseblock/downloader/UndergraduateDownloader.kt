@@ -15,7 +15,6 @@ import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import java.util.Arrays
 
 open class UndergraduateDownloader(context: Context) : CourseDownloader(context) {
     private val JSON: MediaType = "application/json; charset=utf-8".toMediaType()
@@ -48,20 +47,28 @@ open class UndergraduateDownloader(context: Context) : CourseDownloader(context)
                 handler.sendMessage(message)
             }
 
-            @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
-                val code = response.code
-                val body = response.body!!.string()
-                Log.i(TAG, "UndergraduateDownloader code: $code, body: $body")
                 val message = Message()
-                if (body.contains("jAccount")) {
-                    message.what = UNLOGIN
-                } else {
-                    courses = parseFrom(body)
-                    if (courses.isNotEmpty()) {
-                        message.what = DOWNLOADED
-                        message.obj = courses
-                    } else {
+                response.use {
+                    Log.i(TAG, "UndergraduateDownloader code: ${response.code}")
+                    try {
+                        val body = response.body?.string().orEmpty()
+                        message.what = when {
+                            response.code in listOf(401, 403) ||
+                                (body.trimStart().startsWith("<") && body.contains("jAccount", ignoreCase = true)) -> UNLOGIN
+                            !response.isSuccessful -> FAILED
+                            else -> {
+                                val downloaded = parseFrom(body)
+                                courses = downloaded
+                                message.obj = downloaded
+                                DOWNLOADED
+                            }
+                        }
+                    } catch (error: IOException) {
+                        message.what = FAILED
+                    } catch (error: JSONException) {
+                        message.what = FAILED
+                    } catch (error: RuntimeException) {
                         message.what = FAILED
                     }
                 }
@@ -70,36 +77,31 @@ open class UndergraduateDownloader(context: Context) : CourseDownloader(context)
         })
     }
 
-    override fun parseFrom(json: String): List<Course> {
+    internal fun parseFrom(json: String): List<Course> {
         val courses: MutableList<Course> = ArrayList()
-        try {
-            val jsonObject = JSONObject(json)
-            val jsonArrayKb = jsonObject.getJSONArray("kbList")
-            for (i in 0 until jsonArrayKb.length()) {
-                val jsonCourse = jsonArrayKb.getJSONObject(i)
-                val course = Course()
-                course.courseId = jsonCourse.getString("kch_id")
-                course.classId = jsonCourse.getString("jxbmc")
-                course.courseName = jsonCourse.getString("kcmc")
-                course.location = jsonCourse.getString("cdmc")
-                course.day = jsonCourse.getInt("xqj")
-                val startAndStep = getStartAndStep(jsonCourse.getString("jcs"))
-                course.start = startAndStep[0]
-                course.step = startAndStep[1]
-                course.teacher = jsonCourse.getString("xm")
-                course.weekCode = getWeekCode(jsonCourse.getString("zcd"))
-                course.note = jsonCourse.optString("xkbz", "")
-                course.isFromServer = true
-                courses.add(course)
-            }
-            return courses
-        } catch (e: JSONException) {
-            e.printStackTrace()
+        val jsonObject = JSONObject(json)
+        val jsonArrayKb = jsonObject.getJSONArray("kbList")
+        for (i in 0 until jsonArrayKb.length()) {
+            val jsonCourse = jsonArrayKb.getJSONObject(i)
+            val course = Course()
+            course.courseId = jsonCourse.getString("kch_id")
+            course.classId = jsonCourse.getString("jxbmc")
+            course.courseName = jsonCourse.getString("kcmc")
+            course.location = jsonCourse.getString("cdmc")
+            course.day = jsonCourse.getInt("xqj")
+            val startAndStep = getStartAndStep(jsonCourse.getString("jcs"))
+            course.start = startAndStep[0]
+            course.step = startAndStep[1]
+            course.teacher = jsonCourse.getString("xm")
+            course.weekCode = getWeekCode(jsonCourse.getString("zcd"))
+            course.note = jsonCourse.optString("xkbz", "")
+            course.isFromServer = true
+            courses.add(course)
         }
-        return ArrayList()
+        return courses
     }
 
-    override fun download(year: String, term: String, callback: Callback) {
+    private fun download(year: String, term: String, callback: Callback) {
         val body: FormBody = FormBody.Builder()
             .add("xnm", year)
             .add("xqm", convertParams(term))
@@ -111,31 +113,22 @@ open class UndergraduateDownloader(context: Context) : CourseDownloader(context)
         client.newCall(request).enqueue(callback)
     }
 
-    private fun getWeekCode(week: String): String {
-        val items = week.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        val code = CharArray(Course.MAX_WEEKS)
-        Arrays.fill(code, '0')
-        for (rawitem in items) {
-            var step = 1
-            var item = rawitem
-            if (item.contains("(单)")) {
-                step = 2
-                item = item.replace("(单)", "")
+    private fun getWeekCode(weeks: String): String {
+        val code = CharArray(Course.MAX_WEEKS) { '0' }
+        for (entry in weeks.split(',', '，')) {
+            if (entry.isBlank()) continue
+            val parity = when {
+                '单' in entry -> 1
+                '双' in entry -> 0
+                else -> null
             }
-            if (item.contains("(双)")) {
-                step = 2
-                item = item.replace("(双)", "")
-            }
-            item = item.replace("周", "")
-            val weekStartAndEnd: Array<String> = if (item.contains("-")) {
-                item.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            } else {
-                arrayOf(item, item)
-            }
-            var i = weekStartAndEnd[0].toInt()
-            while (i <= weekStartAndEnd[1].toInt()) {
-                code[i - 1] = '1'
-                i += step
+            val range = Regex("[0-9]+").findAll(entry).map { it.value.toInt() }.toList()
+            require(range.isNotEmpty() && range.size <= 2)
+            val first = range.first()
+            val last = range.last()
+            require(first in 1..Course.MAX_WEEKS && last in first..Course.MAX_WEEKS)
+            for (week in first..last) {
+                if (parity == null || week % 2 == parity) code[week - 1] = '1'
             }
         }
         return String(code)
@@ -145,7 +138,7 @@ open class UndergraduateDownloader(context: Context) : CourseDownloader(context)
         val startAndStep: MutableList<Int> = ArrayList()
         val jc = jcor.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         startAndStep.add(Integer.valueOf(jc[0]))
-        startAndStep.add(jc[1].toInt() - jc[0].toInt() + 1)
+        startAndStep.add((jc.getOrNull(1) ?: jc[0]).toInt() - jc[0].toInt() + 1)
         return startAndStep
     }
 

@@ -11,8 +11,8 @@
     <string name="pref_style">显示效果</string>
     <string name="pref_not_cur_week">显示非本周课程</string>
 
-    <string name="pref_cur_year">当前学年</string>
-    <string name="pref_cur_term">当前学期</string>
+    <string name="pref_cur_year">学年</string>
+    <string name="pref_cur_term">学期</string>
     <string name="pref_cur_week">当前周次</string>
     <string-array name="pref_term_entries">
         <item>第一学期</item>
@@ -75,10 +75,6 @@
     <string name="class_id">班号</string>
     <string name="succeed_in_sync">已同步课表</string>
     <string name="not_filled_required">未填写（必填）</string>
-    <string name="pref_first_monday">学期起始日</string>
-    <string name="pref_last_sunday">学期结束日</string>
-    <string name="change_to_monday">自动切换为周一，重启生效</string>
-    <string name="change_to_sunday">自动切换为周日，重启生效</string>
     <string name="about">关于</string>
     <string name="homepage">项目地址</string>
     <string name="no_course">没有课</string>
@@ -87,9 +83,29 @@
 
     <string-array name="pref_status_entries">
         <item>本科生</item>
-        <item>研究生</item>
+        <item>全日制研究生</item>
         <item>医学院本科生</item>
+        <item>非全日制研究生</item>
     </string-array>
     <string name="refresh">刷新</string>
 
+    <string name="action_calendar">将剩余课程添加到日历</string>
+    <string name="display_term">%1$d–%2$d 学年 · %3$s</string>
+    <string name="academic_calendar_unavailable">暂未收录这个学期的官方校历。</string>
+    <string name="graduate_summer_unavailable">研究生教务暂未确认夏季学期查询方式。</string>
+    <string name="calendar_sync_first">请先同步所选学期的课表。</string>
+    <string name="calendar_permission_denied">请允许访问日历，以便添加课程、设置提醒并避免重复。</string>
+    <string name="calendar_no_remaining">这个学期没有剩余课程。</string>
+    <string name="calendar_synced">已将 %1$d 次课添加到「%2$s」日历，课前 15 分钟提醒。</string>
+    <string name="calendar_failed">课程写入日历失败。</string>
+    <string name="display_term_no_dates">%1$s · 暂无校历</string>
+    <string name="calendar_invalid_timing">「%1$s」的时间有误，请检查节次后再添加到日历。</string>
+    <string name="calendar_open_settings">去设置</string>
+    <string name="calendar_hidden">请在系统日历中显示「%1$s」日历后再试。</string>
+    <string name="term_picker_title">学年和学期</string>
+    <string name="term_use_automatic">恢复自动选择</string>
+    <string name="term_automatic_summary">自动选择 · %1$s</string>
+    <string name="academic_year_label">%1$d–%2$d</string>
+    <string name="edit_term_label">%1$s ▾</string>
+    <string name="edit_term_description">%1$s，编辑学年和学期</string>
 </resources>

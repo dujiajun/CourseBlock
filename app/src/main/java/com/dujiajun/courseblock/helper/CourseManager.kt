@@ -5,18 +5,20 @@ import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.util.Log
 import androidx.preference.PreferenceManager
+import com.dujiajun.courseblock.calendar.AcademicCalendar
+import com.dujiajun.courseblock.calendar.AcademicTerm
+import com.dujiajun.courseblock.calendar.OfficialCalendars
+import com.dujiajun.courseblock.calendar.School
 import com.dujiajun.courseblock.constant.PreferenceKey
 import com.dujiajun.courseblock.downloader.CourseDownloader
 import com.dujiajun.courseblock.downloader.GraduateDownloader
 import com.dujiajun.courseblock.downloader.MedicineDownloader
 import com.dujiajun.courseblock.downloader.UndergraduateDownloader
 import com.dujiajun.courseblock.model.Course
-import org.litepal.LitePal.deleteAll
-import org.litepal.LitePal.findAll
-import org.litepal.LitePal.saveAll
-import java.util.Calendar
-import java.util.Locale
+import org.litepal.LitePal
+import java.time.LocalDate
 
 class CourseManager private constructor(private val context: Context) {
     private val preferences: SharedPreferences =
@@ -24,61 +26,141 @@ class CourseManager private constructor(private val context: Context) {
     var courses: List<Course> = ArrayList()
 
     private var downloader: CourseDownloader = UndergraduateDownloader(context)
-    private var status: STATUS = STATUS.UNDERGRADUATE
+    internal var school = School.UNDERGRADUATE
+        private set
+
+    internal val suggestedTerm: AcademicTerm
+        get() = OfficialCalendars.suggestedTerm(LocalDate.now(AcademicCalendar.ZONE), school)
+
+    internal val selectedTerm: AcademicTerm?
+        get() {
+            val year = preferences.getString(PreferenceKey.CURRENT_YEAR, null)?.toIntOrNull() ?: return null
+            val number = preferences.getString(PreferenceKey.CURRENT_TERM, null)?.toIntOrNull() ?: return null
+            val allowedTerms = if (school.isGraduate) 1..2 else 1..3
+            return if (number in allowedTerms) AcademicTerm(year, number) else null
+        }
+
+    internal val term: AcademicTerm
+        get() = selectedTerm ?: suggestedTerm
+
+    internal fun selectTerm(term: AcademicTerm?) {
+        val editor = preferences.edit()
+        if (term == null) {
+            editor.remove(PreferenceKey.CURRENT_YEAR).remove(PreferenceKey.CURRENT_TERM)
+        } else {
+            editor.putString(PreferenceKey.CURRENT_YEAR, term.year.toString())
+                .putString(PreferenceKey.CURRENT_TERM, term.number.toString())
+        }
+        editor.apply()
+    }
+
+    internal val termKey: String
+        get() = term.key(school)
+
+    internal val academicCalendar
+        get() = OfficialCalendars.find(term, school)
+
+    internal val canSync: Boolean
+        get() = when (school) {
+            School.GRADUATE, School.PART_TIME_GRADUATE -> term.number != 3
+            School.MEDICINE -> academicCalendar != null
+            School.UNDERGRADUATE -> true
+        }
+
+    internal fun hasSyncedTerm() = preferences.getBoolean("synced:$termKey", false)
 
     init {
         updateStatus()
+        migrateTermSelection()
+    }
+
+    private fun migrateTermSelection() {
+        if (preferences.getBoolean(TERM_SELECTOR_MIGRATED, false)) return
+        val editor = preferences.edit().putBoolean(TERM_SELECTOR_MIGRATED, true)
+        // Old Settings wrote the default pair even if the user only opened it.
+        if (selectedTerm == suggestedTerm) {
+            editor.remove(PreferenceKey.CURRENT_YEAR).remove(PreferenceKey.CURRENT_TERM)
+        }
+        editor.apply()
     }
 
     fun updateStatus() {
-        val status = when (preferences.getString(PreferenceKey.STATUS, "0")) {
-            "1" -> STATUS.GRADUATE
-            "2" -> STATUS.MEDICINE
-            else -> STATUS.UNDERGRADUATE
+        val selectedSchool = when (preferences.getString(PreferenceKey.STATUS, "0")) {
+            "1" -> School.GRADUATE
+            "2" -> School.MEDICINE
+            "3" -> School.PART_TIME_GRADUATE
+            else -> School.UNDERGRADUATE
         }
 
-        if (status != this.status) {
-            this.status = status
-            downloader = when (status) {
-                STATUS.GRADUATE -> GraduateDownloader(this.context)
-                STATUS.MEDICINE -> MedicineDownloader(this.context)
+        if (selectedSchool != school) {
+            school = selectedSchool
+            downloader = when (school) {
+                School.GRADUATE, School.PART_TIME_GRADUATE -> GraduateDownloader(this.context)
+                School.MEDICINE -> MedicineDownloader(this.context)
                 else -> UndergraduateDownloader(this.context)
             }
         }
     }
 
     fun loadCourses() {
-        courses = findAll(Course::class.java)
+        val selection = termKey
+        if (!preferences.contains(LEGACY_TERM)) {
+            preferences.edit().putString(LEGACY_TERM, selection).apply()
+        }
+        val matchesLegacy = preferences.getString(LEGACY_TERM, null) == selection
+        courses = if (matchesLegacy) {
+            LitePal.where("termKey = ? OR termKey IS NULL OR termKey = ''", selection)
+                .find(Course::class.java)
+        } else {
+            LitePal.where("termKey = ?", selection).find(Course::class.java)
+        }
     }
 
-    fun updateCourses(uiHandler: Handler) {
-        val handler: Handler = object : Handler(Looper.myLooper()!!) {
+    fun updateCourses(replaceCustom: Boolean, uiHandler: Handler) {
+        if (!canSync) {
+            uiHandler.sendEmptyMessage(FAILED)
+            return
+        }
+        val selectedTerm = term
+        val selectedKey = selectedTerm.key(school)
+        val handler = object : Handler(Looper.getMainLooper()) {
             override fun handleMessage(msg: Message) {
-                super.handleMessage(msg)
-                val uiMessage = Message()
-                if (msg.what == CourseDownloader.DOWNLOADED) {
+                val result = if (msg.what == CourseDownloader.DOWNLOADED) {
+                    @Suppress("UNCHECKED_CAST")
                     val downloadedCourses = msg.obj as List<Course>
-                    updateCourses(downloadedCourses)
-                    uiMessage.what = SUCCEEDED
-                    uiMessage.obj = msg.obj
+                    try {
+                        replaceCourses(selectedKey, downloadedCourses, replaceCustom)
+                        preferences.edit().putBoolean("synced:$selectedKey", true).apply()
+                        SUCCEEDED
+                    } catch (error: RuntimeException) {
+                        Log.e("CourseManager", "Could not save timetable", error)
+                        FAILED
+                    }
                 } else {
-                    uiMessage.what = msg.what
+                    msg.what
                 }
-                uiHandler.sendMessage(uiMessage)
+                uiHandler.sendEmptyMessage(result)
             }
         }
-        val year = preferences.getString(PreferenceKey.CURRENT_YEAR, defaultYear)
-        val term = preferences.getString(PreferenceKey.CURRENT_TERM, defaultTerm)
-        downloader.getCourses(year!!, term!!, handler)
+        downloader.getCourses(selectedTerm.year.toString(), selectedTerm.number.toString(), handler)
     }
 
-    private fun updateCourses(courses: List<Course>) {
-        if (preferences.getBoolean("remove_customized_when_sync", false)) {
-            deleteAll(Course::class.java)
-        } else {
-            deleteAll(Course::class.java, "isFromServer = ?", "1")
+    private fun replaceCourses(key: String, newCourses: List<Course>, replaceCustom: Boolean) {
+        val includeLegacy = preferences.getString(LEGACY_TERM, null) == key
+        val removeCustom = replaceCustom && preferences.getBoolean("remove_customized_when_sync", false)
+        val termFilter = if (includeLegacy) "(termKey = ? OR termKey IS NULL OR termKey = '')" else "termKey = ?"
+        val replaceFilter = if (removeCustom) termFilter else "$termFilter AND isFromServer = 1"
+        val db = LitePal.getDatabase()
+
+        db.beginTransaction()
+        try {
+            LitePal.deleteAll(Course::class.java, replaceFilter, key)
+            newCourses.forEach { it.termKey = key }
+            check(newCourses.isEmpty() || LitePal.saveAll(newCourses)) { "Could not save timetable" }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
-        saveAll(courses)
     }
 
     val loginUrl: String
@@ -97,18 +179,9 @@ class CourseManager private constructor(private val context: Context) {
         preferences.edit().putString(PreferenceKey.REFERER, referer).apply()
     }
 
-    fun findCourseByDayAndStart(week: Int, day: Int, start: Int): Course? {
-        for (course in courses) {
-            if (course.weekCode[week - 1] == '1' && course.day == day && course.start <= start && course.start + course.step - 1 >= start) return course
-        }
-        return null
-    }
-
-    enum class STATUS {
-        UNDERGRADUATE, GRADUATE, MEDICINE
-    }
-
     companion object {
+        private const val TERM_SELECTOR_MIGRATED = "term_selector_migrated"
+        private const val LEGACY_TERM = "legacy_course_term"
         const val SUCCEEDED = CourseDownloader.DOWNLOADED
         const val FAILED = CourseDownloader.FAILED
         const val UNLOGIN = CourseDownloader.UNLOGIN
@@ -122,31 +195,5 @@ class CourseManager private constructor(private val context: Context) {
             return singleton!!
         }
 
-        @JvmStatic
-        val defaultYear: String
-            get() {
-                val calendar = Calendar.getInstance(Locale.CHINA)
-                val curRealMonth = calendar[Calendar.MONTH] + 1
-                var curRealYear = calendar[Calendar.YEAR]
-                if (curRealMonth < 9) {
-                    curRealYear-- // 9月前为上一学年
-                }
-                return curRealYear.toString()
-            }
-
-        @JvmStatic
-        val defaultTerm: String
-            get() {
-                val calendar = Calendar.getInstance(Locale.CHINA)
-                val curRealMonth = calendar[Calendar.MONTH] + 1
-                val term: String = if (curRealMonth >= 8 || curRealMonth < 2) {
-                    "1" // 秋季学期
-                } else if (curRealMonth < 7) {
-                    "2" // 春季学期
-                } else {
-                    "3" //夏季学期
-                }
-                return term
-            }
     }
 }

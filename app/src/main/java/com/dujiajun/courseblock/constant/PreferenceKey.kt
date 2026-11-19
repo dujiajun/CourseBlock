@@ -3,8 +3,6 @@ package com.dujiajun.courseblock.constant
 class PreferenceKey {
 
     companion object {
-        const val FIRST_MONDAY = "first_monday"
-        const val LAST_SUNDAY = "last_sunday"
         const val REFERER = "referer"
         const val CURRENT_TERM = "cur_term"
         const val CURRENT_YEAR = "cur_year"

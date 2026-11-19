@@ -50,8 +50,9 @@ class LoginActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView, url: String) {
                 super.onPageFinished(view, url)
-                if (url.contains(courseManager.afterLoginPattern)) {
+                if (!isFinishing && url.contains(courseManager.afterLoginPattern)) {
                     Toast.makeText(this@LoginActivity, R.string.already_logged_in, Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
                     finish()
                 }
             }
