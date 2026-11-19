@@ -85,8 +85,25 @@ class AndroidCalendarTest {
             }
 
             calendar.sync(calendarName, "this", listOf(moved), now)
-            assertEquals(moved.start.toEpochMilli(), events(id).single { it.second == moved.title }.third)
+            val movedEvent = events(id).single { it.second == moved.title }
+            assertEquals(moved.start.toEpochMilli(), movedEvent.third)
             assertEquals(2, events(id).size)
+
+            calendar.sync(calendarName, "this", listOf(moved), now, reminderMinutes = 30)
+            requireNotNull(resolver.query(
+                Reminders.CONTENT_URI, arrayOf(Reminders.MINUTES),
+                "${Reminders.EVENT_ID} = ?", arrayOf(movedEvent.first.toString()), null,
+            )).use { cursor ->
+                assertEquals(1, cursor.count)
+                assertTrue(cursor.moveToFirst())
+                assertEquals(30, cursor.getInt(0))
+            }
+
+            insertPrevious("Reimported into old calendar", term = "this")
+            assertEquals(3, calendar.removeTerm("this", previousId))
+            assertEquals(0, calendar.removeTerm("this", previousId))
+            assertEquals(listOf(otherTerm.title), events(id).map { it.second })
+            assertEquals(setOf("Unrelated", "Other term"), events(previousId).map { it.second }.toSet())
         } finally {
             calendarIds(account).forEach {
                 resolver.delete(ContentUris.withAppendedId(cleanupUri, it), null, null)

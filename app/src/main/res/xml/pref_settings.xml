@@ -16,6 +16,16 @@
             android:key="remove_customized_when_sync"
             android:title="@string/pref_remove_customized" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/calendar_preferences">
+        <ListPreference
+            android:key="calendar_reminder_minutes"
+            android:defaultValue="15"
+            android:title="@string/calendar_reminder_time" />
+        <Preference
+            android:key="calendar_remove_term"
+            android:persistent="false"
+            android:title="@string/calendar_remove_term" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_style">
         <SwitchPreference
             android:defaultValue="true"

@@ -106,7 +106,7 @@
     <string name="calendar_sync_first">Sync this term before adding classes to the calendar.</string>
     <string name="calendar_permission_denied">Allow calendar access to add class reminders and avoid duplicate events.</string>
     <string name="calendar_no_remaining">There are no remaining classes this term.</string>
-    <string name="calendar_synced">Added %1$d upcoming classes to the %2$s calendar, with 15-minute reminders.</string>
+    <string name="calendar_synced">Added %1$d upcoming classes to the %2$s calendar, with reminders %3$d min before class.</string>
     <string name="calendar_failed">Could not add classes to the calendar.</string>
     <string name="display_term_no_dates">%1$s · dates unavailable</string>
     <string name="calendar_invalid_timing">Check the class periods for %1$s before exporting.</string>
@@ -118,4 +118,18 @@
     <string name="academic_year_label">%1$d–%2$d</string>
     <string name="edit_term_label">%1$s ▾</string>
     <string name="edit_term_description">%1$s. Edit academic year and term.</string>
+    <string name="calendar_preferences">Calendar</string>
+    <string name="calendar_reminder_time">Remind before class</string>
+    <string name="calendar_minutes_before">%1$d min before</string>
+    <string name="calendar_reminder_help">Applies when you add classes to the calendar. Sound follows your phone calendar’s notifications.</string>
+    <string name="calendar_remove_term">Remove calendar classes for this term</string>
+    <string name="calendar_remove_confirm">Remove all classes CourseBlock added to your calendar for %1$s? This includes past classes. You can add upcoming classes again from the timetable menu.</string>
+    <string name="calendar_remove">Remove</string>
+    <string name="calendar_remove_no_permission">Allow calendar access to remove imported classes.</string>
+    <string name="calendar_remove_empty">There are no imported calendar classes for this term.</string>
+    <string name="calendar_remove_failed">Could not remove the imported calendar classes.</string>
+    <plurals name="calendar_removed">
+        <item quantity="one">Removed %1$d calendar class.</item>
+        <item quantity="other">Removed %1$d calendar classes.</item>
+    </plurals>
 </resources>

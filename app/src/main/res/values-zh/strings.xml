@@ -96,7 +96,7 @@
     <string name="calendar_sync_first">请先同步所选学期的课表。</string>
     <string name="calendar_permission_denied">请允许访问日历，以便添加课程、设置提醒并避免重复。</string>
     <string name="calendar_no_remaining">这个学期没有剩余课程。</string>
-    <string name="calendar_synced">已将 %1$d 次课添加到「%2$s」日历，课前 15 分钟提醒。</string>
+    <string name="calendar_synced">已将 %1$d 次课添加到「%2$s」日历，课前 %3$d 分钟提醒。</string>
     <string name="calendar_failed">课程写入日历失败。</string>
     <string name="display_term_no_dates">%1$s · 暂无校历</string>
     <string name="calendar_invalid_timing">「%1$s」的时间有误，请检查节次后再添加到日历。</string>
@@ -108,4 +108,17 @@
     <string name="academic_year_label">%1$d–%2$d</string>
     <string name="edit_term_label">%1$s ▾</string>
     <string name="edit_term_description">%1$s，编辑学年和学期</string>
+    <string name="calendar_preferences">日历</string>
+    <string name="calendar_reminder_time">课前提醒</string>
+    <string name="calendar_minutes_before">提前 %1$d 分钟</string>
+    <string name="calendar_reminder_help">添加课程到日历时生效。声音由手机日历的通知设置控制。</string>
+    <string name="calendar_remove_term">移除所选学期的日历课程</string>
+    <string name="calendar_remove_confirm">移除「%1$s」由交课表添加到日历的全部课程？已结束的课也会移除。未上课程可从课表菜单重新添加。</string>
+    <string name="calendar_remove">移除</string>
+    <string name="calendar_remove_no_permission">请允许访问日历，以便移除已添加的课程。</string>
+    <string name="calendar_remove_empty">所选学期还没有添加到日历的课程。</string>
+    <string name="calendar_remove_failed">移除日历课程失败。</string>
+    <plurals name="calendar_removed">
+        <item quantity="other">已移除 %1$d 次日历课程。</item>
+    </plurals>
 </resources>

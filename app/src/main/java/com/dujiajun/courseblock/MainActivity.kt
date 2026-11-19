@@ -1,6 +1,5 @@
 package com.dujiajun.courseblock
 
-import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
@@ -61,7 +60,7 @@ open class MainActivity : AppCompatActivity() {
 
     private val calendarPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            if (canAccessCalendar()) exportCalendar()
+            if (AndroidCalendar.hasPermission(this@MainActivity)) exportCalendar()
             else Snackbar.make(timetableView, R.string.calendar_permission_denied, Snackbar.LENGTH_LONG)
                 .setAction(R.string.calendar_open_settings) {
                     startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
@@ -288,9 +287,6 @@ open class MainActivity : AppCompatActivity() {
         weekView.curWeek(currentWeek ?: 0).selectedWeek(showWeek)
     }
 
-    private fun canAccessCalendar() = CALENDAR_PERMISSIONS.all {
-        checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
-    }
 
     private fun exportCalendar() {
         if (exporting || courseSync.isBusy) return
@@ -308,25 +304,28 @@ open class MainActivity : AppCompatActivity() {
         val courses = courseManager.courses
         val startTimes = courseManager.startTimes
         val endTimes = courseManager.endTimes
-        val previousCalendar = preferences.getLong(LEGACY_CALENDAR_ID, -1L).takeIf { it >= 0 }
+        val previousCalendar = preferences.getLong(PreferenceKey.LEGACY_CALENDAR_ID, -1L).takeIf { it >= 0 }
+        val reminderMinutes = preferences.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null)
+            ?.toIntOrNull()?.takeIf { it in AndroidCalendar.reminderTimes }
+            ?: AndroidCalendar.DEFAULT_REMINDER_MINUTES
         val calendarName = getString(R.string.app_name)
         exporting = true
         lifecycleScope.launch {
             try {
                 val occurrences = CourseOccurrences.upcoming(courses, calendar, startTimes, endTimes, Instant.now())
                 val result = when {
-                    !canAccessCalendar() && occurrences.isEmpty() -> AndroidCalendar.Synced(0, calendarName)
-                    !canAccessCalendar() -> {
-                        calendarPermissions.launch(CALENDAR_PERMISSIONS)
+                    !AndroidCalendar.hasPermission(this@MainActivity) && occurrences.isEmpty() -> AndroidCalendar.Synced(0, calendarName)
+                    !AndroidCalendar.hasPermission(this@MainActivity) -> {
+                        calendarPermissions.launch(AndroidCalendar.permissions)
                         return@launch
                     }
                     else -> withContext(Dispatchers.IO) {
                         AndroidCalendar(contentResolver, packageName)
-                            .sync(calendarName, term, occurrences, Instant.now(), previousCalendar)
+                            .sync(calendarName, term, occurrences, Instant.now(), previousCalendar, reminderMinutes)
                     }
                 }
                 val message = if (result.count == 0) getString(R.string.calendar_no_remaining)
-                else getString(R.string.calendar_synced, result.count, result.calendarName)
+                else getString(R.string.calendar_synced, result.count, result.calendarName, reminderMinutes)
                 Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
             } catch (invalid: CourseOccurrences.InvalidTiming) {
                 Toast.makeText(
@@ -352,7 +351,5 @@ open class MainActivity : AppCompatActivity() {
 
     private companion object {
         const val STATE_SHOWN_TERM = "shown_term"
-        const val LEGACY_CALENDAR_ID = "export_calendar_id"
-        val CALENDAR_PERMISSIONS = arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
     }
 }
