@@ -1,11 +1,14 @@
 package com.dujiajun.courseblock
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
+import android.net.Uri
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -14,19 +17,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.dujiajun.courseblock.calendar.AcademicCalendar
+import com.dujiajun.courseblock.calendar.AndroidCalendar
 import com.dujiajun.courseblock.calendar.CourseOccurrences
 import com.dujiajun.courseblock.calendar.DisplayedCourse
 import com.dujiajun.courseblock.calendar.TimetableDates
 import com.dujiajun.courseblock.constant.PreferenceKey
 import com.dujiajun.courseblock.helper.CourseManager
 import com.dujiajun.courseblock.model.Course
+import com.google.android.material.snackbar.Snackbar
 import com.zhuangfei.timetable.TimetableView
 import com.zhuangfei.timetable.listener.IWeekView.OnWeekItemClickedListener
 import com.zhuangfei.timetable.listener.OnSlideBuildAdapter
 import com.zhuangfei.timetable.listener.OnSpaceItemClickAdapter
 import com.zhuangfei.timetable.view.WeekView
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.Instant
 import java.time.LocalDate
 
 open class MainActivity : AppCompatActivity() {
@@ -36,6 +47,7 @@ open class MainActivity : AppCompatActivity() {
     private lateinit var weekView: WeekView
     private var displayedCourses = emptyList<DisplayedCourse>()
     private var shownTerm: String? = null
+    private var exporting = false
     private var showWeek = 1
     private val courseSync by lazy { ViewModelProvider(this)[CourseSyncViewModel::class.java] }
     private val loginForSync =
@@ -44,6 +56,16 @@ open class MainActivity : AppCompatActivity() {
             if (result.resultCode == RESULT_OK) {
                 courseSync.start(courseManager, allowLogin = false, replaceCustom = courseSync.replaceCustomOnRetry)
             }
+        }
+
+    private val calendarPermissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            if (canAccessCalendar()) exportCalendar()
+            else Snackbar.make(timetableView, R.string.calendar_permission_denied, Snackbar.LENGTH_LONG)
+                .setAction(R.string.calendar_open_settings) {
+                    startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+                }
+                .show()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -163,19 +185,21 @@ open class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_login -> {
-                if (!courseSync.isBusy) {
+                if (!courseSync.isBusy && !exporting) {
                     courseSync.replaceCustomOnRetry = false
                     launchLogin()
                 }
             }
 
             R.id.action_settings -> {
-                if (!courseSync.isBusy) {
+                if (!courseSync.isBusy && !exporting) {
                     startActivity(Intent(this, SettingsActivity::class.java))
                 }
             }
 
             R.id.action_sync -> syncSelectedTerm(explicit = true)
+
+            R.id.action_calendar -> exportCalendar()
 
             R.id.action_expand -> {
                 if (weekView.isShowing) item.setIcon(R.mipmap.ic_expand_more_white_24dp) else item.setIcon(
@@ -212,6 +236,7 @@ open class MainActivity : AppCompatActivity() {
     }
 
     private fun syncSelectedTerm(explicit: Boolean = false) {
+        if (exporting) return
         if (courseManager.canSync) {
             courseSync.start(courseManager, allowLogin = true, replaceCustom = explicit)
         } else {
@@ -256,7 +281,71 @@ open class MainActivity : AppCompatActivity() {
         weekView.curWeek(currentWeek ?: 0).selectedWeek(showWeek)
     }
 
+    private fun canAccessCalendar() = CALENDAR_PERMISSIONS.all {
+        checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun exportCalendar() {
+        if (exporting || courseSync.isBusy) return
+        val term = courseManager.termKey
+        val calendar = courseManager.academicCalendar
+        if (calendar == null) {
+            Toast.makeText(this, R.string.academic_calendar_unavailable, Toast.LENGTH_LONG).show()
+            return
+        }
+        if (!courseManager.hasSyncedTerm()) {
+            Toast.makeText(this, R.string.calendar_sync_first, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val courses = courseManager.courses
+        val startTimes = courseManager.startTimes
+        val endTimes = courseManager.endTimes
+        val previousCalendar = preferences.getLong(LEGACY_CALENDAR_ID, -1L).takeIf { it >= 0 }
+        val calendarName = getString(R.string.app_name)
+        exporting = true
+        lifecycleScope.launch {
+            try {
+                val occurrences = CourseOccurrences.upcoming(courses, calendar, startTimes, endTimes, Instant.now())
+                val result = when {
+                    !canAccessCalendar() && occurrences.isEmpty() -> AndroidCalendar.Synced(0, calendarName)
+                    !canAccessCalendar() -> {
+                        calendarPermissions.launch(CALENDAR_PERMISSIONS)
+                        return@launch
+                    }
+                    else -> withContext(Dispatchers.IO) {
+                        AndroidCalendar(contentResolver, packageName)
+                            .sync(calendarName, term, occurrences, Instant.now(), previousCalendar)
+                    }
+                }
+                val message = if (result.count == 0) getString(R.string.calendar_no_remaining)
+                else getString(R.string.calendar_synced, result.count, result.calendarName)
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+            } catch (invalid: CourseOccurrences.InvalidTiming) {
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(R.string.calendar_invalid_timing, invalid.courseName),
+                    Toast.LENGTH_LONG,
+                ).show()
+            } catch (hidden: AndroidCalendar.HiddenCalendar) {
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(R.string.calendar_hidden, hidden.calendarName),
+                    Toast.LENGTH_LONG,
+                ).show()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Toast.makeText(this@MainActivity, R.string.calendar_failed, Toast.LENGTH_LONG).show()
+            } finally {
+                exporting = false
+            }
+        }
+    }
+
     private companion object {
         const val STATE_SHOWN_TERM = "shown_term"
+        const val LEGACY_CALENDAR_ID = "export_calendar_id"
+        val CALENDAR_PERMISSIONS = arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
     }
 }

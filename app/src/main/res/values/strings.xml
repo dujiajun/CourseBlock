@@ -99,9 +99,18 @@
         <item>2</item>
         <item>3</item>
     </string-array>
+    <string name="action_calendar">Add remaining classes to calendar</string>
     <string name="display_term">%1$d–%2$d · %3$s</string>
     <string name="academic_calendar_unavailable">The official dates for this term are unavailable.</string>
     <string name="graduate_summer_unavailable">The graduate teaching system has no confirmed summer term option.</string>
+    <string name="calendar_sync_first">Sync this term before adding classes to the calendar.</string>
+    <string name="calendar_permission_denied">Allow calendar access to add class reminders and avoid duplicate events.</string>
+    <string name="calendar_no_remaining">There are no remaining classes this term.</string>
+    <string name="calendar_synced">Added %1$d upcoming classes to the %2$s calendar, with 15-minute reminders.</string>
+    <string name="calendar_failed">Could not add classes to the calendar.</string>
     <string name="display_term_no_dates">%1$s · dates unavailable</string>
+    <string name="calendar_invalid_timing">Check the class periods for %1$s before exporting.</string>
+    <string name="calendar_open_settings">Open settings</string>
+    <string name="calendar_hidden">Show the %1$s calendar in your calendar app and try again.</string>
     <string name="term_use_automatic">Use automatic selection</string>
 </resources>
