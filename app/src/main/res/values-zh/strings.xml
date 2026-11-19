@@ -96,7 +96,9 @@
     <string name="calendar_sync_first">请先同步所选学期的课表。</string>
     <string name="calendar_permission_denied">请允许访问日历，以便添加课程、设置提醒并避免重复。</string>
     <string name="calendar_no_remaining">这个学期没有剩余课程。</string>
-    <string name="calendar_synced">已将 %1$d 次课添加到「%2$s」日历，课前 %3$d 分钟提醒。</string>
+    <string name="calendar_added">已将 %1$d 次课添加到「%2$s」日历，课前 %3$d 分钟提醒。</string>
+    <string name="calendar_already_added">剩余课程已在日历中。</string>
+    <string name="calendar_updated">已更新日历课程。</string>
     <string name="calendar_failed">课程写入日历失败。</string>
     <string name="display_term_no_dates">%1$s · 暂无校历</string>
     <string name="calendar_invalid_timing">「%1$s」的时间有误，请检查节次后再添加到日历。</string>

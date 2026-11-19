@@ -18,7 +18,12 @@ internal class AndroidCalendar(
     private val packageName: String,
     familyPackage: String = if (packageName in COURSEBLOCK_PACKAGES) COURSEBLOCK_PACKAGE else packageName,
 ) {
-    data class Synced(val count: Int, val calendarName: String)
+    data class Synced(
+        val scheduled: Int,
+        val added: Int,
+        val changed: Boolean,
+        val calendarName: String,
+    )
 
     class HiddenCalendar(val calendarName: String) : IllegalStateException()
 
@@ -82,8 +87,14 @@ internal class AndroidCalendar(
                 .withValues(reminderValues(reminderMinutes))
                 .build())
         }
-        if (operations.isNotEmpty()) resolver.applyBatch(CalendarContract.AUTHORITY, operations)
-        Synced(desired.size, target?.displayName ?: calendarName)
+        val changed = operations.isNotEmpty() && resolver.applyBatch(CalendarContract.AUTHORITY, operations)
+            .any { it.uri != null || (it.count ?: 0) > 0 }
+        Synced(
+            scheduled = desired.size,
+            added = desired.size - retainedIds.size,
+            changed = changed,
+            calendarName = target?.displayName ?: calendarName,
+        )
     }
 
     fun removeImportedCourses(previousCalendarId: Long? = null): Int = synchronized(writeLock) {

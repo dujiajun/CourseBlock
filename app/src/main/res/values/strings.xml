@@ -106,7 +106,9 @@
     <string name="calendar_sync_first">Sync this term before adding classes to the calendar.</string>
     <string name="calendar_permission_denied">Allow calendar access to add class reminders and avoid duplicate events.</string>
     <string name="calendar_no_remaining">There are no remaining classes this term.</string>
-    <string name="calendar_synced">Added %1$d upcoming classes to the %2$s calendar, with reminders %3$d min before class.</string>
+    <string name="calendar_added">Added %1$d upcoming classes to the %2$s calendar, with reminders %3$d min before class.</string>
+    <string name="calendar_already_added">The remaining classes are already in your calendar.</string>
+    <string name="calendar_updated">Updated your calendar courses.</string>
     <string name="calendar_failed">Could not add classes to the calendar.</string>
     <string name="display_term_no_dates">%1$s · dates unavailable</string>
     <string name="calendar_invalid_timing">Check the class periods for %1$s before exporting.</string>

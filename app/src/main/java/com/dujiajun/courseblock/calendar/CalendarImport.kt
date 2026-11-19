@@ -44,10 +44,13 @@ internal suspend fun importRemainingCourses(context: Context, manager: CourseMan
             }
             val result = AndroidCalendar(context.contentResolver, context.packageName)
                 .sync(calendarName, term, occurrences, now, previousCalendar, minutes)
-            CalendarImport.Message(
-                if (result.count == 0) context.getString(R.string.calendar_no_remaining)
-                else context.getString(R.string.calendar_synced, result.count, result.calendarName, minutes),
-            )
+            val message = when {
+                result.added > 0 -> context.getString(R.string.calendar_added, result.added, result.calendarName, minutes)
+                result.changed -> context.getString(R.string.calendar_updated)
+                result.scheduled > 0 -> context.getString(R.string.calendar_already_added)
+                else -> context.getString(R.string.calendar_no_remaining)
+            }
+            CalendarImport.Message(message)
         } catch (invalid: CourseOccurrences.InvalidTiming) {
             CalendarImport.Message(context.getString(R.string.calendar_invalid_timing, invalid.courseName))
         } catch (hidden: AndroidCalendar.HiddenCalendar) {

@@ -8,6 +8,7 @@ import android.provider.CalendarContract.Events
 import android.provider.CalendarContract.Reminders
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
@@ -40,7 +41,10 @@ class AndroidCalendarTest {
         })))
         try {
             val now = Instant.now()
-            assertEquals(0, calendar.sync(calendarName, "this", emptyList(), now).count)
+            val empty = calendar.sync(calendarName, "this", emptyList(), now)
+            assertEquals(0, empty.scheduled)
+            assertEquals(0, empty.added)
+            assertFalse(empty.changed)
             assertTrue(calendarIds(account).isEmpty())
 
             val first = CalendarClass("First class", "Room 101", now.plusSeconds(86_400), now.plusSeconds(90_000))
@@ -70,9 +74,15 @@ class AndroidCalendarTest {
             insertPrevious("Other term", term = "other")
 
             calendar.sync(calendarName, "other", listOf(otherTerm), now)
-            calendar.sync(calendarName, "this", listOf(first), now, previousId)
+            val firstImport = calendar.sync(calendarName, "this", listOf(first), now, previousId)
+            assertEquals(1, firstImport.scheduled)
+            assertEquals(1, firstImport.added)
+            assertTrue(firstImport.changed)
             val rerun = calendar.sync("Different name", "this", listOf(first), now, previousId)
             assertEquals(calendarName, rerun.calendarName)
+            assertEquals(1, rerun.scheduled)
+            assertEquals(0, rerun.added)
+            assertFalse(rerun.changed)
             assertEquals(setOf("Unrelated", "Previous class", "Other term"), events(previousId).map { it.second }.toSet())
 
             val id = calendarIds(account).single()
@@ -94,7 +104,10 @@ class AndroidCalendarTest {
             assertEquals(moved.start.toEpochMilli(), movedEvent.third)
             assertEquals(2, events(id).size)
 
-            calendar.sync(calendarName, "this", listOf(moved), now, reminderMinutes = 30)
+            val newReminder = calendar.sync(calendarName, "this", listOf(moved), now, reminderMinutes = 30)
+            assertEquals(1, newReminder.scheduled)
+            assertEquals(0, newReminder.added)
+            assertTrue(newReminder.changed)
             requireNotNull(resolver.query(
                 Reminders.CONTENT_URI, arrayOf(Reminders.MINUTES),
                 "${Reminders.EVENT_ID} = ?", arrayOf(movedEvent.first.toString()), null,
@@ -136,14 +149,20 @@ class AndroidCalendarTest {
 
             val testCalendar = calendarIds("$testPackage.courses").single()
             val oldEventId = events(testCalendar).single { it.second == course.title }.first
-            assertEquals(1, preview.sync("CourseBlock", "first", listOf(course), now).count)
+            val reused = preview.sync("CourseBlock", "first", listOf(course), now)
+            assertEquals(1, reused.scheduled)
+            assertEquals(0, reused.added)
+            assertFalse(reused.changed)
             assertTrue(calendarIds("$family.courses").isEmpty())
             assertTrue(calendarIds("$previewPackage.courses").isEmpty())
             assertEquals(oldEventId, events(testCalendar).single { it.second == course.title }.first)
 
             oldPreview.sync("CourseBlock", "first", listOf(course), now)
             val previewCalendar = calendarIds("$previewPackage.courses").single()
-            assertEquals(1, preview.sync("CourseBlock", "first", listOf(course), now).count)
+            val deduped = preview.sync("CourseBlock", "first", listOf(course), now)
+            assertEquals(1, deduped.scheduled)
+            assertEquals(0, deduped.added)
+            assertTrue(deduped.changed)
             assertTrue(events(previewCalendar).isEmpty())
             assertEquals(setOf(course.title, otherTerm.title), events(testCalendar).map { it.second }.toSet())
 
