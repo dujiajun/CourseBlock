@@ -118,6 +118,7 @@
     <string name="academic_year_label">%1$d–%2$d</string>
     <string name="edit_term_label">%1$s ▾</string>
     <string name="edit_term_description">%1$s. Edit academic year and term.</string>
+    <string name="courseblock_calendar_name">CourseBlock</string>
     <string name="calendar_preferences">Calendar</string>
     <string name="calendar_reminder_time">Remind before class</string>
     <string name="calendar_minutes_before">%1$d min before</string>

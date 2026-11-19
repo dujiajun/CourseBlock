@@ -30,7 +30,7 @@ internal suspend fun importRemainingCourses(context: Context, manager: CourseMan
     val minutes = preferences.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null)
         ?.toIntOrNull()?.takeIf { it in AndroidCalendar.reminderTimes }
         ?: AndroidCalendar.DEFAULT_REMINDER_MINUTES
-    val calendarName = context.getString(R.string.app_name)
+    val calendarName = context.getString(R.string.courseblock_calendar_name)
 
     return withContext(Dispatchers.IO) {
         try {

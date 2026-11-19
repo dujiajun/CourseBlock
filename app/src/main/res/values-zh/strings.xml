@@ -108,6 +108,7 @@
     <string name="academic_year_label">%1$d–%2$d</string>
     <string name="edit_term_label">%1$s ▾</string>
     <string name="edit_term_description">%1$s，编辑学年和学期</string>
+    <string name="courseblock_calendar_name">交课表</string>
     <string name="calendar_preferences">日历</string>
     <string name="calendar_reminder_time">课前提醒</string>
     <string name="calendar_minutes_before">提前 %1$d 分钟</string>

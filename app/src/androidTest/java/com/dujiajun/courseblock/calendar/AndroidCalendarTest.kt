@@ -118,6 +118,49 @@ class AndroidCalendarTest {
         }
     }
 
+    @Test
+    fun previewSharesTheCalendarWithEarlierTestInstalls() {
+        val family = "${context.packageName}.migration.${UUID.randomUUID()}"
+        val previewPackage = "$family.preview"
+        val testPackage = "$family.verify"
+        val oldTest = AndroidCalendar(resolver, testPackage)
+        val oldPreview = AndroidCalendar(resolver, previewPackage)
+        val preview = AndroidCalendar(resolver, previewPackage, family)
+        val now = Instant.now()
+        val course = CalendarClass("First class", "Room 101", now.plusSeconds(86_400), now.plusSeconds(90_000))
+        val otherTerm = course.copy(title = "Other term")
+        val accounts = listOf(family, previewPackage, testPackage).map { "$it.courses" }
+        try {
+            oldTest.sync("CourseBlock", "first", listOf(course), now)
+            oldTest.sync("CourseBlock", "second", listOf(otherTerm), now)
+
+            val testCalendar = calendarIds("$testPackage.courses").single()
+            val oldEventId = events(testCalendar).single { it.second == course.title }.first
+            assertEquals(1, preview.sync("CourseBlock", "first", listOf(course), now).count)
+            assertTrue(calendarIds("$family.courses").isEmpty())
+            assertTrue(calendarIds("$previewPackage.courses").isEmpty())
+            assertEquals(oldEventId, events(testCalendar).single { it.second == course.title }.first)
+
+            oldPreview.sync("CourseBlock", "first", listOf(course), now)
+            val previewCalendar = calendarIds("$previewPackage.courses").single()
+            assertEquals(1, preview.sync("CourseBlock", "first", listOf(course), now).count)
+            assertTrue(events(previewCalendar).isEmpty())
+            assertEquals(setOf(course.title, otherTerm.title), events(testCalendar).map { it.second }.toSet())
+
+            oldPreview.sync("CourseBlock", "first", listOf(course), now)
+            assertEquals(3, preview.removeImportedCourses())
+            assertEquals(0, preview.removeImportedCourses())
+            assertTrue(events(testCalendar).isEmpty())
+            assertTrue(events(previewCalendar).isEmpty())
+        } finally {
+            accounts.forEach { account ->
+                calendarIds(account).forEach { id ->
+                    resolver.delete(ContentUris.withAppendedId(localCalendars(account), id), null, null)
+                }
+            }
+        }
+    }
+
     private fun localCalendars(account: String) = Calendars.CONTENT_URI.buildUpon()
         .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
         .appendQueryParameter(Calendars.ACCOUNT_NAME, account)
