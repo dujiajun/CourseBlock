@@ -111,12 +111,12 @@
     <string name="calendar_preferences">日历</string>
     <string name="calendar_reminder_time">课前提醒</string>
     <string name="calendar_minutes_before">提前 %1$d 分钟</string>
-    <string name="calendar_reminder_help">添加课程到日历时生效。声音由手机日历的通知设置控制。</string>
-    <string name="calendar_remove_term">移除所选学期的日历课程</string>
-    <string name="calendar_remove_confirm">移除「%1$s」由交课表添加到日历的全部课程？已结束的课也会移除。未上课程可从课表菜单重新添加。</string>
+    <string name="calendar_reminder_next_import">下次添加到日历时生效</string>
+    <string name="calendar_remove_all">移除全部交课表日程</string>
+    <string name="calendar_remove_confirm">移除交课表添加到手机日历的全部课程？</string>
     <string name="calendar_remove">移除</string>
     <string name="calendar_remove_no_permission">请允许访问日历，以便移除已添加的课程。</string>
-    <string name="calendar_remove_empty">所选学期还没有添加到日历的课程。</string>
+    <string name="calendar_remove_empty">手机日历里没有交课表添加的课程。</string>
     <string name="calendar_remove_failed">移除日历课程失败。</string>
     <plurals name="calendar_removed">
         <item quantity="other">已移除 %1$d 次日历课程。</item>

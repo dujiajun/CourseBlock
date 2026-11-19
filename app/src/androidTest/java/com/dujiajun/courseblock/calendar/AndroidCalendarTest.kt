@@ -46,7 +46,12 @@ class AndroidCalendarTest {
             val first = CalendarClass("First class", "Room 101", now.plusSeconds(86_400), now.plusSeconds(90_000))
             val moved = first.copy(start = first.start.plusSeconds(86_400), end = first.end.plusSeconds(86_400))
             val otherTerm = first.copy(title = "Class from another term")
-            fun insertPrevious(title: String, term: String? = null, offset: Long = 0L) {
+            fun insertPrevious(
+                title: String,
+                term: String? = null,
+                offset: Long = 0L,
+                owner: String = testNamespace,
+            ) {
                 requireNotNull(resolver.insert(Events.CONTENT_URI, ContentValues().apply {
                     put(Events.CALENDAR_ID, previousId)
                     put(Events.TITLE, title)
@@ -54,7 +59,7 @@ class AndroidCalendarTest {
                     put(Events.DTEND, first.end.plusSeconds(offset).toEpochMilli())
                     put(Events.EVENT_TIMEZONE, AcademicCalendar.ZONE.id)
                     if (term != null) {
-                        put(Events.CUSTOM_APP_PACKAGE, testNamespace)
+                        put(Events.CUSTOM_APP_PACKAGE, owner)
                         put(Events.CUSTOM_APP_URI, "courseblock://calendar/$term")
                     }
                 }))
@@ -100,10 +105,11 @@ class AndroidCalendarTest {
             }
 
             insertPrevious("Reimported into old calendar", term = "this")
-            assertEquals(3, calendar.removeTerm("this", previousId))
-            assertEquals(0, calendar.removeTerm("this", previousId))
-            assertEquals(listOf(otherTerm.title), events(id).map { it.second })
-            assertEquals(setOf("Unrelated", "Other term"), events(previousId).map { it.second }.toSet())
+            insertPrevious("Other app", term = "this", owner = "$testNamespace.other")
+            assertEquals(5, calendar.removeImportedCourses(previousId))
+            assertEquals(0, calendar.removeImportedCourses(previousId))
+            assertTrue(events(id).isEmpty())
+            assertEquals(setOf("Unrelated", "Other app"), events(previousId).map { it.second }.toSet())
         } finally {
             calendarIds(account).forEach {
                 resolver.delete(ContentUris.withAppendedId(cleanupUri, it), null, null)

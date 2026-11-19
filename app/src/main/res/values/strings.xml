@@ -121,12 +121,12 @@
     <string name="calendar_preferences">Calendar</string>
     <string name="calendar_reminder_time">Remind before class</string>
     <string name="calendar_minutes_before">%1$d min before</string>
-    <string name="calendar_reminder_help">Applies when you add classes to the calendar. Sound follows your phone calendar’s notifications.</string>
-    <string name="calendar_remove_term">Remove calendar classes for this term</string>
-    <string name="calendar_remove_confirm">Remove all classes CourseBlock added to your calendar for %1$s? This includes past classes. You can add upcoming classes again from the timetable menu.</string>
+    <string name="calendar_reminder_next_import">Applies the next time you add courses to the calendar.</string>
+    <string name="calendar_remove_all">Remove all imported calendar events</string>
+    <string name="calendar_remove_confirm">Remove all courses that CourseBlock added to your phone calendar?</string>
     <string name="calendar_remove">Remove</string>
     <string name="calendar_remove_no_permission">Allow calendar access to remove imported classes.</string>
-    <string name="calendar_remove_empty">There are no imported calendar classes for this term.</string>
+    <string name="calendar_remove_empty">CourseBlock has added no courses to your calendar.</string>
     <string name="calendar_remove_failed">Could not remove the imported calendar classes.</string>
     <plurals name="calendar_removed">
         <item quantity="one">Removed %1$d calendar class.</item>

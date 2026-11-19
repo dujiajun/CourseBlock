@@ -107,13 +107,16 @@ class CourseManager private constructor(private val context: Context) {
         if (!preferences.contains(LEGACY_TERM)) {
             preferences.edit().putString(LEGACY_TERM, selection).apply()
         }
-        val matchesLegacy = preferences.getString(LEGACY_TERM, null) == selection
-        courses = if (matchesLegacy) {
-            LitePal.where("termKey = ? OR termKey IS NULL OR termKey = ''", selection)
-                .find(Course::class.java)
+        courses = readCourses(selection)
+    }
+
+    internal fun readCourses(key: String): List<Course> {
+        val filter = if (preferences.getString(LEGACY_TERM, null) == key) {
+            "termKey = ? OR termKey IS NULL OR termKey = ''"
         } else {
-            LitePal.where("termKey = ?", selection).find(Course::class.java)
+            "termKey = ?"
         }
+        return LitePal.where(filter, key).find(Course::class.java)
     }
 
     fun updateCourses(replaceCustom: Boolean, uiHandler: Handler) {

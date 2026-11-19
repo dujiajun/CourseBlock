@@ -20,6 +20,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.dujiajun.courseblock.calendar.AcademicCalendar
 import com.dujiajun.courseblock.calendar.AndroidCalendar
+import com.dujiajun.courseblock.calendar.CalendarImport
+import com.dujiajun.courseblock.calendar.importRemainingCourses
 import com.dujiajun.courseblock.calendar.CourseOccurrences
 import com.dujiajun.courseblock.calendar.DisplayedCourse
 import com.dujiajun.courseblock.calendar.TimetableDates
@@ -32,11 +34,7 @@ import com.zhuangfei.timetable.listener.IWeekView.OnWeekItemClickedListener
 import com.zhuangfei.timetable.listener.OnSlideBuildAdapter
 import com.zhuangfei.timetable.listener.OnSpaceItemClickAdapter
 import com.zhuangfei.timetable.view.WeekView
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.Instant
 import java.time.LocalDate
 
 open class MainActivity : AppCompatActivity() {
@@ -290,59 +288,15 @@ open class MainActivity : AppCompatActivity() {
 
     private fun exportCalendar() {
         if (exporting || courseSync.isBusy) return
-        val term = courseManager.termKey
-        val calendar = courseManager.academicCalendar
-        if (calendar == null) {
-            Toast.makeText(this, R.string.academic_calendar_unavailable, Toast.LENGTH_LONG).show()
-            return
-        }
-        if (!courseManager.hasSyncedTerm()) {
-            Toast.makeText(this, R.string.calendar_sync_first, Toast.LENGTH_LONG).show()
-            return
-        }
-
-        val courses = courseManager.courses
-        val startTimes = courseManager.startTimes
-        val endTimes = courseManager.endTimes
-        val previousCalendar = preferences.getLong(PreferenceKey.LEGACY_CALENDAR_ID, -1L).takeIf { it >= 0 }
-        val reminderMinutes = preferences.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null)
-            ?.toIntOrNull()?.takeIf { it in AndroidCalendar.reminderTimes }
-            ?: AndroidCalendar.DEFAULT_REMINDER_MINUTES
-        val calendarName = getString(R.string.app_name)
         exporting = true
         lifecycleScope.launch {
             try {
-                val occurrences = CourseOccurrences.upcoming(courses, calendar, startTimes, endTimes, Instant.now())
-                val result = when {
-                    !AndroidCalendar.hasPermission(this@MainActivity) && occurrences.isEmpty() -> AndroidCalendar.Synced(0, calendarName)
-                    !AndroidCalendar.hasPermission(this@MainActivity) -> {
-                        calendarPermissions.launch(AndroidCalendar.permissions)
-                        return@launch
-                    }
-                    else -> withContext(Dispatchers.IO) {
-                        AndroidCalendar(contentResolver, packageName)
-                            .sync(calendarName, term, occurrences, Instant.now(), previousCalendar, reminderMinutes)
-                    }
+                when (val result = importRemainingCourses(this@MainActivity, courseManager)) {
+                    is CalendarImport.Message -> Toast.makeText(
+                        this@MainActivity, result.text, Toast.LENGTH_LONG,
+                    ).show()
+                    CalendarImport.PermissionRequired -> calendarPermissions.launch(AndroidCalendar.permissions)
                 }
-                val message = if (result.count == 0) getString(R.string.calendar_no_remaining)
-                else getString(R.string.calendar_synced, result.count, result.calendarName, reminderMinutes)
-                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
-            } catch (invalid: CourseOccurrences.InvalidTiming) {
-                Toast.makeText(
-                    this@MainActivity,
-                    getString(R.string.calendar_invalid_timing, invalid.courseName),
-                    Toast.LENGTH_LONG,
-                ).show()
-            } catch (hidden: AndroidCalendar.HiddenCalendar) {
-                Toast.makeText(
-                    this@MainActivity,
-                    getString(R.string.calendar_hidden, hidden.calendarName),
-                    Toast.LENGTH_LONG,
-                ).show()
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                Toast.makeText(this@MainActivity, R.string.calendar_failed, Toast.LENGTH_LONG).show()
             } finally {
                 exporting = false
             }

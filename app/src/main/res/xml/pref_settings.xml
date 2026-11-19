@@ -17,14 +17,18 @@
             android:title="@string/pref_remove_customized" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/calendar_preferences">
+        <Preference
+            android:key="calendar_add"
+            android:persistent="false"
+            android:title="@string/action_calendar" />
         <ListPreference
             android:key="calendar_reminder_minutes"
             android:defaultValue="15"
             android:title="@string/calendar_reminder_time" />
         <Preference
-            android:key="calendar_remove_term"
+            android:key="calendar_remove_all"
             android:persistent="false"
-            android:title="@string/calendar_remove_term" />
+            android:title="@string/calendar_remove_all" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_style">
         <SwitchPreference

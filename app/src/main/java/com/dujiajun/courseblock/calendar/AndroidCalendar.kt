@@ -78,19 +78,21 @@ internal class AndroidCalendar(private val resolver: ContentResolver, private va
         Synced(desired.size, target?.displayName ?: calendarName)
     }
 
-    fun removeTerm(termKey: String, previousCalendarId: Long? = null): Int = synchronized(writeLock) {
-        val marker = termMarker(termKey)
+    fun removeImportedCourses(previousCalendarId: Long? = null): Int = synchronized(writeLock) {
         val calendarIds = listOfNotNull(findCalendar("")?.id, previousCalendarId).distinct()
         val operations = calendarIds.map { id ->
             ContentProviderOperation.newDelete(Events.CONTENT_URI)
-                .withSelection(managedEvent, managedEventArgs(id, marker))
+                .withSelection(
+                    "$managedInCalendar AND ${Events.CUSTOM_APP_URI} GLOB ?",
+                    arrayOf(id.toString(), packageName, "$TERM_MARKER_PREFIX*"),
+                )
                 .build()
         }
         if (operations.isEmpty()) 0
         else resolver.applyBatch(CalendarContract.AUTHORITY, ArrayList(operations)).sumOf { it.count ?: 0 }
     }
 
-    private fun termMarker(termKey: String) = "courseblock://calendar/$termKey"
+    private fun termMarker(termKey: String) = TERM_MARKER_PREFIX + termKey
 
     private fun findCalendar(fallbackName: String): LocalCalendar? {
         val fields = arrayOf(Calendars._ID, Calendars.VISIBLE, Calendars.CALENDAR_DISPLAY_NAME)
@@ -133,8 +135,8 @@ internal class AndroidCalendar(private val resolver: ContentResolver, private va
                 managedEventArgs(calendarId, marker, now) + eventId.toString())
             .build()
 
-    private val managedEvent = "${Events.CALENDAR_ID} = ? AND ${Events.CUSTOM_APP_PACKAGE} = ? AND " +
-        "${Events.CUSTOM_APP_URI} = ? AND ${Events.DELETED} = 0"
+    private val managedInCalendar = "${Events.CALENDAR_ID} = ? AND ${Events.CUSTOM_APP_PACKAGE} = ? AND ${Events.DELETED} = 0"
+    private val managedEvent = "$managedInCalendar AND ${Events.CUSTOM_APP_URI} = ?"
     private val managedFutureEvent = "$managedEvent AND ${Events.DTSTART} > ?"
 
     private fun managedEventArgs(calendarId: Long, marker: String) = arrayOf(calendarId.toString(), packageName, marker)
@@ -206,6 +208,7 @@ internal class AndroidCalendar(private val resolver: ContentResolver, private va
 
     companion object {
         private const val CALENDAR_NAME = "courseblock-classes"
+        private const val TERM_MARKER_PREFIX = "courseblock://calendar/"
         const val DEFAULT_REMINDER_MINUTES = 15
         val reminderTimes = listOf(5, 10, DEFAULT_REMINDER_MINUTES, 30, 60)
         val permissions = arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
