@@ -27,9 +27,7 @@ internal suspend fun importRemainingCourses(context: Context, manager: CourseMan
     val endTimes = manager.endTimes
     val preferences = PreferenceManager.getDefaultSharedPreferences(context)
     val previousCalendar = preferences.getLong(PreferenceKey.LEGACY_CALENDAR_ID, -1L).takeIf { it >= 0 }
-    val minutes = preferences.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null)
-        ?.toIntOrNull()?.takeIf { it in AndroidCalendar.reminderTimes }
-        ?: AndroidCalendar.DEFAULT_REMINDER_MINUTES
+    val minutes = CalendarReminderTimes.parse(preferences.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null))
     val calendarName = context.getString(R.string.courseblock_calendar_name)
 
     return withContext(Dispatchers.IO) {
@@ -45,7 +43,7 @@ internal suspend fun importRemainingCourses(context: Context, manager: CourseMan
             val result = AndroidCalendar(context.contentResolver, context.packageName)
                 .sync(calendarName, term, occurrences, now, previousCalendar, minutes)
             val message = when {
-                result.added > 0 -> context.getString(R.string.calendar_added, result.added, result.calendarName, minutes)
+                result.added > 0 -> context.getString(R.string.calendar_added, result.added, result.calendarName)
                 result.changed -> context.getString(R.string.calendar_updated)
                 result.scheduled > 0 -> context.getString(R.string.calendar_already_added)
                 else -> context.getString(R.string.calendar_no_remaining)

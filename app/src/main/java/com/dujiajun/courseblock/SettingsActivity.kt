@@ -11,11 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.DropDownPreference
-import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.dujiajun.courseblock.calendar.AndroidCalendar
 import com.dujiajun.courseblock.calendar.CalendarImport
+import com.dujiajun.courseblock.calendar.CalendarReminderTimes
 import com.dujiajun.courseblock.calendar.importRemainingCourses
 import com.dujiajun.courseblock.constant.PreferenceKey
 import com.dujiajun.courseblock.helper.APKVersionInfoUtils.getVersionName
@@ -97,18 +97,20 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         private fun setupCalendarPreferences() {
-            val reminderPreference = findPreference<ListPreference>(PreferenceKey.CALENDAR_REMINDER_MINUTES)!!
-            reminderPreference.entries = AndroidCalendar.reminderTimes
-                .map { getString(R.string.calendar_minutes_before, it) }.toTypedArray()
-            reminderPreference.entryValues = AndroidCalendar.reminderTimes.map(Int::toString).toTypedArray()
-            reminderPreference.summaryProvider = Preference.SummaryProvider<ListPreference> { preference ->
-                preference.entry ?: getString(R.string.calendar_minutes_before, AndroidCalendar.DEFAULT_REMINDER_MINUTES)
+            val reminderPreference = findPreference<Preference>(PreferenceKey.CALENDAR_REMINDER_MINUTES)!!
+            fun updateReminderSummary() {
+                val stored = preferenceManager.sharedPreferences
+                    ?.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null)
+                reminderPreference.summary = CalendarReminderDialog.summary(requireContext(), CalendarReminderTimes.parse(stored))
             }
-            reminderPreference.setOnPreferenceChangeListener { preference, value ->
-                if (value != (preference as ListPreference).value) {
-                    showCalendarMessage(getString(R.string.calendar_reminder_next_import))
-                }
+            updateReminderSummary()
+            reminderPreference.setOnPreferenceClickListener {
+                CalendarReminderDialog.show(parentFragmentManager)
                 true
+            }
+            parentFragmentManager.setFragmentResultListener(CalendarReminderDialog.RESULT_KEY, this) { _, _ ->
+                updateReminderSummary()
+                showCalendarMessage(getString(R.string.calendar_reminder_next_import))
             }
 
             addCalendarPreference = findPreference("calendar_add")!!

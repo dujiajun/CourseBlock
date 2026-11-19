@@ -21,9 +21,9 @@
             android:key="calendar_add"
             android:persistent="false"
             android:title="@string/action_calendar" />
-        <ListPreference
+        <Preference
             android:key="calendar_reminder_minutes"
-            android:defaultValue="15"
+            android:persistent="false"
             android:title="@string/calendar_reminder_time" />
         <Preference
             android:key="calendar_remove_all"

@@ -104,7 +104,7 @@ class AndroidCalendarTest {
             assertEquals(moved.start.toEpochMilli(), movedEvent.third)
             assertEquals(2, events(id).size)
 
-            val newReminder = calendar.sync(calendarName, "this", listOf(moved), now, reminderMinutes = 30)
+            val newReminder = calendar.sync(calendarName, "this", listOf(moved), now, reminderMinutes = setOf(30))
             assertEquals(1, newReminder.scheduled)
             assertEquals(0, newReminder.added)
             assertTrue(newReminder.changed)
@@ -176,6 +176,49 @@ class AndroidCalendarTest {
                 calendarIds(account).forEach { id ->
                     resolver.delete(ContentUris.withAppendedId(localCalendars(account), id), null, null)
                 }
+            }
+        }
+    }
+
+    @Test
+    fun multipleRemindersUpdateInPlaceAndCanBeTurnedOff() {
+        val namespace = "${context.packageName}.reminders.${UUID.randomUUID()}"
+        val calendar = AndroidCalendar(resolver, namespace)
+        val account = "$namespace.courses"
+        val now = Instant.now()
+        val course = CalendarClass("Class", "", now.plusSeconds(86_400), now.plusSeconds(90_000))
+        try {
+            val times = setOf(0, 5, 12, 30, 60)
+            assertEquals(1, calendar.sync("CourseBlock", "this", listOf(course), now, reminderMinutes = times).added)
+            val id = calendarIds(account).single()
+            val eventId = events(id).single().first
+
+            fun alertTimes(): List<Int> = requireNotNull(resolver.query(
+                Reminders.CONTENT_URI, arrayOf(Reminders.MINUTES), "${Reminders.EVENT_ID} = ? AND ${Reminders.METHOD} = ?",
+                arrayOf(eventId.toString(), Reminders.METHOD_ALERT.toString()), Reminders.MINUTES,
+            )).use { cursor ->
+                buildList { while (cursor.moveToNext()) add(cursor.getInt(0)) }
+            }
+
+            assertEquals(times.sorted(), alertTimes())
+            val same = calendar.sync("CourseBlock", "this", listOf(course), now, reminderMinutes = times)
+            assertEquals(0, same.added)
+            assertFalse(same.changed)
+            assertEquals(times.sorted(), alertTimes())
+
+            val changed = calendar.sync("CourseBlock", "this", listOf(course), now, reminderMinutes = setOf(0, 10))
+            assertEquals(0, changed.added)
+            assertTrue(changed.changed)
+            assertEquals(listOf(0, 10), alertTimes())
+
+            val disabled = calendar.sync("CourseBlock", "this", listOf(course), now, reminderMinutes = emptySet())
+            assertEquals(0, disabled.added)
+            assertTrue(disabled.changed)
+            assertTrue(alertTimes().isEmpty())
+            assertEquals(eventId, events(id).single().first)
+        } finally {
+            calendarIds(account).forEach { id ->
+                resolver.delete(ContentUris.withAppendedId(localCalendars(account), id), null, null)
             }
         }
     }

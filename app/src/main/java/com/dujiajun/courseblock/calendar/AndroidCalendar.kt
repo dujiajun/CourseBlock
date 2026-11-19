@@ -40,8 +40,10 @@ internal class AndroidCalendar(
         upcoming: List<CalendarClass>,
         now: Instant,
         previousCalendarId: Long? = null,
-        reminderMinutes: Int = DEFAULT_REMINDER_MINUTES,
+        reminderMinutes: Set<Int> = CalendarReminderTimes.default,
     ): Synced = synchronized(writeLock) {
+        require(reminderMinutes.size <= CalendarReminderTimes.MAX_COUNT &&
+            reminderMinutes.all(CalendarReminderTimes::isAllowed))
         val marker = termMarker(termKey)
         val desired = upcoming.filter { it.start > now }.associateBy { it.identity() }
         val calendars = findCalendars(calendarName)
@@ -67,7 +69,7 @@ internal class AndroidCalendar(
         for ((identity, occurrence) in desired) {
             val eventId = existing[identity]?.firstOrNull()
             if (eventId != null) {
-                ensureReminder(operations, eventId, savedReminders[eventId].orEmpty(), reminderMinutes)
+                syncReminders(operations, eventId, savedReminders[eventId].orEmpty(), reminderMinutes)
                 continue
             }
             val eventIndex = operations.size
@@ -80,12 +82,14 @@ internal class AndroidCalendar(
                 put(Events.EVENT_TIMEZONE, AcademicCalendar.ZONE.id)
                 put(Events.CUSTOM_APP_PACKAGE, packageName)
                 put(Events.CUSTOM_APP_URI, marker)
-                put(Events.HAS_ALARM, 1)
+                put(Events.HAS_ALARM, if (reminderMinutes.isEmpty()) 0 else 1)
             }).build())
-            operations.add(ContentProviderOperation.newInsert(Reminders.CONTENT_URI)
-                .withValueBackReference(Reminders.EVENT_ID, eventIndex)
-                .withValues(reminderValues(reminderMinutes))
-                .build())
+            reminderMinutes.sorted().forEach { minutes ->
+                operations.add(ContentProviderOperation.newInsert(Reminders.CONTENT_URI)
+                    .withValueBackReference(Reminders.EVENT_ID, eventIndex)
+                    .withValues(reminderValues(minutes))
+                    .build())
+            }
         }
         val changed = operations.isNotEmpty() && resolver.applyBatch(CalendarContract.AUTHORITY, operations)
             .any { it.uri != null || (it.count ?: 0) > 0 }
@@ -151,7 +155,7 @@ internal class AndroidCalendar(
             put(Calendars.CALENDAR_TIME_ZONE, AcademicCalendar.ZONE.id)
             put(Calendars.VISIBLE, 1)
             put(Calendars.SYNC_EVENTS, 1)
-            put(Calendars.MAX_REMINDERS, 5)
+            put(Calendars.MAX_REMINDERS, CalendarReminderTimes.MAX_COUNT)
             put(Calendars.ALLOWED_REMINDERS, Reminders.METHOD_ALERT.toString())
         }
         val id = ContentUris.parseId(requireNotNull(resolver.insert(uri, values)))
@@ -210,20 +214,25 @@ internal class AndroidCalendar(
         return result
     }
 
-    private fun ensureReminder(
+    private fun syncReminders(
         operations: MutableList<ContentProviderOperation>,
         event: Long,
         reminders: List<SavedReminder>,
-        reminderMinutes: Int,
+        desired: Set<Int>,
     ) {
-        if (reminders.any { it.minutes == reminderMinutes && it.method == Reminders.METHOD_ALERT }) return
-        val existing = reminders.firstOrNull { it.method == Reminders.METHOD_ALERT }
-        val operation = if (existing == null) {
-            ContentProviderOperation.newInsert(Reminders.CONTENT_URI).withValue(Reminders.EVENT_ID, event)
-        } else {
-            ContentProviderOperation.newUpdate(ContentUris.withAppendedId(Reminders.CONTENT_URI, existing.id))
+        val remaining = desired.toMutableSet()
+        reminders.filter { it.method == Reminders.METHOD_ALERT }.forEach { reminder ->
+            if (!remaining.remove(reminder.minutes)) {
+                operations.add(ContentProviderOperation.newDelete(ContentUris.withAppendedId(Reminders.CONTENT_URI, reminder.id))
+                    .build())
+            }
         }
-        operations.add(operation.withValues(reminderValues(reminderMinutes)).build())
+        remaining.sorted().forEach { minutes ->
+            operations.add(ContentProviderOperation.newInsert(Reminders.CONTENT_URI)
+                .withValue(Reminders.EVENT_ID, event)
+                .withValues(reminderValues(minutes))
+                .build())
+        }
     }
 
     private fun reminderValues(minutes: Int) = ContentValues().apply {
@@ -245,8 +254,6 @@ internal class AndroidCalendar(
 
         private const val CALENDAR_NAME = "courseblock-classes"
         private const val TERM_MARKER_PREFIX = "courseblock://calendar/"
-        const val DEFAULT_REMINDER_MINUTES = 15
-        val reminderTimes = listOf(5, 10, DEFAULT_REMINDER_MINUTES, 30, 60)
         val permissions = arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
 
         fun hasPermission(context: Context) = permissions.all {
