@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.dujiajun.courseblock.helper.CourseManager
 import com.dujiajun.courseblock.model.Course
 import org.litepal.LitePal.find
 import java.util.Arrays
@@ -34,7 +35,7 @@ class CourseActivity : AppCompatActivity() {
     private var step = 0
     private lateinit var dayItems: Array<String>
     private lateinit var endItems: Array<String>
-    private var weekCode = CharArray(Course.MAX_WEEKS)
+    private var weekCode = CharArray(Course.MAX_WEEKS) { '0' }
     private var action = 0
     private var course: Course = Course()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +74,8 @@ class CourseActivity : AppCompatActivity() {
             end = start
             step = 1
             isWeekSelected[week - 1] = true
-            course = Course()
+            weekCode[week - 1] = '1'
+            course = Course().apply { termKey = CourseManager.getInstance(applicationContext).termKey }
         } else if (action == ACTION_DETAIL) {
             course = find(Course::class.java, intent.getIntExtra("course", 0).toLong())
         }
@@ -89,9 +91,9 @@ class CourseActivity : AppCompatActivity() {
             etTeacher.setText(course.teacher)
             etNote.setText(course.note)
             etCourseId.setText(course.courseId)
-            day = course.day
-            start = course.start
-            step = course.step
+            day = course.day.coerceIn(1, 7)
+            start = course.start.coerceIn(1, Course.MAX_STEPS)
+            step = course.step.coerceIn(1, Course.MAX_STEPS - start + 1)
             end = start + step - 1
             weekCode = course.weekCode.toCharArray()
             for (i in weekCode.indices) {
@@ -126,14 +128,15 @@ class CourseActivity : AppCompatActivity() {
     private fun showWeekDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.select_week))
-        builder.setMultiChoiceItems(
-            weekItems,
-            isWeekSelected
-        ) { _: DialogInterface?, which: Int, isChecked: Boolean ->
-            isWeekSelected[which] = isChecked
-            weekCode[which] = if (isChecked) '1' else '0'
+        val selectedWeeks = isWeekSelected.copyOf()
+        builder.setMultiChoiceItems(weekItems, selectedWeeks) { _, which, checked ->
+            selectedWeeks[which] = checked
         }
-        builder.setNeutralButton(R.string.ok) { _: DialogInterface?, _: Int -> refreshTextViewAfterDialog() }
+        builder.setNeutralButton(R.string.ok) { _, _ ->
+            selectedWeeks.copyInto(isWeekSelected)
+            for (index in selectedWeeks.indices) weekCode[index] = if (selectedWeeks[index]) '1' else '0'
+            refreshTextViewAfterDialog()
+        }
         builder.setNegativeButton(getString(R.string.select_all)) { _: DialogInterface?, _: Int ->
             Arrays.fill(isWeekSelected, true)
             Arrays.fill(weekCode, '1')
@@ -148,32 +151,36 @@ class CourseActivity : AppCompatActivity() {
     }
 
     private fun showStartDialog() {
+        var proposedStart = start
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.select_start))
         builder.setSingleChoiceItems(
             startItems,
             start - 1
-        ) { _: DialogInterface?, which: Int -> start = which + 1 }
-        builder.setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
+        ) { _, which -> proposedStart = which + 1 }
+        builder.setPositiveButton(R.string.ok) { _, _ ->
+            start = proposedStart
             tvStart.text = startItems[start - 1]
             endItems = Array(Course.MAX_STEPS - start + 1) { "" }
             for (i in start..Course.MAX_STEPS) endItems[i - start] =
                 String.format(getString(R.string.period), i.toString())
-            if (step - 1 < Course.MAX_STEPS - start) tvEnd.text =
-                endItems[step - 1] else tvEnd.text = endItems[0]
+            step = step.coerceAtMost(endItems.size)
             end = start + step - 1
+            tvEnd.text = endItems[step - 1]
         }
         builder.setNegativeButton(R.string.cancel, null)
         builder.show()
     }
 
     private fun showDayDialog() {
+        var proposedDay = day
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.select_day))
         builder.setSingleChoiceItems(
             dayItems, day - 1
-        ) { _: DialogInterface?, which: Int -> day = which + 1 }
-        builder.setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
+        ) { _, which -> proposedDay = which + 1 }
+        builder.setPositiveButton(R.string.ok) { _, _ ->
+            day = proposedDay
             tvDay.text = dayItems[day - 1]
         }
         builder.setNegativeButton(R.string.cancel, null)
@@ -181,6 +188,7 @@ class CourseActivity : AppCompatActivity() {
     }
 
     private fun showEndDialog() {
+        var proposedEnd = end
         endItems = Array(Course.MAX_STEPS - start + 1) { "" }
         for (i in start..Course.MAX_STEPS)
             endItems[i - start] = String.format(getString(R.string.period), i.toString())
@@ -188,18 +196,17 @@ class CourseActivity : AppCompatActivity() {
         builder.setTitle(getString(R.string.select_end))
         builder.setSingleChoiceItems(
             endItems, step - 1
-        ) { _: DialogInterface?, which: Int ->
-            end = which + start
+        ) { _, which -> proposedEnd = which + start }
+        builder.setPositiveButton(R.string.ok) { _, _ ->
+            end = proposedEnd
             step = end - start + 1
-        }
-        builder.setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
             tvEnd.text = endItems[step - 1]
         }
         builder.setNegativeButton(R.string.cancel, null)
         builder.show()
     }
 
-    private fun checkCourse(insert: Boolean): Boolean {
+    private fun checkCourse(): Boolean {
         if ("" == etCourse.text.toString().trim { it <= ' ' }) {
             Toast.makeText(this, getString(R.string.please_input_name), Toast.LENGTH_SHORT).show()
             return false
@@ -208,22 +215,31 @@ class CourseActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.please_select_weeks), Toast.LENGTH_SHORT).show()
             return false
         }
-        if (end < start) {
+        if (start !in 1..Course.MAX_STEPS || end !in start..Course.MAX_STEPS) {
             Toast.makeText(this, getString(R.string.please_select_period), Toast.LENGTH_SHORT)
                 .show()
             return false
         }
+        val updatedWeeks = String(weekCode)
+        val scheduleChanged = course.day != day || course.start != start ||
+            course.step != end - start + 1 || course.weekCode != updatedWeeks
+        if (scheduleChanged) {
+            course.actualSessions = null
+            course.setToDefault("actualSessions")
+            course.setToDefault("followsAcademicCalendar")
+        } else if (course.isFromServer) {
+            course.followsAcademicCalendar = true
+        }
         course.classId = etClassId.text.toString().trim { it <= ' ' }
         course.courseName = etCourse.text.toString().trim { it <= ' ' }
         course.teacher = etTeacher.text.toString().trim { it <= ' ' }
-        course.weekCode = String(weekCode)
         course.start = start
-        course.step = step
+        course.step = end - start + 1
         course.day = day
         course.location = etLocation.text.toString().trim { it <= ' ' }
         course.note = etNote.text.toString().trim { it <= ' ' }
         course.courseId = etCourseId.text.toString().trim { it <= ' ' }
-        course.weekCode = String(weekCode)
+        course.weekCode = updatedWeeks
         course.setToDefault("isFromServer")
         return course.save()
     }
@@ -257,7 +273,7 @@ class CourseActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_apply) {
             if (action == ACTION_INSERT || action == ACTION_MODIFY) {
-                if (checkCourse(action == ACTION_INSERT)) finish()
+                if (checkCourse()) finish()
             }
         } else if (item.itemId == R.id.action_cancel) {
             action = ACTION_DETAIL

@@ -79,26 +79,74 @@
     <string name="class_id">Class</string>
     <string name="succeed_in_sync">Succeed in Sync</string>
     <string name="not_filled_required">Not filled (Required)</string>
-    <string name="pref_first_monday">First Monday</string>
-    <string name="change_to_monday">Change to Monday. Restart to take effect.</string>
-    <string name="change_to_sunday">Change to Sunday. Restart to take effect.</string>
     <string name="about">About</string>
     <string name="homepage">Homepage</string>
     <string name="no_course">No course</string>
     <string name="following_courses">Courses</string>
     <string name="refresh">refresh</string>
     <string name="widget_update">Widget updated</string>
-    <string name="pref_last_sunday">Last Sunday</string>
 
     <string-array name="pref_status_entries">
         <item>Undergraduate</item>
-        <item>Graduate</item>
+        <item>Full-time graduate</item>
         <item>Medicine</item>
+        <item>Part-time graduate</item>
     </string-array>
 
     <string-array name="pref_status_entry_values">
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </string-array>
+    <string name="action_calendar">Add remaining classes to calendar</string>
+    <string name="display_term">%1$d–%2$d · %3$s</string>
+    <string name="academic_calendar_unavailable">The official dates for this term are unavailable.</string>
+    <string name="graduate_summer_unavailable">The graduate teaching system has no confirmed summer term option.</string>
+    <string name="calendar_sync_first">Sync this term before adding classes to the calendar.</string>
+    <string name="calendar_permission_denied">Allow calendar access to add class reminders and avoid duplicate events.</string>
+    <string name="calendar_no_remaining">There are no remaining classes this term.</string>
+    <string name="calendar_added">Added %1$d upcoming classes to the %2$s calendar.</string>
+    <string name="calendar_already_added">The remaining classes are already in your calendar.</string>
+    <string name="calendar_updated">Updated your calendar courses.</string>
+    <string name="calendar_failed">Could not add classes to the calendar.</string>
+    <string name="display_term_no_dates">%1$s · dates unavailable</string>
+    <string name="calendar_invalid_timing">Check the class periods for %1$s before exporting.</string>
+    <string name="calendar_open_settings">Open settings</string>
+    <string name="calendar_hidden">Show the %1$s calendar in your calendar app and try again.</string>
+    <string name="term_picker_title">Academic year and term</string>
+    <string name="term_use_automatic">Use automatic selection</string>
+    <string name="term_automatic_summary">Automatic · %1$s</string>
+    <string name="academic_year_label">%1$d–%2$d</string>
+    <string name="edit_term_label">%1$s ▾</string>
+    <string name="edit_term_description">%1$s. Edit academic year and term.</string>
+    <string name="courseblock_calendar_name">CourseBlock</string>
+    <string name="calendar_preferences">Calendar</string>
+    <string name="calendar_reminder_time">Remind before class</string>
+    <string name="calendar_minutes_before">%1$d min before</string>
+    <string name="calendar_reminder_at_start">At class time</string>
+    <string name="calendar_minutes_before_list">%1$s min before</string>
+    <string name="calendar_reminder_list_separator">", "</string>
+    <string name="calendar_reminder_off">No reminders</string>
+    <string name="calendar_reminder_custom_hint">Custom time (%1$d–%2$d min)</string>
+    <string name="calendar_reminder_custom_range">Enter a number from %1$d to %2$d.</string>
+    <string name="calendar_reminder_add_custom">Add</string>
+    <string name="calendar_reminder_limit">Choose up to %1$d reminders.</string>
+    <string name="calendar_reminder_saved">Reminder settings saved.</string>
+    <string name="calendar_reminder_pending">Settings saved. Calendar reminders could not be updated.</string>
+    <string name="calendar_reminder_retry">Retry updating calendar reminders</string>
+    <plurals name="calendar_reminders_updated">
+        <item quantity="one">Updated reminders for %1$d class.</item>
+        <item quantity="other">Updated reminders for %1$d classes.</item>
+    </plurals>
+    <string name="calendar_remove_all">Remove all imported calendar events</string>
+    <string name="calendar_remove_confirm">Remove all courses that CourseBlock added to your phone calendar?</string>
+    <string name="calendar_remove">Remove</string>
+    <string name="calendar_remove_no_permission">Allow calendar access to remove imported classes.</string>
+    <string name="calendar_remove_empty">CourseBlock has added no courses to your calendar.</string>
+    <string name="calendar_remove_failed">Could not remove the imported calendar classes.</string>
+    <plurals name="calendar_removed">
+        <item quantity="one">Removed %1$d calendar class.</item>
+        <item quantity="other">Removed %1$d calendar classes.</item>
+    </plurals>
 </resources>

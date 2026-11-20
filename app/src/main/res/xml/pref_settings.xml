@@ -6,25 +6,34 @@
             android:entryValues="@array/pref_status_entry_values"
             android:key="status"
             android:title="@string/pref_status" />
-        <ListPreference
-            android:key="cur_year"
-            android:title="@string/pref_cur_year" />
-        <ListPreference
-            android:entries="@array/pref_term_entries"
-            android:key="cur_term"
-            android:title="@string/pref_cur_term" />
         <Preference
-            android:key="first_monday"
-            android:title="@string/pref_first_monday" />
-        <Preference
-            android:key="last_sunday"
-            android:title="@string/pref_last_sunday" />
+            android:key="study_term"
+            android:title="@string/term_picker_title" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/action_sync">
         <SwitchPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="remove_customized_when_sync"
             android:title="@string/pref_remove_customized" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/calendar_preferences">
+        <Preference
+            android:key="calendar_add"
+            android:persistent="false"
+            android:title="@string/action_calendar" />
+        <Preference
+            android:key="calendar_reminder_minutes"
+            android:persistent="false"
+            android:title="@string/calendar_reminder_time" />
+        <Preference
+            android:key="calendar_retry_reminders"
+            android:persistent="false"
+            android:title="@string/calendar_reminder_retry"
+            android:summary="@string/calendar_reminder_pending" />
+        <Preference
+            android:key="calendar_remove_all"
+            android:persistent="false"
+            android:title="@string/calendar_remove_all" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_style">
         <SwitchPreference
