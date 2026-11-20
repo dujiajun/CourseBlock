@@ -28,6 +28,8 @@ internal suspend fun importRemainingCourses(context: Context, manager: CourseMan
     val preferences = PreferenceManager.getDefaultSharedPreferences(context)
     val previousCalendar = preferences.getLong(PreferenceKey.LEGACY_CALENDAR_ID, -1L).takeIf { it >= 0 }
     val minutes = CalendarReminderTimes.parse(preferences.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null))
+    val legacyMinutes = preferences.getString(PreferenceKey.CALENDAR_LEGACY_REMINDER_MINUTES, null)
+        ?.let(CalendarReminderTimes::parse) ?: minutes
     val calendarName = context.getString(R.string.courseblock_calendar_name)
 
     return withContext(Dispatchers.IO) {
@@ -41,7 +43,7 @@ internal suspend fun importRemainingCourses(context: Context, manager: CourseMan
                 } else CalendarImport.PermissionRequired
             }
             val result = AndroidCalendar(context.contentResolver, context.packageName)
-                .sync(calendarName, term, occurrences, now, previousCalendar, minutes)
+                .sync(calendarName, term, occurrences, now, previousCalendar, minutes, legacyMinutes)
             val message = when {
                 result.added > 0 -> context.getString(R.string.calendar_added, result.added, result.calendarName)
                 result.changed -> context.getString(R.string.calendar_updated)

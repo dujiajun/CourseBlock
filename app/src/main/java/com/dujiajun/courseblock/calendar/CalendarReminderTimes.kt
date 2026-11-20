@@ -20,4 +20,18 @@ internal object CalendarReminderTimes {
     }
 
     fun encode(times: Set<Int>) = times.sorted().joinToString(",")
+
+    private const val EVENT_SUFFIX = "?reminders="
+
+    fun eventMarker(termMarker: String, times: Set<Int>) = termMarker + EVENT_SUFFIX + encode(times)
+
+    fun termFromEvent(marker: String) = marker.substringBefore(EVENT_SUFFIX)
+
+    fun eventPattern(termMarker: String) = "$termMarker[?]reminders=*"
+
+    fun appliedToEvent(marker: String): Set<Int>? {
+        val encoded = marker.substringAfter(EVENT_SUFFIX, missingDelimiterValue = "-")
+        val times = parse(encoded)
+        return times.takeIf { encode(it) == encoded }
+    }
 }

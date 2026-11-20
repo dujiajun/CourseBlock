@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -34,6 +35,7 @@ import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.time.Instant
 
 class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +54,8 @@ class SettingsActivity : AppCompatActivity() {
         private lateinit var statusPreference: DropDownPreference
         private lateinit var addCalendarPreference: Preference
         private lateinit var removeCalendarPreference: Preference
+        private lateinit var reminderPreference: Preference
+        private lateinit var retryRemindersPreference: Preference
         private var calendarRemovalDialog: AlertDialog? = null
 
         private val addCalendarPermissions =
@@ -64,6 +68,12 @@ class SettingsActivity : AppCompatActivity() {
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
                 if (AndroidCalendar.hasPermission(requireContext())) confirmCalendarRemoval()
                 else showCalendarPermissionDenied(R.string.calendar_remove_no_permission)
+            }
+
+        private val updateReminderPermissions =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+                if (AndroidCalendar.hasPermission(requireContext())) updateImportedReminders()
+                else showCalendarPermissionDenied(R.string.calendar_reminder_pending)
             }
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -97,7 +107,14 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         private fun setupCalendarPreferences() {
-            val reminderPreference = findPreference<Preference>(PreferenceKey.CALENDAR_REMINDER_MINUTES)!!
+            reminderPreference = findPreference(PreferenceKey.CALENDAR_REMINDER_MINUTES)!!
+            retryRemindersPreference = findPreference("calendar_retry_reminders")!!
+            showPendingReminders()
+            retryRemindersPreference.setOnPreferenceClickListener {
+                if (AndroidCalendar.hasPermission(requireContext())) updateImportedReminders()
+                else updateReminderPermissions.launch(AndroidCalendar.permissions)
+                true
+            }
             fun updateReminderSummary() {
                 val stored = preferenceManager.sharedPreferences
                     ?.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null)
@@ -110,7 +127,7 @@ class SettingsActivity : AppCompatActivity() {
             }
             parentFragmentManager.setFragmentResultListener(CalendarReminderDialog.RESULT_KEY, this) { _, _ ->
                 updateReminderSummary()
-                showCalendarMessage(getString(R.string.calendar_reminder_next_import))
+                updateImportedReminders()
             }
 
             addCalendarPreference = findPreference("calendar_add")!!
@@ -124,6 +141,46 @@ class SettingsActivity : AppCompatActivity() {
                 if (AndroidCalendar.hasPermission(requireContext())) confirmCalendarRemoval()
                 else removeCalendarPermissions.launch(AndroidCalendar.permissions)
                 true
+            }
+        }
+
+        private fun showPendingReminders() {
+            retryRemindersPreference.isVisible = preferenceManager.sharedPreferences
+                ?.getBoolean(PreferenceKey.CALENDAR_REMINDERS_PENDING, false) == true
+        }
+
+        private fun updateImportedReminders() {
+            val application = requireContext().applicationContext
+            val preferences = requireNotNull(preferenceManager.sharedPreferences)
+            if (!AndroidCalendar.hasPermission(application)) {
+                showPendingReminders()
+                showCalendarMessage(getString(R.string.calendar_reminder_pending))
+                return
+            }
+
+            val minutes = CalendarReminderTimes.parse(preferences.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null))
+            val legacy = CalendarReminderTimes.parse(preferences.getString(PreferenceKey.CALENDAR_LEGACY_REMINDER_MINUTES, null))
+            val previousCalendar = preferences.getLong(PreferenceKey.LEGACY_CALENDAR_ID, -1L).takeIf { it >= 0 }
+            setCalendarActionsEnabled(false)
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    val count = withContext(Dispatchers.IO) {
+                        AndroidCalendar(application.contentResolver, application.packageName)
+                            .updateImportedReminders(Instant.now(), previousCalendar, legacy, minutes)
+                    }
+                    preferences.edit().remove(PreferenceKey.CALENDAR_REMINDERS_PENDING).apply()
+                    val message = if (count == 0) getString(R.string.calendar_reminder_saved)
+                    else resources.getQuantityString(R.plurals.calendar_reminders_updated, count, count)
+                    showCalendarMessage(message)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    Log.w("CourseBlockReminders", "Couldn't update calendar reminders", error)
+                    showCalendarMessage(getString(R.string.calendar_reminder_pending))
+                } finally {
+                    showPendingReminders()
+                    setCalendarActionsEnabled(true)
+                }
             }
         }
 
@@ -187,6 +244,8 @@ class SettingsActivity : AppCompatActivity() {
         private fun setCalendarActionsEnabled(enabled: Boolean) {
             addCalendarPreference.isEnabled = enabled
             removeCalendarPreference.isEnabled = enabled
+            reminderPreference.isEnabled = enabled
+            retryRemindersPreference.isEnabled = enabled
         }
 
         private fun showCalendarPermissionDenied(message: Int) {

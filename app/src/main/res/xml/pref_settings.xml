@@ -26,6 +26,11 @@
             android:persistent="false"
             android:title="@string/calendar_reminder_time" />
         <Preference
+            android:key="calendar_retry_reminders"
+            android:persistent="false"
+            android:title="@string/calendar_reminder_retry"
+            android:summary="@string/calendar_reminder_pending" />
+        <Preference
             android:key="calendar_remove_all"
             android:persistent="false"
             android:title="@string/calendar_remove_all" />

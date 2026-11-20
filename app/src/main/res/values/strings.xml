@@ -132,7 +132,13 @@
     <string name="calendar_reminder_custom_range">Enter a number from %1$d to %2$d.</string>
     <string name="calendar_reminder_add_custom">Add</string>
     <string name="calendar_reminder_limit">Choose up to %1$d reminders.</string>
-    <string name="calendar_reminder_next_import">Applies the next time you add courses to the calendar.</string>
+    <string name="calendar_reminder_saved">Reminder settings saved.</string>
+    <string name="calendar_reminder_pending">Settings saved. Calendar reminders could not be updated.</string>
+    <string name="calendar_reminder_retry">Retry updating calendar reminders</string>
+    <plurals name="calendar_reminders_updated">
+        <item quantity="one">Updated reminders for %1$d class.</item>
+        <item quantity="other">Updated reminders for %1$d classes.</item>
+    </plurals>
     <string name="calendar_remove_all">Remove all imported calendar events</string>
     <string name="calendar_remove_confirm">Remove all courses that CourseBlock added to your phone calendar?</string>
     <string name="calendar_remove">Remove</string>

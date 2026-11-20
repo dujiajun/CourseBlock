@@ -68,12 +68,14 @@ internal class CalendarReminderDialog : DialogFragment() {
             val previous = CalendarReminderTimes.parse(
                 preferences.getString(PreferenceKey.CALENDAR_REMINDER_MINUTES, null),
             )
-            if (selected != previous) {
-                preferences.edit()
-                    .putString(PreferenceKey.CALENDAR_REMINDER_MINUTES, CalendarReminderTimes.encode(selected))
-                    .apply()
-                parentFragmentManager.setFragmentResult(RESULT_KEY, Bundle())
+            val edit = preferences.edit()
+                .putString(PreferenceKey.CALENDAR_REMINDER_MINUTES, CalendarReminderTimes.encode(selected))
+                .putBoolean(PreferenceKey.CALENDAR_REMINDERS_PENDING, true)
+            if (!preferences.contains(PreferenceKey.CALENDAR_LEGACY_REMINDER_MINUTES)) {
+                edit.putString(PreferenceKey.CALENDAR_LEGACY_REMINDER_MINUTES, CalendarReminderTimes.encode(previous))
             }
+            edit.apply()
+            parentFragmentManager.setFragmentResult(RESULT_KEY, Bundle())
             dismiss()
         }
     }

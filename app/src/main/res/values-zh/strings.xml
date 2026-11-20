@@ -122,7 +122,12 @@
     <string name="calendar_reminder_custom_range">请输入 %1$d–%2$d 分钟。</string>
     <string name="calendar_reminder_add_custom">添加</string>
     <string name="calendar_reminder_limit">最多选择 %1$d 次提醒。</string>
-    <string name="calendar_reminder_next_import">下次添加到日历时生效</string>
+    <string name="calendar_reminder_saved">提醒设置已保存。</string>
+    <string name="calendar_reminder_pending">设置已保存，日历提醒未更新。</string>
+    <string name="calendar_reminder_retry">重试更新日历提醒</string>
+    <plurals name="calendar_reminders_updated">
+        <item quantity="other">已更新 %1$d 节课的提醒。</item>
+    </plurals>
     <string name="calendar_remove_all">移除全部交课表日程</string>
     <string name="calendar_remove_confirm">移除交课表添加到手机日历的全部课程？</string>
     <string name="calendar_remove">移除</string>
